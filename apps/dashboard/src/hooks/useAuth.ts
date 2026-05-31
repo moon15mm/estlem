@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Staff } from '@smart-pickup/shared';
+import type { Staff } from '@estlem/shared';
 
 interface AuthStore {
   staff: Staff | null;
@@ -18,15 +18,15 @@ export const useAuth = create<AuthStore>()(
       token: null,
       storeId: null,
       login: (staff, token) => {
-        localStorage.setItem('sp_staff_token', token);
+        localStorage.setItem('estlem_staff_token', token);
         set({ staff, token, storeId: staff.storeId });
       },
       logout: () => {
-        localStorage.removeItem('sp_staff_token');
+        localStorage.removeItem('estlem_staff_token');
         set({ staff: null, token: null, storeId: null });
       },
       isAuthenticated: () => !!get().token,
     }),
-    { name: 'sp-staff-auth' },
+    { name: 'estlem-staff-auth' },
   ),
 );

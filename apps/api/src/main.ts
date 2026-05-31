@@ -18,6 +18,8 @@ async function bootstrap() {
           !origin ||
           allowed.includes(origin) ||
           /\.vercel\.app$/.test(origin) ||
+          /\.estlem\.store$/.test(origin) ||
+          origin === 'https://estlem.store' ||
           /^https?:\/\/localhost(:\d+)?$/.test(origin);
         // Never reject — just disable credentials for unknown origins
         callback(null, ok ? origin : false);
@@ -47,7 +49,7 @@ async function bootstrap() {
 
   const port = configService.get<number>('PORT', 3001);
   await app.listen(port);
-  console.log(`Smart Pickup API running on port ${port}`);
+  console.log(`Estlem API running on port ${port}`);
 }
 
 bootstrap();

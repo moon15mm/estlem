@@ -2,7 +2,7 @@ import {
   Entity, PrimaryGeneratedColumn, Column, CreateDateColumn,
   UpdateDateColumn, OneToMany, Index,
 } from 'typeorm';
-import { Language } from '@smart-pickup/shared';
+import { Language } from '@estlem/shared';
 import { CustomerVehicle } from './customer-vehicle.entity';
 import { Order } from './order.entity';
 

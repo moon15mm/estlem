@@ -1,6 +1,6 @@
 [build]
 builder = "nixpacks"
-buildCommand = "pnpm install && pnpm --filter @smart-pickup/api build"
+buildCommand = "pnpm install && pnpm --filter @estlem/api build"
 
 [deploy]
 startCommand = "node dist/main"

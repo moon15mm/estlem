@@ -1,5 +1,5 @@
 import { IsString, IsOptional, IsEnum, IsNumber, IsBoolean, IsObject } from 'class-validator';
-import { StoreCategory } from '@smart-pickup/shared';
+import { StoreCategory } from '@estlem/shared';
 
 export class CreateStoreDto {
   @IsString() name: string;

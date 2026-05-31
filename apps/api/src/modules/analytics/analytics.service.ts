@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order } from '../../database/entities/order.entity';
 import { OrderItem } from '../../database/entities/order-item.entity';
-import { OrderStatus } from '@smart-pickup/shared';
+import { OrderStatus } from '@estlem/shared';
 
 @Injectable()
 export class AnalyticsService {

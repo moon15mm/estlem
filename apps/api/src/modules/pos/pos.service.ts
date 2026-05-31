@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PosIntegration } from '../../database/entities/pos-integration.entity';
 import { ProductsService } from '../products/products.service';
-import { PosProvider } from '@smart-pickup/shared';
+import { PosProvider } from '@estlem/shared';
 
 // Adapter interface — each POS implements this
 interface PosAdapter {

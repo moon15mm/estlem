@@ -1,4 +1,4 @@
-name: Deploy Smart Pickup
+name: Deploy Estlem
 
 on:
   push:
@@ -27,16 +27,16 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build API
-        run: pnpm --filter @smart-pickup/api build
+        run: pnpm --filter @estlem/api build
 
       - name: Build Web
-        run: pnpm --filter @smart-pickup/web build
+        run: pnpm --filter @estlem/web build
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
           NEXT_PUBLIC_WS_URL: ${{ secrets.NEXT_PUBLIC_WS_URL }}
 
       - name: Build Dashboard
-        run: pnpm --filter @smart-pickup/dashboard build
+        run: pnpm --filter @estlem/dashboard build
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
           NEXT_PUBLIC_WS_URL: ${{ secrets.NEXT_PUBLIC_WS_URL }}
@@ -54,7 +54,7 @@ jobs:
         run: npm install -g @railway/cli
 
       - name: Deploy to Railway
-        run: railway up --service smart-pickup-api
+        run: railway up --service estlem-api
         working-directory: apps/api
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}

@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { onOrderStatusUpdate, joinCustomerRoom } from '@/lib/socket';
 import { formatPrice, formatDate } from '@/lib/utils';
-import { OrderStatus } from '@smart-pickup/shared';
-import type { Order } from '@smart-pickup/shared';
+import { OrderStatus } from '@estlem/shared';
+import type { Order } from '@estlem/shared';
 
 interface Props { params: { id: string } }
 

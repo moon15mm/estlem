@@ -11,14 +11,14 @@ import { CartDrawer } from '@/components/CartDrawer';
 import { CategoryTabs } from '@/components/CategoryTabs';
 import { FreeTextModal } from '@/components/FreeTextModal';
 import { formatPrice } from '@/lib/utils';
-import type { Product, ProductCategory, Store } from '@smart-pickup/shared';
+import type { Product, ProductCategory, Store } from '@estlem/shared';
 
 interface Props { params: { id: string } }
 
 export default function StorePage({ params }: Props) {
   const searchParams = useSearchParams();
   const tenantId = searchParams.get('tenantId') ?? '';
-  const spotNumber = typeof window !== 'undefined' ? sessionStorage.getItem('sp_spot_number') : null;
+  const spotNumber = typeof window !== 'undefined' ? sessionStorage.getItem('estlem_spot_number') : null;
 
   const [store, setStore] = useState<Store | null>(null);
   const [products, setProducts] = useState<Product[]>([]);

@@ -1,5 +1,5 @@
 {
-  "name": "smart-pickup",
+  "name": "estlem",
   "version": "1.0.0",
   "private": true,
   "packageManager": "pnpm@9.0.0",
@@ -13,14 +13,14 @@
   ],
   "scripts": {
     "dev": "pnpm --parallel -r dev",
-    "dev:api": "pnpm --filter @smart-pickup/api dev",
-    "dev:web": "pnpm --filter @smart-pickup/web dev",
-    "dev:dashboard": "pnpm --filter @smart-pickup/dashboard dev",
+    "dev:api": "pnpm --filter @estlem/api dev",
+    "dev:web": "pnpm --filter @estlem/web dev",
+    "dev:dashboard": "pnpm --filter @estlem/dashboard dev",
     "build": "pnpm --parallel -r build",
     "test": "pnpm --parallel -r test",
     "lint": "pnpm --parallel -r lint",
-    "db:migrate": "pnpm --filter @smart-pickup/api migration:run",
-    "db:seed": "pnpm --filter @smart-pickup/api seed:run"
+    "db:migrate": "pnpm --filter @estlem/api migration:run",
+    "db:seed": "pnpm --filter @estlem/api seed:run"
   },
   "devDependencies": {
     "typescript": "^5.4.0"

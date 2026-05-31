@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { Plus, Package } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
-import type { Product } from '@smart-pickup/shared';
+import type { Product } from '@estlem/shared';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

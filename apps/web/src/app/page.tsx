@@ -16,7 +16,7 @@ export default function HomePage() {
         <div className="w-20 h-20 bg-white/15 rounded-3xl flex items-center justify-center mx-auto mb-5 backdrop-blur">
           <Car className="h-10 w-10" />
         </div>
-        <h1 className="text-4xl font-black mb-3">Smart Pickup</h1>
+        <h1 className="text-4xl font-black mb-3">استلم</h1>
         <p className="text-lg text-white/90 mb-2">اطلب من سيارتك دون أن تنزل</p>
         <p className="text-sm text-white/70 max-w-md mx-auto">
           منصة الطلب من السيارة للبقالات والمطاعم والصيدليات ومتاجر التجزئة
@@ -53,7 +53,7 @@ export default function HomePage() {
           <p className="text-xs text-muted-foreground">
             هل أنت صاحب متجر؟{' '}
             <a
-              href="https://2smart-pickup-dashboard.vercel.app/login"
+              href="https://estlem.store/dashboard/login"
               className="text-primary font-bold underline"
             >
               لوحة التحكم

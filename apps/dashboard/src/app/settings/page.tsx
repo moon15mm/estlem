@@ -6,14 +6,14 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { Sidebar } from '@/components/Sidebar';
 import toast from 'react-hot-toast';
-import type { Store, ParkingSpot } from '@smart-pickup/shared';
+import type { Store, ParkingSpot } from '@estlem/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Store as StoreIcon, QrCode, Plus, Copy, Loader2, LogOut } from 'lucide-react';
 
-const WEB_URL = 'https://2smart-pickup-web.vercel.app';
+const WEB_URL = 'https://estlem.store';
 
 export default function SettingsPage() {
   const router = useRouter();

@@ -16,8 +16,8 @@ export default function QrScanPage({ params }: Props) {
       .get(`/stores/qr/${params.qr}`)
       .then((data: { store: { id: string; tenantId: string }; spot: { id: string; spotNumber: string } }) => {
         // Save spot info to session storage
-        sessionStorage.setItem('sp_spot_id', data.spot.id);
-        sessionStorage.setItem('sp_spot_number', data.spot.spotNumber);
+        sessionStorage.setItem('estlem_spot_id', data.spot.id);
+        sessionStorage.setItem('estlem_spot_number', data.spot.spotNumber);
         setStore(data.store.id);
         router.replace(`/store/${data.store.id}?tenantId=${data.store.tenantId}`);
       })

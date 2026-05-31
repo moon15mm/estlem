@@ -5,7 +5,7 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { Sidebar } from '@/components/Sidebar';
 import toast from 'react-hot-toast';
-import type { Product } from '@smart-pickup/shared';
+import type { Product } from '@estlem/shared';
 import { formatPrice } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

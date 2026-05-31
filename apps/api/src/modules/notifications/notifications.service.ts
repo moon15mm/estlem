@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { OrderStatus } from '@smart-pickup/shared';
+import { OrderStatus } from '@estlem/shared';
 import { Order } from '../../database/entities/order.entity';
 import { Customer } from '../../database/entities/customer.entity';
 import { SmsProvider } from './providers/sms.provider';

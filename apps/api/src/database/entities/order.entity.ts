@@ -2,7 +2,7 @@ import {
   Entity, PrimaryGeneratedColumn, Column, ManyToOne,
   OneToMany, JoinColumn, Index, CreateDateColumn, UpdateDateColumn,
 } from 'typeorm';
-import { OrderStatus, OrderType, PaymentMethod, PaymentStatus } from '@smart-pickup/shared';
+import { OrderStatus, OrderType, PaymentMethod, PaymentStatus } from '@estlem/shared';
 import { Store } from './store.entity';
 import { Customer } from './customer.entity';
 import { CustomerVehicle } from './customer-vehicle.entity';

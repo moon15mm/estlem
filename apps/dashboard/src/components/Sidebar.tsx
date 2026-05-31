@@ -37,7 +37,7 @@ export function Sidebar() {
           <Car className="h-5 w-5 text-white" />
         </div>
         <div>
-          <p className="font-black text-white text-sm">Smart Pickup</p>
+          <p className="font-black text-white text-sm">استلم</p>
           <p className="text-white/60 text-xs">{staff?.name ?? 'موظف'}</p>
         </div>
       </div>

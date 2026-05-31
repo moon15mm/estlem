@@ -1,6 +1,6 @@
 @echo off
 echo ========================================
-echo   Smart Pickup - Production Deployment
+echo   Estlem - Production Deployment
 echo ========================================
 echo.
 
@@ -22,7 +22,7 @@ if %errorlevel% neq 0 (
 echo [1/5] تهيئة Git repository...
 git init
 git add .
-git commit -m "feat: initial Smart Pickup platform setup"
+git commit -m "feat: initial Estlem platform setup"
 echo.
 
 echo [2/5] تثبيت Vercel CLI...
@@ -39,10 +39,10 @@ echo ========================================
 echo.
 echo 1. ارفع الكود على GitHub:
 echo    - اذهب لـ https://github.com/new
-echo    - أنشئ repo اسمه: smart-pickup
+echo    - أنشئ repo اسمه: estlem
 echo    - شغّل الأوامر التالية:
 echo.
-echo    git remote add origin https://github.com/USERNAME/smart-pickup.git
+echo    git remote add origin https://github.com/USERNAME/estlem.git
 echo    git branch -M main
 echo    git push -u origin main
 echo.

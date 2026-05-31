@@ -1,6 +1,6 @@
 'use client';
 
-import type { ProductCategory } from '@smart-pickup/shared';
+import type { ProductCategory } from '@estlem/shared';
 import { cn } from '@/lib/utils';
 
 interface Props {

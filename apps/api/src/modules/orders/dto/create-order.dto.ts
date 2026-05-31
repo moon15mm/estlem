@@ -3,7 +3,7 @@ import {
   IsNumber, IsPositive, IsUUID, Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { OrderType, PaymentMethod } from '@smart-pickup/shared';
+import { OrderType, PaymentMethod } from '@estlem/shared';
 
 class VehicleDto {
   @IsString() make: string;

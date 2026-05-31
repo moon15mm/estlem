@@ -4,7 +4,7 @@ const nextConfig = {
   typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },
   images: {
-    domains: ['smart-pickup-media.s3.me-south-1.amazonaws.com', 'via.placeholder.com'],
+    domains: ['estlem-media.s3.me-south-1.amazonaws.com', 'via.placeholder.com'],
   },
 };
 

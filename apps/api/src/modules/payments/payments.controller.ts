@@ -1,6 +1,6 @@
 import { Controller, Post, Body, Param } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
-import { PaymentMethod } from '@smart-pickup/shared';
+import { PaymentMethod } from '@estlem/shared';
 import { IsEnum, IsString, IsUUID } from 'class-validator';
 
 class InitiateDto {

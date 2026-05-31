@@ -1,20 +1,20 @@
-# Smart Pickup — Project Structure
+# Estlem — Project Structure
 
 ```
-smart-pickup/
+estlem/
 ├── package.json                    # pnpm workspace root
 ├── pnpm-workspace.yaml
 ├── docker-compose.yml              # Full stack: postgres, redis, api, web, dashboard
 ├── .env.example                    # All env vars documented
 │
 ├── packages/
-│   └── shared/                     # @smart-pickup/shared
+│   └── shared/                     # @estlem/shared
 │       └── src/
 │           ├── enums.ts            # OrderStatus, PaymentMethod, StaffRole...
 │           └── types/              # Order, Product, Customer, Tenant...
 │
 └── apps/
-    ├── api/                        # @smart-pickup/api — NestJS
+    ├── api/                        # @estlem/api — NestJS
     │   └── src/
     │       ├── main.ts             # Bootstrap: helmet, validation, versioning
     │       ├── app.module.ts       # Root module wiring
@@ -46,7 +46,7 @@ smart-pickup/
     │           ├── pos/            # Adapter pattern: Foodics, CSV, REST
     │           └── realtime/       # Socket.io gateway (store + customer rooms)
     │
-    ├── web/                        # @smart-pickup/web — Customer PWA
+    ├── web/                        # @estlem/web — Customer PWA
     │   └── src/
     │       ├── app/
     │       │   ├── scan/[qr]/      # QR scan → resolve → redirect to store
@@ -64,7 +64,7 @@ smart-pickup/
     │           ├── socket.ts       # Socket.io client helpers
     │           └── utils.ts        # cn(), formatPrice(), formatDate()
     │
-    └── dashboard/                  # @smart-pickup/dashboard — Staff + Owner
+    └── dashboard/                  # @estlem/dashboard — Staff + Owner
         └── src/
             ├── app/
             │   ├── login/          # Staff PIN login

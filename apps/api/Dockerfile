@@ -12,7 +12,7 @@ FROM base AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN pnpm --filter @smart-pickup/api build
+RUN pnpm --filter @estlem/api build
 
 FROM node:20-alpine AS runner
 WORKDIR /app

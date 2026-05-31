@@ -1,5 +1,5 @@
 import { IsString, IsEmail, IsOptional, IsEnum, Length } from 'class-validator';
-import { TenantPlan, StoreCategory } from '@smart-pickup/shared';
+import { TenantPlan, StoreCategory } from '@estlem/shared';
 
 export class RegisterTenantDto {
   @IsString()

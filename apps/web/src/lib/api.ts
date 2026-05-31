@@ -7,7 +7,7 @@ export const api = axios.create({
 
 api.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('sp_access_token');
+    const token = localStorage.getItem('estlem_access_token');
     if (token) config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
@@ -17,7 +17,7 @@ api.interceptors.response.use(
   (res) => res.data?.data ?? res.data,
   async (err) => {
     if (err.response?.status === 401 && typeof window !== 'undefined') {
-      const refreshToken = localStorage.getItem('sp_refresh_token');
+      const refreshToken = localStorage.getItem('estlem_refresh_token');
       if (refreshToken) {
         try {
           const res = await axios.post(
@@ -25,7 +25,7 @@ api.interceptors.response.use(
             { refreshToken },
           );
           const { accessToken } = res.data.data;
-          localStorage.setItem('sp_access_token', accessToken);
+          localStorage.setItem('estlem_access_token', accessToken);
           err.config.headers.Authorization = `Bearer ${accessToken}`;
           return api.request(err.config);
         } catch {

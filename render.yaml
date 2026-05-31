@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: smart-pickup-api
+    name: estlem-api
     runtime: node
     region: oregon
     plan: free

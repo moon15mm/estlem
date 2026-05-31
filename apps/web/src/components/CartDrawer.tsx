@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/hooks/useCart';
 import { formatPrice } from '@/lib/utils';
-import { OrderType, PaymentMethod } from '@smart-pickup/shared';
+import { OrderType, PaymentMethod } from '@estlem/shared';
 import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
 
@@ -39,7 +39,7 @@ export function CartDrawer({ open, onClose, storeId, tenantId }: Props) {
     }
     setLoading(true);
     try {
-      const spotId = sessionStorage.getItem('sp_spot_id');
+      const spotId = sessionStorage.getItem('estlem_spot_id');
       const payload = {
         storeId, tenantId,
         type: OrderType.CATALOG,

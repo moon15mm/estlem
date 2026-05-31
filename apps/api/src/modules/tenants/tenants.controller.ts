@@ -1,7 +1,7 @@
 import { Controller, Post, Get, Put, Patch, Body, Param, UseGuards, Request } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { TenantsService, RegisterTenantDto } from './tenants.service';
-import { TenantPlan, TenantStatus } from '@smart-pickup/shared';
+import { TenantPlan, TenantStatus } from '@estlem/shared';
 
 @Controller('tenants')
 export class TenantsController {

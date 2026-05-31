@@ -4,7 +4,7 @@ import {
   SubscribeMessage, MessageBody, ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { WsEvent } from '@smart-pickup/shared';
+import { WsEvent } from '@estlem/shared';
 
 @WebSocketGateway({
   cors: { origin: '*' },

@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { Payment } from '../../database/entities/payment.entity';
 import { Order } from '../../database/entities/order.entity';
-import { PaymentStatus, PaymentMethod, OrderStatus } from '@smart-pickup/shared';
+import { PaymentStatus, PaymentMethod, OrderStatus } from '@estlem/shared';
 
 @Injectable()
 export class PaymentsService {

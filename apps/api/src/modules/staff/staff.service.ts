@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Staff } from '../../database/entities/staff.entity';
-import { StaffRole } from '@smart-pickup/shared';
+import { StaffRole } from '@estlem/shared';
 import { CreateStaffDto } from './dto/create-staff.dto';
 
 export { CreateStaffDto };

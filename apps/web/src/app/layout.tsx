@@ -18,10 +18,10 @@ const notoKufi = Noto_Kufi_Arabic({
 });
 
 export const metadata: Metadata = {
-  title: 'Smart Pickup | اطلب من سيارتك',
+  title: 'استلم | اطلب من سيارتك',
   description: 'اطلب منتجاتك دون النزول من سيارتك',
   manifest: '/manifest.json',
-  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Smart Pickup' },
+  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'استلم' },
 };
 
 export const viewport: Viewport = {

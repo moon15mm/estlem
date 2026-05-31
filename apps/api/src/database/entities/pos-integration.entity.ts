@@ -2,7 +2,7 @@ import {
   Entity, PrimaryGeneratedColumn, Column, ManyToOne,
   JoinColumn, CreateDateColumn, UpdateDateColumn,
 } from 'typeorm';
-import { PosProvider } from '@smart-pickup/shared';
+import { PosProvider } from '@estlem/shared';
 import { Tenant } from './tenant.entity';
 import { Store } from './store.entity';
 

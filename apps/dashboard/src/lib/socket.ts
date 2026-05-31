@@ -1,5 +1,5 @@
 import { io, Socket } from 'socket.io-client';
-import { WsEvent } from '@smart-pickup/shared';
+import { WsEvent } from '@estlem/shared';
 
 let socket: Socket | null = null;
 

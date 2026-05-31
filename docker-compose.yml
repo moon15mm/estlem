@@ -3,25 +3,25 @@ version: '3.9'
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: sp_postgres
+    container_name: estlem_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-smartpickup}
+      POSTGRES_USER: ${POSTGRES_USER:-estlem}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
-      POSTGRES_DB: ${POSTGRES_DB:-smartpickup}
+      POSTGRES_DB: ${POSTGRES_DB:-estlem}
     ports:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U smartpickup']
+      test: ['CMD-SHELL', 'pg_isready -U estlem']
       interval: 10s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
-    container_name: sp_redis
+    container_name: estlem_redis
     restart: unless-stopped
     command: redis-server --requirepass ${REDIS_PASSWORD:-redissecret}
     ports:
@@ -38,7 +38,7 @@ services:
     build:
       context: ./apps/api
       dockerfile: Dockerfile
-    container_name: sp_api
+    container_name: estlem_api
     restart: unless-stopped
     depends_on:
       postgres:
@@ -47,7 +47,7 @@ services:
         condition: service_healthy
     environment:
       NODE_ENV: development
-      DATABASE_URL: postgresql://${POSTGRES_USER:-smartpickup}:${POSTGRES_PASSWORD:-secret}@postgres:5432/${POSTGRES_DB:-smartpickup}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-estlem}:${POSTGRES_PASSWORD:-secret}@postgres:5432/${POSTGRES_DB:-estlem}
       REDIS_URL: redis://:${REDIS_PASSWORD:-redissecret}@redis:6379
       JWT_SECRET: ${JWT_SECRET:-changeme-jwt-secret}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-changeme-refresh-secret}
@@ -61,7 +61,7 @@ services:
     build:
       context: ./apps/web
       dockerfile: Dockerfile
-    container_name: sp_web
+    container_name: estlem_web
     restart: unless-stopped
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:3001
@@ -73,7 +73,7 @@ services:
     build:
       context: ./apps/dashboard
       dockerfile: Dockerfile
-    container_name: sp_dashboard
+    container_name: estlem_dashboard
     restart: unless-stopped
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:3001

@@ -1,6 +1,6 @@
 {
-  "name": "Smart Pickup",
-  "short_name": "SmartPickup",
+  "name": "استلم",
+  "short_name": "Estlem",
   "description": "اطلب من سيارتك - Order from your car",
   "start_url": "/",
   "display": "standalone",

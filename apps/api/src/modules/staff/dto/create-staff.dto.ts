@@ -1,5 +1,5 @@
 import { IsString, IsEnum, IsOptional, IsUUID, Length } from 'class-validator';
-import { StaffRole } from '@smart-pickup/shared';
+import { StaffRole } from '@estlem/shared';
 
 export class CreateStaffDto {
   @IsString()

@@ -18,7 +18,7 @@ const notoKufi = Noto_Kufi_Arabic({
 });
 
 export const metadata: Metadata = {
-  title: 'Smart Pickup — لوحة التحكم',
+  title: 'استلم — لوحة التحكم',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

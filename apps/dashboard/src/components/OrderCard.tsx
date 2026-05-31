@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, Clock, Car as CarIcon } from 'lucide-react';
-import { OrderStatus } from '@smart-pickup/shared';
-import type { Customer, CustomerVehicle, Order, ParkingSpot } from '@smart-pickup/shared';
+import { OrderStatus } from '@estlem/shared';
+import type { Customer, CustomerVehicle, Order, ParkingSpot } from '@estlem/shared';
 import { formatPrice, formatDate, cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

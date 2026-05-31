@@ -6,7 +6,7 @@ import { Car, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import toast from 'react-hot-toast';
-import type { Staff } from '@smart-pickup/shared';
+import type { Staff } from '@estlem/shared';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,7 +43,7 @@ export default function LoginPage() {
             <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-3">
               <Car className="h-8 w-8 text-white" />
             </div>
-            <h1 className="text-xl font-black text-foreground">Smart Pickup</h1>
+            <h1 className="text-xl font-black text-foreground">استلم</h1>
             <p className="text-muted-foreground text-sm mt-1">دخول الموظفين</p>
           </div>
 

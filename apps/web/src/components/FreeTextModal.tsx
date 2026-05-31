@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
-import { OrderType, PaymentMethod } from '@smart-pickup/shared';
+import { OrderType, PaymentMethod } from '@estlem/shared';
 import { formatPrice } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
@@ -59,7 +59,7 @@ export function FreeTextModal({ open, onClose, storeId, tenantId }: Props) {
     }
     setLoading(true);
     try {
-      const spotId = sessionStorage.getItem('sp_spot_id');
+      const spotId = sessionStorage.getItem('estlem_spot_id');
       const order = await api.post('/orders', {
         storeId, tenantId,
         type: OrderType.FREE_TEXT,

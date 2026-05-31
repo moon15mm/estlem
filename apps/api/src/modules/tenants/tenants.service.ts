@@ -7,7 +7,7 @@ import { Tenant } from '../../database/entities/tenant.entity';
 import { Store } from '../../database/entities/store.entity';
 import { Staff } from '../../database/entities/staff.entity';
 import { Order } from '../../database/entities/order.entity';
-import { TenantPlan, TenantStatus, StaffRole, StoreCategory } from '@smart-pickup/shared';
+import { TenantPlan, TenantStatus, StaffRole, StoreCategory } from '@estlem/shared';
 import { RegisterTenantDto } from './dto/register-tenant.dto';
 
 export { RegisterTenantDto };

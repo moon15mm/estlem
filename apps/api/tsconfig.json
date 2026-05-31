@@ -24,7 +24,7 @@
     "allowJs": true,
     "typeRoots": ["../../node_modules/@types", "./node_modules/@types"],
     "paths": {
-      "@smart-pickup/shared": ["../../packages/shared/dist"]
+      "@estlem/shared": ["../../packages/shared/dist"]
     }
   },
   "include": ["src/**/*"],
