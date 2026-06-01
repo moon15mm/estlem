@@ -1,5 +1,5 @@
 {
-  "name": "@estlem/mobile",
+  "name": "estlem-mobile",
   "version": "1.0.0",
   "main": "expo-router/entry",
   "scripts": {
