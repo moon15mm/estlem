@@ -11,12 +11,15 @@ async function seedAdmin() {
     type: 'postgres',
     url: process.env.DATABASE_URL,
     entities: [SuperAdmin],
+    synchronize: true,
     ssl: process.env.DATABASE_URL?.includes('neon.tech')
       ? { rejectUnauthorized: false }
       : false,
   });
 
   await dataSource.initialize();
+  console.log('Database connected, table synced.');
+
   const repo = dataSource.getRepository(SuperAdmin);
 
   const existing = await repo.findOne({ where: { email } });
@@ -31,6 +34,8 @@ async function seedAdmin() {
   await repo.save(admin);
 
   console.log(`Super admin created: ${email}`);
+  console.log(`Password: ${password}`);
+  console.log('IMPORTANT: Change this password after first login!');
   await dataSource.destroy();
 }
 
