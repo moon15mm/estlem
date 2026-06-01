@@ -40,7 +40,6 @@
       "expo-secure-store",
       "expo-location",
       "expo-camera",
-      "expo-haptics",
       "expo-notifications",
       [
         "expo-splash-screen",
@@ -56,9 +55,9 @@
         "origin": false
       },
       "eas": {
-        "projectId": "a2c40a66-9a39-4af6-ae81-9d829cd71686"
+        "projectId": "5dcc874e-543c-4a82-87e0-d5cd27a10f3d"
       }
     },
-    "owner": "moon15mms-organization"
+    "owner": "estlem"
   }
 }
