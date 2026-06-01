@@ -5,7 +5,7 @@ services:
     region: oregon
     plan: free
     rootDir: .
-    buildCommand: npx --yes pnpm@9 install --no-frozen-lockfile --shamefully-hoist --prod
+    buildCommand: npm i -g pnpm@9.15.4 && pnpm install --no-frozen-lockfile && pnpm --filter @estlem/shared build && pnpm --filter @estlem/api build
     startCommand: node apps/api/dist/main
     healthCheckPath: /api/v1/health
     envVars:
@@ -15,3 +15,19 @@ services:
         value: "10000"
       - key: NODE_VERSION
         value: "20.19.1"
+      - key: FRONTEND_URL
+        value: https://estlem.store
+      - key: DASHBOARD_URL
+        value: https://dashboard.estlem.store
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 15m
+      - key: JWT_REFRESH_EXPIRES_IN
+        value: 30d
