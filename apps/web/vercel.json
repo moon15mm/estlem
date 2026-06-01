@@ -1,4 +1,5 @@
 {
   "framework": "nextjs",
-  "installCommand": "npm i -g pnpm@9.15.4 && pnpm install --no-frozen-lockfile"
+  "installCommand": "npm i -g pnpm@9.15.4 && pnpm install --no-frozen-lockfile",
+  "buildCommand": "NODE_OPTIONS=--experimental-fetch next build"
 }
