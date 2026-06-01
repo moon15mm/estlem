@@ -54,7 +54,11 @@
     "extra": {
       "router": {
         "origin": false
+      },
+      "eas": {
+        "projectId": "a2c40a66-9a39-4af6-ae81-9d829cd71686"
       }
-    }
+    },
+    "owner": "moon15mms-organization"
   }
 }
