@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   ChevronLeft,
   CreditCard,
+  Clock3,
   Mail,
   MoreHorizontal,
   PauseCircle,
@@ -18,8 +19,10 @@ import {
   RefreshCw,
   Search,
   ShieldCheck,
+  ShoppingBag,
   Sparkles,
   Store,
+  TrendingUp,
   User,
   X,
 } from 'lucide-react';
@@ -35,7 +38,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { StoreCategory, TenantPlan, TenantStatus } from '@estlem/shared';
+import { OrderStatus, StoreCategory, TenantPlan, TenantStatus } from '@estlem/shared';
 import { adminApi } from '@/lib/adminApi';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { cn } from '@/lib/utils';
@@ -59,10 +62,27 @@ interface TenantItem {
 interface StatsData {
   tenantsCount: number;
   storesCount: number;
+  activeStoresCount: number;
+  inactiveStoresCount: number;
+  storesWithOrdersCount: number;
   ordersCount: number;
+  ordersToday: number;
+  deliveredOrders: number;
+  cancelledOrders: number;
+  activeOrders: number;
   totalRevenue: number;
+  revenueToday: number;
   statusDistribution: Record<string, number>;
   planDistribution: Record<string, number>;
+  orderStatusDistribution: Record<string, number>;
+  topStores: Array<{
+    id: string;
+    name: string;
+    nameAr?: string;
+    isActive: boolean;
+    orders: number;
+    revenue: number;
+  }>;
 }
 
 type WizardStep = 1 | 2 | 3;
@@ -70,10 +90,20 @@ type WizardStep = 1 | 2 | 3;
 const EMPTY_STATS: StatsData = {
   tenantsCount: 0,
   storesCount: 0,
+  activeStoresCount: 0,
+  inactiveStoresCount: 0,
+  storesWithOrdersCount: 0,
   ordersCount: 0,
+  ordersToday: 0,
+  deliveredOrders: 0,
+  cancelledOrders: 0,
+  activeOrders: 0,
   totalRevenue: 0,
+  revenueToday: 0,
   statusDistribution: {},
   planDistribution: {},
+  orderStatusDistribution: {},
+  topStores: [],
 };
 
 const PLAN_LABELS: Record<TenantPlan, string> = {
@@ -112,6 +142,24 @@ const STATUS_META: Record<
   [TenantStatus.ACTIVE]: { badge: 'success', color: '#16A34A' },
   [TenantStatus.SUSPENDED]: { badge: 'warning', color: '#D97706' },
   [TenantStatus.CANCELLED]: { badge: 'destructive', color: '#DC2626' },
+};
+
+const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
+  [OrderStatus.NEW]: 'جديد',
+  [OrderStatus.ACCEPTED]: 'مقبول',
+  [OrderStatus.PREPARING]: 'قيد التحضير',
+  [OrderStatus.READY]: 'جاهز',
+  [OrderStatus.DELIVERED]: 'مسلّم',
+  [OrderStatus.CANCELLED]: 'ملغي',
+};
+
+const ORDER_STATUS_COLORS: Record<OrderStatus, string> = {
+  [OrderStatus.NEW]: '#2563EB',
+  [OrderStatus.ACCEPTED]: '#0891B2',
+  [OrderStatus.PREPARING]: '#D97706',
+  [OrderStatus.READY]: '#7C3AED',
+  [OrderStatus.DELIVERED]: '#16A34A',
+  [OrderStatus.CANCELLED]: '#DC2626',
 };
 
 const CATEGORY_LABELS: Record<StoreCategory, string> = {
@@ -184,8 +232,8 @@ export default function SuperAdminDashboard() {
         adminApi.get('/tenants/admin/list'),
         adminApi.get('/tenants/admin/stats'),
       ]);
-      setTenants((tenantList as TenantItem[]) ?? []);
-      setStats((statsInfo as StatsData) ?? EMPTY_STATS);
+      setTenants((tenantList as unknown as TenantItem[]) ?? []);
+      setStats((statsInfo as unknown as StatsData) ?? EMPTY_STATS);
     } catch {
       toast.error('تعذر تحميل بيانات لوحة الأدمن');
     } finally {
@@ -235,10 +283,23 @@ export default function SuperAdminDashboard() {
     [stats.statusDistribution],
   );
 
+  const orderChartData = useMemo(
+    () =>
+      Object.entries(stats.orderStatusDistribution).map(([status, value]) => ({
+        name: ORDER_STATUS_LABELS[status as OrderStatus] ?? status,
+        value,
+        color: ORDER_STATUS_COLORS[status as OrderStatus] ?? '#64748B',
+      })),
+    [stats.orderStatusDistribution],
+  );
+
   const activeTenants = stats.statusDistribution[TenantStatus.ACTIVE] ?? 0;
   const trialTenants = stats.statusDistribution[TenantStatus.TRIAL] ?? 0;
   const conversionRate = stats.tenantsCount
     ? Math.round((activeTenants / stats.tenantsCount) * 100)
+    : 0;
+  const storeActivityRate = stats.storesCount
+    ? Math.round((stats.storesWithOrdersCount / stats.storesCount) * 100)
     : 0;
 
   const resetForm = () => {
@@ -317,7 +378,7 @@ export default function SuperAdminDashboard() {
       );
       toast.success('تم تحديث بيانات المنشأة');
       const statsInfo = await adminApi.get('/tenants/admin/stats');
-      setStats((statsInfo as StatsData) ?? EMPTY_STATS);
+      setStats((statsInfo as unknown as StatsData) ?? EMPTY_STATS);
     } catch {
       toast.error('تعذر تحديث بيانات المنشأة');
     }
@@ -409,6 +470,116 @@ export default function SuperAdminDashboard() {
                 icon={CreditCard}
                 tone="amber"
               />
+            </section>
+
+            <section className="grid gap-4 lg:grid-cols-[1fr_1fr]">
+              <Card>
+                <CardHeader className="flex-row items-center justify-between space-y-0">
+                  <div>
+                    <CardTitle>إحصائيات الطلبات</CardTitle>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      متابعة سريعة لحجم الطلبات وحالات التنفيذ الحالية.
+                    </p>
+                  </div>
+                  <ShoppingBag className="h-5 w-5 text-primary" />
+                </CardHeader>
+                <CardContent className="grid gap-4 md:grid-cols-[1fr_220px]">
+                  <div className="h-56">
+                    {orderChartData.length ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={orderChartData} margin={{ top: 8, right: 0, left: -24, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                          <XAxis dataKey="name" tickLine={false} axisLine={false} fontSize={12} />
+                          <YAxis allowDecimals={false} tickLine={false} axisLine={false} fontSize={12} />
+                          <Tooltip cursor={{ fill: '#F1F5F9' }} />
+                          <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+                            {orderChartData.map((item) => (
+                              <Cell key={item.name} fill={item.color} />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <EmptyChart label="لا توجد طلبات حتى الآن" />
+                    )}
+                  </div>
+
+                  <div className="grid content-center gap-2">
+                    <StatRow icon={Clock3} label="طلبات نشطة" value={stats.activeOrders.toLocaleString('ar-SA')} />
+                    <StatRow
+                      icon={CheckCircle2}
+                      label="طلبات مسلّمة"
+                      value={stats.deliveredOrders.toLocaleString('ar-SA')}
+                    />
+                    <StatRow
+                      icon={X}
+                      label="طلبات ملغية"
+                      value={stats.cancelledOrders.toLocaleString('ar-SA')}
+                    />
+                    <StatRow icon={TrendingUp} label="إيراد اليوم" value={formatCurrency(stats.revenueToday)} />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex-row items-center justify-between space-y-0">
+                  <div>
+                    <CardTitle>عمل المحلات</CardTitle>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      نشاط المحلات وعدد المحلات التي استقبلت طلبات.
+                    </p>
+                  </div>
+                  <Store className="h-5 w-5 text-emerald-700" />
+                </CardHeader>
+                <CardContent className="grid gap-4">
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <MiniStat label="محلات تعمل" value={stats.activeStoresCount} tone="emerald" />
+                    <MiniStat label="غير نشطة" value={stats.inactiveStoresCount} tone="amber" />
+                    <MiniStat label="لديها طلبات" value={stats.storesWithOrdersCount} tone="primary" />
+                  </div>
+
+                  <div className="rounded-xl border bg-muted/30 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-bold text-foreground">معدل نشاط المحلات</p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          نسبة المحلات التي استقبلت طلبات من إجمالي المحلات.
+                        </p>
+                      </div>
+                      <b className="text-2xl text-primary">{storeActivityRate.toLocaleString('ar-SA')}%</b>
+                    </div>
+                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-white">
+                      <div
+                        className="h-full rounded-full bg-primary"
+                        style={{ width: `${Math.min(100, storeActivityRate)}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-2">
+                    {stats.topStores.length ? (
+                      stats.topStores.map((store) => (
+                        <div
+                          key={store.id}
+                          className="flex items-center justify-between gap-3 rounded-xl border bg-white px-3 py-2"
+                        >
+                          <div className="min-w-0">
+                            <div className="truncate text-sm font-bold">{store.nameAr || store.name}</div>
+                            <div className="mt-1 text-xs text-muted-foreground">
+                              {store.orders.toLocaleString('ar-SA')} طلب · {formatCurrency(store.revenue)}
+                            </div>
+                          </div>
+                          <Badge variant={store.isActive ? 'success' : 'muted'}>
+                            {store.isActive ? 'يعمل' : 'متوقف'}
+                          </Badge>
+                        </div>
+                      ))
+                    ) : (
+                      <EmptyChart label="لا توجد بيانات نشاط للمحلات حتى الآن" />
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </section>
 
             <section className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
@@ -877,6 +1048,51 @@ function MetricCard({
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function StatRow({
+  label,
+  value,
+  icon: Icon,
+}: {
+  label: string;
+  value: string;
+  icon: typeof Building2;
+}) {
+  return (
+    <div className="flex items-center justify-between rounded-lg border bg-white px-3 py-2">
+      <span className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Icon className="h-4 w-4 text-primary" />
+        {label}
+      </span>
+      <b className="text-sm text-foreground">{value}</b>
+    </div>
+  );
+}
+
+function MiniStat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone: 'primary' | 'emerald' | 'amber';
+}) {
+  const toneClass = {
+    primary: 'bg-primary/10 text-primary',
+    emerald: 'bg-emerald-100 text-emerald-700',
+    amber: 'bg-amber-100 text-amber-700',
+  }[tone];
+
+  return (
+    <div className="rounded-xl border bg-white p-3">
+      <p className="text-xs font-medium text-muted-foreground">{label}</p>
+      <p className={cn('mt-2 inline-flex rounded-lg px-2 py-1 text-lg font-black', toneClass)}>
+        {value.toLocaleString('ar-SA')}
+      </p>
+    </div>
   );
 }
 

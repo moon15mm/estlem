@@ -34,7 +34,7 @@ export default function SettingsPage() {
         api.get(`/stores/${storeId}/parking-spots`),
       ]);
       setStore(s as unknown as Store);
-      setSpots((sp as ParkingSpot[]) ?? []);
+      setSpots((sp as unknown as ParkingSpot[]) ?? []);
     } catch {
       toast.error('فشل تحميل الإعدادات');
     } finally {

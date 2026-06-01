@@ -22,6 +22,7 @@
     "noUnusedParameters": false,
     "noEmitOnError": false,
     "allowJs": true,
+    "types": ["node"],
     "paths": {
       "@estlem/shared": ["../../packages/shared/dist"]
     }

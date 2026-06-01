@@ -7,7 +7,7 @@ import { Tenant } from '../../database/entities/tenant.entity';
 import { Store } from '../../database/entities/store.entity';
 import { Staff } from '../../database/entities/staff.entity';
 import { Order } from '../../database/entities/order.entity';
-import { TenantPlan, TenantStatus, StaffRole, StoreCategory } from '@estlem/shared';
+import { OrderStatus, TenantPlan, TenantStatus, StaffRole, StoreCategory } from '@estlem/shared';
 import { RegisterTenantDto } from './dto/register-tenant.dto';
 
 export { RegisterTenantDto };
@@ -100,17 +100,60 @@ export class TenantsService {
   }
 
   async getAdminStats(): Promise<any> {
-    const tenantsCount = await this.repo.count();
-    const storesCount = await this.storeRepo.count();
-    const ordersCount = await this.orderRepo.count();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const [
+      tenantsCount,
+      storesCount,
+      activeStoresCount,
+      inactiveStoresCount,
+      ordersCount,
+      ordersToday,
+      deliveredOrders,
+      cancelledOrders,
+      activeOrders,
+    ] = await Promise.all([
+      this.repo.count(),
+      this.storeRepo.count(),
+      this.storeRepo.count({ where: { isActive: true } }),
+      this.storeRepo.count({ where: { isActive: false } }),
+      this.orderRepo.count(),
+      this.orderRepo
+        .createQueryBuilder('order')
+        .where('order.createdAt >= :today', { today })
+        .getCount(),
+      this.orderRepo.count({ where: { status: OrderStatus.DELIVERED } }),
+      this.orderRepo.count({ where: { status: OrderStatus.CANCELLED } }),
+      this.orderRepo
+        .createQueryBuilder('order')
+        .where('order.status IN (:...statuses)', {
+          statuses: [
+            OrderStatus.NEW,
+            OrderStatus.ACCEPTED,
+            OrderStatus.PREPARING,
+            OrderStatus.READY,
+          ],
+        })
+        .getCount(),
+    ]);
     
     const revenueResult = await this.orderRepo
       .createQueryBuilder('order')
       .select('SUM(order.total)', 'total')
-      .where('order.status = :status', { status: 'delivered' })
+      .where('order.status = :status', { status: OrderStatus.DELIVERED })
       .getRawOne();
     
     const totalRevenue = parseFloat(revenueResult?.total ?? '0');
+
+    const revenueTodayResult = await this.orderRepo
+      .createQueryBuilder('order')
+      .select('SUM(order.total)', 'total')
+      .where('order.status = :status', { status: OrderStatus.DELIVERED })
+      .andWhere('order.createdAt >= :today', { today })
+      .getRawOne();
+
+    const revenueToday = parseFloat(revenueTodayResult?.total ?? '0');
 
     const statusResult = await this.repo
       .createQueryBuilder('t')
@@ -132,13 +175,67 @@ export class TenantsService {
       return acc;
     }, {} as Record<string, number>);
 
+    const orderStatusResult = await this.orderRepo
+      .createQueryBuilder('order')
+      .select('order.status', 'status')
+      .addSelect('COUNT(order.id)', 'count')
+      .groupBy('order.status')
+      .getRawMany();
+
+    const orderStatusDistribution = orderStatusResult.reduce((acc, r) => {
+      acc[r.status] = parseInt(r.count, 10);
+      return acc;
+    }, {} as Record<string, number>);
+
+    const storesWithOrdersResult = await this.orderRepo
+      .createQueryBuilder('order')
+      .select('COUNT(DISTINCT order.storeId)', 'count')
+      .getRawOne();
+
+    const storesWithOrdersCount = parseInt(storesWithOrdersResult?.count ?? '0', 10);
+
+    const topStores = await this.storeRepo
+      .createQueryBuilder('store')
+      .leftJoin('store.orders', 'order')
+      .select('store.id', 'id')
+      .addSelect('store.name', 'name')
+      .addSelect('store.nameAr', 'nameAr')
+      .addSelect('store.isActive', 'isActive')
+      .addSelect('COUNT(order.id)', 'orders')
+      .addSelect(
+        'COALESCE(SUM(CASE WHEN order.status = :delivered THEN order.total ELSE 0 END), 0)',
+        'revenue',
+      )
+      .setParameter('delivered', OrderStatus.DELIVERED)
+      .groupBy('store.id')
+      .orderBy('COUNT(order.id)', 'DESC')
+      .limit(5)
+      .getRawMany();
+
     return {
       tenantsCount,
       storesCount,
+      activeStoresCount,
+      inactiveStoresCount,
+      storesWithOrdersCount,
       ordersCount,
+      ordersToday,
+      deliveredOrders,
+      cancelledOrders,
+      activeOrders,
       totalRevenue,
+      revenueToday,
       statusDistribution,
       planDistribution,
+      orderStatusDistribution,
+      topStores: topStores.map((store) => ({
+        id: store.id,
+        name: store.name,
+        nameAr: store.nameAr,
+        isActive: store.isActive,
+        orders: parseInt(store.orders ?? '0', 10),
+        revenue: parseFloat(store.revenue ?? '0'),
+      })),
     };
   }
 
