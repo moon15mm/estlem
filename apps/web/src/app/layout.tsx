@@ -1,7 +1,12 @@
 import type { Metadata, Viewport } from 'next';
 import { Noto_Sans_Arabic, Noto_Kufi_Arabic } from 'next/font/google';
 import { Toaster } from 'react-hot-toast';
+import { GeofenceProvider } from '@/components/GeofenceProvider';
 import './globals.css';
+
+function GeofenceProviderWrapper() {
+  return <GeofenceProvider />;
+}
 
 const notoSans = Noto_Sans_Arabic({
   subsets: ['arabic'],
@@ -40,6 +45,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-background font-sans antialiased">
         {children}
         <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
+        {/* @ts-expect-error Async Server Component */}
+        <GeofenceProviderWrapper />
       </body>
     </html>
   );

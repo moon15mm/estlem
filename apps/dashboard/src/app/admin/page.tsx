@@ -36,7 +36,8 @@ import {
   YAxis,
 } from 'recharts';
 import { StoreCategory, TenantPlan, TenantStatus } from '@estlem/shared';
-import { api } from '@/lib/api';
+import { adminApi } from '@/lib/adminApi';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -152,6 +153,17 @@ const formatDate = (value: string) =>
   }).format(new Date(value));
 
 export default function SuperAdminDashboard() {
+  const { admin, token, logout } = useAdminAuth();
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    if (!useAdminAuth.getState().token) {
+      window.location.href = '/admin/login';
+    } else {
+      setAuthChecked(true);
+    }
+  }, []);
+
   const [tenants, setTenants] = useState<TenantItem[]>([]);
   const [stats, setStats] = useState<StatsData>(EMPTY_STATS);
   const [loading, setLoading] = useState(true);
@@ -169,8 +181,8 @@ export default function SuperAdminDashboard() {
 
     try {
       const [tenantList, statsInfo] = await Promise.all([
-        api.get('/tenants/admin/list'),
-        api.get('/tenants/admin/stats'),
+        adminApi.get('/tenants/admin/list'),
+        adminApi.get('/tenants/admin/stats'),
       ]);
       setTenants((tenantList as TenantItem[]) ?? []);
       setStats((statsInfo as StatsData) ?? EMPTY_STATS);
@@ -275,7 +287,7 @@ export default function SuperAdminDashboard() {
 
     setSaving(true);
     try {
-      await api.post('/tenants/register', form);
+      await adminApi.post('/tenants/register', form);
       toast.success('تم تأسيس المنشأة والفرع وحساب المالك');
       closeModal();
       await loadData(true);
@@ -299,17 +311,25 @@ export default function SuperAdminDashboard() {
     updates: { plan?: TenantPlan; status?: TenantStatus },
   ) => {
     try {
-      await api.patch(`/tenants/${tenantId}/admin-update`, updates);
+      await adminApi.patch(`/tenants/${tenantId}/admin-update`, updates);
       setTenants((current) =>
         current.map((tenant) => (tenant.id === tenantId ? { ...tenant, ...updates } : tenant)),
       );
       toast.success('تم تحديث بيانات المنشأة');
-      const statsInfo = await api.get('/tenants/admin/stats');
+      const statsInfo = await adminApi.get('/tenants/admin/stats');
       setStats((statsInfo as StatsData) ?? EMPTY_STATS);
     } catch {
       toast.error('تعذر تحديث بيانات المنشأة');
     }
   };
+
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <RefreshCw className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
@@ -331,6 +351,13 @@ export default function SuperAdminDashboard() {
           </div>
 
           <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              onClick={() => { logout(); window.location.href = '/admin/login'; }}
+              className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              تسجيل خروج
+            </Button>
             <Button
               variant="outline"
               onClick={() => loadData(true)}

@@ -1,4 +1,4 @@
-import { Language, StaffRole } from '../enums';
+import { Language, StaffRole, SystemRole } from '../enums';
 
 export interface Customer {
   id: string;
@@ -27,4 +27,13 @@ export interface Staff {
   mobile: string;
   role: StaffRole;
   isActive: boolean;
+}
+
+export interface SuperAdmin {
+  id: string;
+  email: string;
+  name: string;
+  role: SystemRole;
+  isActive: boolean;
+  lastLoginAt?: string;
 }

@@ -47,6 +47,10 @@ export enum StaffRole {
   CASHIER = 'cashier',
 }
 
+export enum SystemRole {
+  SUPER_ADMIN = 'superadmin',
+}
+
 export enum Language {
   AR = 'ar',
   EN = 'en',

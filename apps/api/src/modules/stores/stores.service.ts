@@ -65,4 +65,40 @@ export class StoresService {
   async findSpotsByStore(storeId: string) {
     return this.spotRepo.find({ where: { storeId, isActive: true }, order: { spotNumber: 'ASC' } });
   }
+
+  async searchByName(query: string, limit = 20): Promise<Store[]> {
+    return this.storeRepo
+      .createQueryBuilder('store')
+      .where('store.isActive = true')
+      .andWhere('(store.name ILIKE :q OR store.nameAr ILIKE :q)', { q: `%${query}%` })
+      .select([
+        'store.id', 'store.name', 'store.nameAr', 'store.category',
+        'store.address', 'store.lat', 'store.lng', 'store.logoUrl',
+        'store.coverUrl', 'store.tenantId',
+      ])
+      .take(limit)
+      .getMany();
+  }
+
+  async findNearby(lat: number, lng: number, radiusKm = 10, limit = 20) {
+    const stores = await this.storeRepo
+      .createQueryBuilder('store')
+      .addSelect(
+        `(6371 * acos(cos(radians(:lat)) * cos(radians(store.lat)) * cos(radians(store.lng) - radians(:lng)) + sin(radians(:lat)) * sin(radians(store.lat))))`,
+        'distance',
+      )
+      .where('store.isActive = true')
+      .andWhere('store.lat IS NOT NULL')
+      .andWhere('store.lng IS NOT NULL')
+      .having('distance < :radius', { radius: radiusKm })
+      .setParameters({ lat, lng })
+      .orderBy('distance', 'ASC')
+      .limit(limit)
+      .getRawAndEntities();
+
+    return stores.entities.map((store, i) => ({
+      ...store,
+      distance: parseFloat(stores.raw[i]?.distance ?? '0'),
+    }));
+  }
 }

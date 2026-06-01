@@ -1,5 +1,5 @@
 import {
-  Controller, Get, Post, Put, Body, Param, UseGuards, Request,
+  Controller, Get, Post, Put, Body, Param, Query, UseGuards, Request,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { StoresService } from './stores.service';
@@ -9,6 +9,32 @@ import { CreateParkingSpotsDto } from './dto/create-parking-spots.dto';
 @Controller('stores')
 export class StoresController {
   constructor(private service: StoresService) {}
+
+  // Public: search stores by name
+  @Get('search')
+  searchByName(
+    @Query('q') query: string,
+    @Query('limit') limit?: string,
+  ) {
+    if (!query || query.length < 2) return [];
+    return this.service.searchByName(query, limit ? parseInt(limit, 10) : 20);
+  }
+
+  // Public: find nearby stores
+  @Get('nearby')
+  findNearby(
+    @Query('lat') lat: string,
+    @Query('lng') lng: string,
+    @Query('radius') radius?: string,
+    @Query('limit') limit?: string,
+  ) {
+    if (!lat || !lng) return [];
+    const radiusKm = Math.min(parseFloat(radius || '10'), 50);
+    return this.service.findNearby(
+      parseFloat(lat), parseFloat(lng), radiusKm,
+      limit ? parseInt(limit, 10) : 20,
+    );
+  }
 
   // Public: resolve QR code
   @Get('qr/:qrCode')

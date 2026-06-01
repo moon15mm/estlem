@@ -1,4 +1,5 @@
-import { Car, QrCode, ShoppingBag, Clock } from 'lucide-react';
+import Link from 'next/link';
+import { Car, QrCode, ShoppingBag, Clock, Search, MapPin } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
 export default function HomePage() {
@@ -23,8 +24,28 @@ export default function HomePage() {
         </p>
       </div>
 
+      {/* Discovery Buttons */}
+      <div className="px-6 -mt-10 pb-4 max-w-2xl mx-auto">
+        <div className="grid grid-cols-2 gap-3">
+          <Link
+            href="/discover"
+            className="flex items-center justify-center gap-2 bg-white shadow-xl rounded-2xl py-4 px-4 text-primary font-bold text-sm hover:shadow-2xl transition-shadow active:scale-[0.98]"
+          >
+            <MapPin className="h-5 w-5 text-accent" />
+            متاجر قريبة
+          </Link>
+          <Link
+            href="/discover?tab=search"
+            className="flex items-center justify-center gap-2 bg-white shadow-xl rounded-2xl py-4 px-4 text-primary font-bold text-sm hover:shadow-2xl transition-shadow active:scale-[0.98]"
+          >
+            <Search className="h-5 w-5 text-accent" />
+            بحث بالاسم
+          </Link>
+        </div>
+      </div>
+
       {/* How it works */}
-      <div className="px-6 -mt-10 pb-10 max-w-2xl mx-auto">
+      <div className="px-6 pb-10 max-w-2xl mx-auto">
         <Card className="shadow-xl border-0">
           <CardContent className="p-6">
             <h2 className="text-center font-bold text-foreground mb-6">كيف تعمل؟</h2>
@@ -53,7 +74,7 @@ export default function HomePage() {
           <p className="text-xs text-muted-foreground">
             هل أنت صاحب متجر؟{' '}
             <a
-              href="https://estlem.store/dashboard/login"
+              href="https://dashboard.estlem.store/login"
               className="text-primary font-bold underline"
             >
               لوحة التحكم

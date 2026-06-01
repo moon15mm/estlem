@@ -6,10 +6,12 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Customer } from '../../database/entities/customer.entity';
 import { Staff } from '../../database/entities/staff.entity';
+import { SuperAdmin } from '../../database/entities/super-admin.entity';
 import { OtpService } from './otp.service';
 import { SendOtpDto } from './dto/send-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { StaffLoginDto } from './dto/staff-login.dto';
+import { AdminLoginDto } from './dto/admin-login.dto';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +20,8 @@ export class AuthService {
     private customerRepo: Repository<Customer>,
     @InjectRepository(Staff)
     private staffRepo: Repository<Staff>,
+    @InjectRepository(SuperAdmin)
+    private superAdminRepo: Repository<SuperAdmin>,
     private jwtService: JwtService,
     private otpService: OtpService,
     private config: ConfigService,
@@ -81,6 +85,30 @@ export class AuthService {
       role: staff.role,
     });
     return { staff, ...tokens };
+  }
+
+  async adminLogin(dto: AdminLoginDto) {
+    const admin = await this.superAdminRepo.findOne({
+      where: { email: dto.email.toLowerCase(), isActive: true },
+    });
+    if (!admin) throw new UnauthorizedException('Invalid credentials');
+
+    const valid = await bcrypt.compare(dto.password, admin.passwordHash);
+    if (!valid) throw new UnauthorizedException('Invalid credentials');
+
+    // Update last login
+    admin.lastLoginAt = new Date();
+    await this.superAdminRepo.save(admin);
+
+    const accessToken = this.jwtService.sign(
+      { sub: admin.id, type: 'superadmin', role: 'superadmin' },
+      { expiresIn: '1h' },
+    );
+
+    return {
+      admin: { id: admin.id, email: admin.email, name: admin.name },
+      accessToken,
+    };
   }
 
   private generateTokens(payload: Record<string, unknown>) {

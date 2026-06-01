@@ -9,6 +9,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { OtpService } from './otp.service';
 import { Customer } from '../../database/entities/customer.entity';
 import { Staff } from '../../database/entities/staff.entity';
+import { SuperAdmin } from '../../database/entities/super-admin.entity';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { Staff } from '../../database/entities/staff.entity';
         signOptions: { expiresIn: config.get('JWT_EXPIRES_IN', '15m') },
       }),
     }),
-    TypeOrmModule.forFeature([Customer, Staff]),
+    TypeOrmModule.forFeature([Customer, Staff, SuperAdmin]),
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, OtpService],
