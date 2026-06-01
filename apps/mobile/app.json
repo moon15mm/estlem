@@ -1,0 +1,60 @@
+{
+  "expo": {
+    "name": "استلم",
+    "slug": "estlem",
+    "version": "1.0.0",
+    "scheme": "estlem",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1B4F72"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1B4F72"
+      },
+      "package": "com.estlem.app",
+      "permissions": [
+        "CAMERA",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "VIBRATE"
+      ]
+    },
+    "ios": {
+      "bundleIdentifier": "com.estlem.app",
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSCameraUsageDescription": "نحتاج الكاميرا لمسح رمز QR",
+        "NSLocationWhenInUseUsageDescription": "نحتاج موقعك لعرض المتاجر القريبة"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-secure-store",
+      "expo-location",
+      "expo-camera",
+      "expo-haptics",
+      "expo-notifications",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#1B4F72",
+          "image": "./assets/splash.png",
+          "imageWidth": 200
+        }
+      ]
+    ],
+    "extra": {
+      "router": {
+        "origin": false
+      }
+    }
+  }
+}

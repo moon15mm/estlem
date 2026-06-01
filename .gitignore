@@ -38,5 +38,6 @@ redis_data/
 
 .vercel
 .env*.local
+SYSTEM-REFERENCE.md
 
 .vercel
