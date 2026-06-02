@@ -1,0 +1,123 @@
+[
+  {
+    "category": "مياه",
+    "categoryEn": "Water",
+    "items": [
+      { "name": "Nova Water 330ml", "nameAr": "مياه نوفا 330 مل", "price": 0.50, "sku": "NOVA-330", "imageUrl": "https://images.openfoodfacts.org/images/products/628/000/011/1126/front_en.3.400.jpg" },
+      { "name": "Nova Water 600ml", "nameAr": "مياه نوفا 600 مل", "price": 1.00, "sku": "NOVA-600", "imageUrl": "https://images.openfoodfacts.org/images/products/628/000/011/1126/front_en.3.400.jpg" },
+      { "name": "Nova Water 1.5L", "nameAr": "مياه نوفا 1.5 لتر", "price": 1.50, "sku": "NOVA-1500", "imageUrl": "https://images.openfoodfacts.org/images/products/628/000/011/1126/front_en.3.400.jpg" },
+      { "name": "Berain Water 330ml", "nameAr": "مياه بيرين 330 مل", "price": 0.50, "sku": "BERAIN-330", "imageUrl": "" },
+      { "name": "Berain Water 600ml", "nameAr": "مياه بيرين 600 مل", "price": 1.00, "sku": "BERAIN-600", "imageUrl": "" },
+      { "name": "Berain Water 1.5L", "nameAr": "مياه بيرين 1.5 لتر", "price": 1.50, "sku": "BERAIN-1500", "imageUrl": "" },
+      { "name": "Hana Water 330ml", "nameAr": "مياه هنا 330 مل", "price": 0.50, "sku": "HANA-330", "imageUrl": "" },
+      { "name": "Hana Water 600ml", "nameAr": "مياه هنا 600 مل", "price": 1.00, "sku": "HANA-600", "imageUrl": "" },
+      { "name": "Al Qassim Water 600ml", "nameAr": "مياه القصيم 600 مل", "price": 0.75, "sku": "QASSIM-600", "imageUrl": "" },
+      { "name": "Evian Water 500ml", "nameAr": "مياه إيفيان 500 مل", "price": 5.00, "sku": "EVIAN-500", "imageUrl": "" }
+    ]
+  },
+  {
+    "category": "مشروبات غازية",
+    "categoryEn": "Soft Drinks",
+    "items": [
+      { "name": "Pepsi 330ml Can", "nameAr": "بيبسي 330 مل علبة", "price": 2.00, "sku": "PEPSI-330", "imageUrl": "" },
+      { "name": "Pepsi 1L", "nameAr": "بيبسي 1 لتر", "price": 4.50, "sku": "PEPSI-1000", "imageUrl": "" },
+      { "name": "Pepsi 2.25L", "nameAr": "بيبسي 2.25 لتر", "price": 6.50, "sku": "PEPSI-2250", "imageUrl": "" },
+      { "name": "Coca Cola 330ml Can", "nameAr": "كوكا كولا 330 مل علبة", "price": 2.00, "sku": "COCA-330", "imageUrl": "" },
+      { "name": "Coca Cola 1L", "nameAr": "كوكا كولا 1 لتر", "price": 4.50, "sku": "COCA-1000", "imageUrl": "" },
+      { "name": "Sprite 330ml Can", "nameAr": "سبرايت 330 مل علبة", "price": 2.00, "sku": "SPRITE-330", "imageUrl": "" },
+      { "name": "Mirinda Orange 330ml", "nameAr": "ميرندا برتقال 330 مل", "price": 2.00, "sku": "MIRINDA-O-330", "imageUrl": "" },
+      { "name": "7UP 330ml Can", "nameAr": "سفن أب 330 مل علبة", "price": 2.00, "sku": "7UP-330", "imageUrl": "" },
+      { "name": "Mountain Dew 330ml", "nameAr": "ماونتن ديو 330 مل", "price": 2.00, "sku": "MTD-330", "imageUrl": "" },
+      { "name": "Shani 330ml", "nameAr": "شاني 330 مل", "price": 2.00, "sku": "SHANI-330", "imageUrl": "" }
+    ]
+  },
+  {
+    "category": "عصائر",
+    "categoryEn": "Juices",
+    "items": [
+      { "name": "Almarai Orange Juice 1L", "nameAr": "عصير المراعي برتقال 1 لتر", "price": 7.50, "sku": "MARAI-OJ-1000", "imageUrl": "" },
+      { "name": "Almarai Apple Juice 1L", "nameAr": "عصير المراعي تفاح 1 لتر", "price": 7.50, "sku": "MARAI-AJ-1000", "imageUrl": "" },
+      { "name": "Almarai Mango Juice 1L", "nameAr": "عصير المراعي مانجو 1 لتر", "price": 7.50, "sku": "MARAI-MJ-1000", "imageUrl": "" },
+      { "name": "Almarai Mixed Fruit 1L", "nameAr": "عصير المراعي فواكه مشكلة 1 لتر", "price": 7.50, "sku": "MARAI-MX-1000", "imageUrl": "" },
+      { "name": "Nadec Orange Juice 1L", "nameAr": "عصير نادك برتقال 1 لتر", "price": 6.50, "sku": "NADEC-OJ-1000", "imageUrl": "" },
+      { "name": "Nadec Apple Juice 1L", "nameAr": "عصير نادك تفاح 1 لتر", "price": 6.50, "sku": "NADEC-AJ-1000", "imageUrl": "" },
+      { "name": "Rani Orange 240ml", "nameAr": "راني برتقال 240 مل", "price": 2.50, "sku": "RANI-O-240", "imageUrl": "" },
+      { "name": "Tang Orange 375g", "nameAr": "تانج برتقال 375 جرام", "price": 8.00, "sku": "TANG-O-375", "imageUrl": "" },
+      { "name": "Vimto 710ml", "nameAr": "فيمتو 710 مل", "price": 9.00, "sku": "VIMTO-710", "imageUrl": "" },
+      { "name": "Sun Top Orange 125ml", "nameAr": "صن توب برتقال 125 مل", "price": 0.75, "sku": "SUNTOP-O-125", "imageUrl": "" }
+    ]
+  },
+  {
+    "category": "حليب وألبان",
+    "categoryEn": "Dairy",
+    "items": [
+      { "name": "Almarai Full Fat Milk 1L", "nameAr": "حليب المراعي كامل الدسم 1 لتر", "price": 6.50, "sku": "MARAI-FM-1000", "imageUrl": "" },
+      { "name": "Almarai Low Fat Milk 1L", "nameAr": "حليب المراعي قليل الدسم 1 لتر", "price": 6.50, "sku": "MARAI-LF-1000", "imageUrl": "" },
+      { "name": "Almarai Laban 1L", "nameAr": "لبن المراعي 1 لتر", "price": 5.00, "sku": "MARAI-LB-1000", "imageUrl": "" },
+      { "name": "Almarai Yogurt 170g", "nameAr": "زبادي المراعي 170 جرام", "price": 1.50, "sku": "MARAI-YG-170", "imageUrl": "" },
+      { "name": "Nadec Full Fat Milk 1L", "nameAr": "حليب نادك كامل الدسم 1 لتر", "price": 5.75, "sku": "NADEC-FM-1000", "imageUrl": "" },
+      { "name": "Nadec Laban 1L", "nameAr": "لبن نادك 1 لتر", "price": 4.50, "sku": "NADEC-LB-1000", "imageUrl": "" },
+      { "name": "Almarai Cheese Slices 200g", "nameAr": "جبن المراعي شرائح 200 جرام", "price": 8.50, "sku": "MARAI-CS-200", "imageUrl": "" },
+      { "name": "Puck Cream Cheese 240g", "nameAr": "جبنة بوك كريمي 240 جرام", "price": 7.00, "sku": "PUCK-CC-240", "imageUrl": "" },
+      { "name": "Kiri Cheese 6 pcs", "nameAr": "جبنة كيري 6 قطع", "price": 6.50, "sku": "KIRI-6", "imageUrl": "" },
+      { "name": "Almarai Cream 200ml", "nameAr": "كريمة المراعي 200 مل", "price": 4.50, "sku": "MARAI-CR-200", "imageUrl": "" }
+    ]
+  },
+  {
+    "category": "خبز ومعجنات",
+    "categoryEn": "Bread & Bakery",
+    "items": [
+      { "name": "Lusine White Bread", "nameAr": "خبز لوزين أبيض", "price": 4.50, "sku": "LUSINE-WB", "imageUrl": "" },
+      { "name": "Lusine Brown Bread", "nameAr": "خبز لوزين بر", "price": 4.50, "sku": "LUSINE-BB", "imageUrl": "" },
+      { "name": "Lusine Sandwich Bread", "nameAr": "خبز لوزين سندويش", "price": 5.00, "sku": "LUSINE-SB", "imageUrl": "" },
+      { "name": "Samoli Bread", "nameAr": "خبز صامولي", "price": 3.00, "sku": "SAMOLI", "imageUrl": "" },
+      { "name": "Arabic Bread Pack", "nameAr": "خبز عربي", "price": 1.50, "sku": "ARABIC-BREAD", "imageUrl": "" },
+      { "name": "Tortilla Wrap 8pcs", "nameAr": "خبز تورتيلا 8 قطع", "price": 7.00, "sku": "TORTILLA-8", "imageUrl": "" }
+    ]
+  },
+  {
+    "category": "سناكات وشيبس",
+    "categoryEn": "Snacks & Chips",
+    "items": [
+      { "name": "Lays Classic 170g", "nameAr": "ليز كلاسيك 170 جرام", "price": 7.50, "sku": "LAYS-C-170", "imageUrl": "" },
+      { "name": "Lays Salt & Vinegar 170g", "nameAr": "ليز ملح وخل 170 جرام", "price": 7.50, "sku": "LAYS-SV-170", "imageUrl": "" },
+      { "name": "Doritos Nacho 180g", "nameAr": "دوريتوس ناتشو 180 جرام", "price": 8.00, "sku": "DORITOS-N-180", "imageUrl": "" },
+      { "name": "Cheetos Crunchy 205g", "nameAr": "شيتوس كرانشي 205 جرام", "price": 8.00, "sku": "CHEETOS-C-205", "imageUrl": "" },
+      { "name": "Pringles Original 165g", "nameAr": "برينجلز أوريجنال 165 جرام", "price": 10.00, "sku": "PRING-O-165", "imageUrl": "" },
+      { "name": "Indomie Noodles Chicken 5pcs", "nameAr": "إندومي دجاج 5 أكياس", "price": 5.50, "sku": "INDO-CH-5", "imageUrl": "" },
+      { "name": "Indomie Noodles Vegetables 5pcs", "nameAr": "إندومي خضار 5 أكياس", "price": 5.50, "sku": "INDO-VG-5", "imageUrl": "" },
+      { "name": "Oreo Cookies 137g", "nameAr": "أوريو بسكويت 137 جرام", "price": 5.00, "sku": "OREO-137", "imageUrl": "" },
+      { "name": "Ulker Biscuits 165g", "nameAr": "بسكويت أولكر 165 جرام", "price": 3.50, "sku": "ULKER-165", "imageUrl": "" },
+      { "name": "Galaxy Chocolate 90g", "nameAr": "شوكولاتة جالكسي 90 جرام", "price": 5.00, "sku": "GALAXY-90", "imageUrl": "" }
+    ]
+  },
+  {
+    "category": "مشروبات طاقة وقهوة",
+    "categoryEn": "Energy & Coffee",
+    "items": [
+      { "name": "Red Bull 250ml", "nameAr": "ريد بول 250 مل", "price": 7.00, "sku": "REDBULL-250", "imageUrl": "" },
+      { "name": "Power Horse 250ml", "nameAr": "باور هورس 250 مل", "price": 4.50, "sku": "PHORSE-250", "imageUrl": "" },
+      { "name": "Code Red 250ml", "nameAr": "كود ريد 250 مل", "price": 4.00, "sku": "CODERED-250", "imageUrl": "" },
+      { "name": "Nescafe Classic 200g", "nameAr": "نسكافيه كلاسيك 200 جرام", "price": 22.00, "sku": "NESCAFE-C-200", "imageUrl": "" },
+      { "name": "Nescafe 3in1 Sachet", "nameAr": "نسكافيه 3 في 1 ظرف", "price": 1.00, "sku": "NESCAFE-3IN1", "imageUrl": "" },
+      { "name": "Lipton Tea 100 bags", "nameAr": "شاي ليبتون 100 كيس", "price": 15.00, "sku": "LIPTON-100", "imageUrl": "" },
+      { "name": "Rabea Tea 100 bags", "nameAr": "شاي ربيع 100 كيس", "price": 10.00, "sku": "RABEA-100", "imageUrl": "" }
+    ]
+  },
+  {
+    "category": "بقالة أساسية",
+    "categoryEn": "Grocery Essentials",
+    "items": [
+      { "name": "Saudia Sugar 1kg", "nameAr": "سكر سعودية 1 كيلو", "price": 4.50, "sku": "SUGAR-1KG", "imageUrl": "" },
+      { "name": "Afia Corn Oil 1.5L", "nameAr": "زيت عافية ذرة 1.5 لتر", "price": 18.00, "sku": "AFIA-CO-1500", "imageUrl": "" },
+      { "name": "Goody Spaghetti 450g", "nameAr": "مكرونة قودي سباغيتي 450 جرام", "price": 3.50, "sku": "GOODY-SP-450", "imageUrl": "" },
+      { "name": "Goody Tomato Paste 135g", "nameAr": "معجون طماطم قودي 135 جرام", "price": 2.50, "sku": "GOODY-TP-135", "imageUrl": "" },
+      { "name": "Al Alali Tuna 170g", "nameAr": "تونة العلالي 170 جرام", "price": 7.50, "sku": "ALALI-TUNA-170", "imageUrl": "" },
+      { "name": "Abu Kass Basmati Rice 5kg", "nameAr": "أرز أبو كأس بسمتي 5 كيلو", "price": 38.00, "sku": "ABUKASS-R-5KG", "imageUrl": "" },
+      { "name": "Heinz Ketchup 570g", "nameAr": "كاتشب هاينز 570 جرام", "price": 12.00, "sku": "HEINZ-K-570", "imageUrl": "" },
+      { "name": "Fairy Dish Soap 750ml", "nameAr": "صابون أطباق فيري 750 مل", "price": 9.00, "sku": "FAIRY-750", "imageUrl": "" },
+      { "name": "Persil Detergent 3kg", "nameAr": "مسحوق غسيل برسيل 3 كيلو", "price": 35.00, "sku": "PERSIL-3KG", "imageUrl": "" },
+      { "name": "Fine Tissues 200 sheets", "nameAr": "مناديل فاين 200 منديل", "price": 5.50, "sku": "FINE-T-200", "imageUrl": "" }
+    ]
+  }
+]
