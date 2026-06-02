@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.WsEvent = exports.PosProvider = exports.NotificationChannel = exports.StoreCategory = exports.Language = exports.StaffRole = exports.TenantStatus = exports.TenantPlan = exports.OrderType = exports.PaymentStatus = exports.PaymentMethod = exports.OrderStatus = void 0;
+exports.WsEvent = exports.PosProvider = exports.NotificationChannel = exports.StoreCategory = exports.Language = exports.SystemRole = exports.StaffRole = exports.TenantStatus = exports.TenantPlan = exports.OrderType = exports.PaymentStatus = exports.PaymentMethod = exports.OrderStatus = void 0;
 var OrderStatus;
 (function (OrderStatus) {
     OrderStatus["NEW"] = "new";
@@ -50,6 +50,10 @@ var StaffRole;
     StaffRole["STAFF"] = "staff";
     StaffRole["CASHIER"] = "cashier";
 })(StaffRole || (exports.StaffRole = StaffRole = {}));
+var SystemRole;
+(function (SystemRole) {
+    SystemRole["SUPER_ADMIN"] = "superadmin";
+})(SystemRole || (exports.SystemRole = SystemRole = {}));
 var Language;
 (function (Language) {
     Language["AR"] = "ar";

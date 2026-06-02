@@ -1,8 +1,8 @@
-import { View, Text, Image, StyleSheet, Pressable } from 'react-native';
-import Animated, { FadeInUp, useAnimatedStyle, useSharedValue, withSpring, withSequence } from 'react-native-reanimated';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeInUp, useAnimatedStyle, useSharedValue, withSequence, withSpring } from '@/lib/animated';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, radius, typography } from '../theme';
+import { colors, radius, spacing, typography } from '../theme';
 import { formatPrice } from '../lib/utils';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -40,7 +40,6 @@ export function ProductCard({ nameAr, price, imageUrl, stock, discountPercent, i
 
   return (
     <Animated.View entering={FadeInUp.delay(index * 60).springify()} style={[styles.card, cardAnim]}>
-      {/* Image */}
       <View style={styles.imageContainer}>
         {imageUrl ? (
           <Image source={{ uri: imageUrl }} style={styles.image} resizeMode="cover" />
@@ -54,18 +53,20 @@ export function ProductCard({ nameAr, price, imageUrl, stock, discountPercent, i
             <Text style={styles.discountText}>-{discountPercent}%</Text>
           </View>
         ) : null}
-        {soldOut && (
+        {soldOut ? (
           <View style={styles.soldOutOverlay}>
-            <Text style={styles.soldOutText}>نفذت الكمية</Text>
+            <Text style={styles.soldOutText}>نفدت الكمية</Text>
           </View>
-        )}
+        ) : null}
       </View>
 
-      {/* Info */}
       <View style={styles.info}>
         <Text style={styles.name} numberOfLines={2}>{nameAr}</Text>
         <View style={styles.priceRow}>
-          <Text style={styles.price}>{formatPrice(price)}</Text>
+          <View>
+            <Text style={styles.priceLabel}>السعر</Text>
+            <Text style={styles.price}>{formatPrice(price)}</Text>
+          </View>
           <AnimatedPressable
             onPress={handleAdd}
             disabled={soldOut}
@@ -88,10 +89,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderLight,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    elevation: 4,
   },
   imageContainer: {
     position: 'relative',
@@ -150,10 +151,15 @@ const styles = StyleSheet.create({
     ...typography.label,
     color: colors.primary,
   },
+  priceLabel: {
+    ...typography.caption,
+    color: colors.textMuted,
+    textAlign: 'right',
+  },
   addBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: radius.md,
+    width: 38,
+    height: 38,
+    borderRadius: radius.full,
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',

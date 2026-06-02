@@ -1,5 +1,5 @@
 import { Pressable, Text, StyleSheet, ViewStyle, ActivityIndicator } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from '@/lib/animated';
 import { colors, radius, spacing, typography } from '../../theme';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);

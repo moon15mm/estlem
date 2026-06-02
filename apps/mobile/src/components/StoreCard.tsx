@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import Animated, { FadeInRight, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated, { FadeInRight, useAnimatedStyle, useSharedValue, withSpring } from '@/lib/animated';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius, typography } from '../theme';
 import { formatDistance, getCategoryLabel } from '../lib/utils';
@@ -35,7 +35,9 @@ export function StoreCard({ nameAr, category, address, distance, index = 0, onPr
         </View>
         <View style={styles.info}>
           <Text style={styles.name}>{nameAr}</Text>
-          <Text style={styles.category}>{getCategoryLabel(category)}</Text>
+          <View style={styles.categoryPill}>
+            <Text style={styles.category}>{getCategoryLabel(category)}</Text>
+          </View>
           {address ? (
             <View style={styles.row}>
               <Ionicons name="location-outline" size={12} color={colors.textMuted} />
@@ -62,23 +64,25 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
     padding: spacing.base,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
     borderWidth: 1,
     borderColor: colors.borderLight,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    elevation: 4,
   },
   icon: {
     width: 52,
     height: 52,
     borderRadius: radius.lg,
-    backgroundColor: `${colors.primary}15`,
+    backgroundColor: `${colors.primary}12`,
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: spacing.md,
+    borderWidth: 1,
+    borderColor: `${colors.primary}18`,
   },
   info: {
     flex: 1,
@@ -90,8 +94,16 @@ const styles = StyleSheet.create({
   },
   category: {
     ...typography.caption,
-    color: colors.textSecondary,
-    marginTop: 2,
+    color: colors.primary,
+    fontFamily: typography.label.fontFamily,
+  },
+  categoryPill: {
+    alignSelf: 'flex-end',
+    borderRadius: radius.full,
+    backgroundColor: `${colors.primary}10`,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    marginTop: spacing.xs,
   },
   row: {
     flexDirection: 'row',

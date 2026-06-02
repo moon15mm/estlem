@@ -16,8 +16,13 @@ import {
 } from '@expo-google-fonts/noto-kufi-arabic';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { colors } from '../src/theme';
+import { useAuth } from '../src/stores/useAuth';
 
 SplashScreen.preventAutoHideAsync();
+
+export const unstable_settings = {
+  initialRouteName: 'login',
+};
 
 // Force RTL
 if (!I18nManager.isRTL) {
@@ -26,6 +31,8 @@ if (!I18nManager.isRTL) {
 }
 
 export default function RootLayout() {
+  const hydrate = useAuth((state) => state.hydrate);
+  const hydrated = useAuth((state) => state.hydrated);
   const [fontsLoaded] = useFonts({
     NotoSansArabic_400Regular,
     NotoSansArabic_500Medium,
@@ -39,7 +46,11 @@ export default function RootLayout() {
     if (fontsLoaded) SplashScreen.hideAsync();
   }, [fontsLoaded]);
 
-  if (!fontsLoaded) return null;
+  useEffect(() => {
+    hydrate();
+  }, [hydrate]);
+
+  if (!fontsLoaded || !hydrated) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -51,7 +62,11 @@ export default function RootLayout() {
           animation: 'slide_from_left',
         }}
       >
+        <Stack.Screen name="login" options={{ animation: 'fade' }} />
+        <Stack.Screen name="admin" options={{ animation: 'slide_from_left' }} />
+        <Stack.Screen name="staff" options={{ animation: 'slide_from_left' }} />
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="cart" options={{ animation: 'slide_from_left' }} />
         <Stack.Screen name="store/[id]" options={{ animation: 'slide_from_left' }} />
         <Stack.Screen name="order/[id]" options={{ animation: 'slide_from_left' }} />
         <Stack.Screen name="scan" options={{ animation: 'fade', presentation: 'fullScreenModal' }} />

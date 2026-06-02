@@ -1,9 +1,10 @@
 import {
   Controller, Post, Get, Patch, Body, Param, Query,
-  UseGuards, Request,
+  UseGuards, Request, BadRequestException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { IsString } from 'class-validator';
+import { IsString, IsUUID } from 'class-validator';
+import { Throttle } from '@nestjs/throttler';
 import { OrdersService } from './orders.service';
 import { AiCartService } from './ai-cart.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -12,7 +13,7 @@ import { TenantGuard } from '../../common/guards/tenant.guard';
 
 class AiParseDto {
   @IsString() rawRequest: string;
-  @IsString() storeId: string;
+  @IsUUID() storeId: string;
 }
 
 @Controller('orders')
@@ -22,25 +23,25 @@ export class OrdersController {
     private aiCart: AiCartService,
   ) {}
 
-  // Public: customer creates order
   @Post()
-  create(@Body() dto: CreateOrderDto) {
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  async create(@Body() dto: CreateOrderDto) {
+    const verified = await this.ordersService.verifyStoreOwnership(dto.storeId, dto.tenantId);
+    if (!verified) throw new BadRequestException('Invalid store or tenant');
     return this.ordersService.create(dto, dto.storeId, dto.tenantId);
   }
 
-  // Public: AI parse shopping list
   @Post('ai-parse')
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   aiParse(@Body() dto: AiParseDto) {
     return this.aiCart.parseShoppingList(dto.rawRequest, dto.storeId);
   }
 
-  // Public: customer tracks order
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.ordersService.findById(id);
   }
 
-  // Staff: list store orders
   @Get('store/:storeId')
   @UseGuards(AuthGuard('jwt'), TenantGuard)
   findByStore(
@@ -51,9 +52,8 @@ export class OrdersController {
     return this.ordersService.findByStore(storeId, req.user.tenantId, query);
   }
 
-  // Staff: update order status
   @Patch(':id/status')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), TenantGuard)
   updateStatus(
     @Param('id') id: string,
     @Body() dto: UpdateOrderStatusDto,

@@ -14,13 +14,13 @@ async function bootstrap() {
           process.env.FRONTEND_URL,
           process.env.DASHBOARD_URL,
         ].filter(Boolean);
+        const isLocal = /^https?:\/\/localhost(:\d+)?$/.test(origin);
         const ok =
           !origin ||
           allowed.includes(origin) ||
-          /\.vercel\.app$/.test(origin) ||
           /\.estlem\.store$/.test(origin) ||
           origin === 'https://estlem.store' ||
-          /^https?:\/\/localhost(:\d+)?$/.test(origin);
+          (process.env.NODE_ENV !== 'production' && isLocal);
         // Never reject — just disable credentials for unknown origins
         callback(null, ok ? origin : false);
       },

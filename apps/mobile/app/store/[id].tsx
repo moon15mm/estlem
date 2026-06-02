@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Pressable, ActivityIndicator } from 'react-native';
-import Animated, { FadeInDown, FadeInUp, SlideInDown } from 'react-native-reanimated';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeInDown, FadeInUp, SlideInDown } from '@/lib/animated';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -8,24 +8,43 @@ import { api } from '../../src/lib/api';
 import { ProductCard } from '../../src/components/ProductCard';
 import { useCart } from '../../src/stores/useCart';
 import { formatPrice, getCategoryLabel } from '../../src/lib/utils';
-import { colors, spacing, radius, typography } from '../../src/theme';
+import { colors, radius, spacing, typography } from '../../src/theme';
 
 interface Product {
-  id: string; name: string; nameAr: string; price: number;
-  imageUrl?: string; stock: number; discountPercent?: number;
-  categoryId: string;
+  id: string;
+  name: string;
+  nameAr: string;
+  price: number | string;
+  salePrice?: number | string | null;
+  imageUrl?: string;
+  stock?: number;
+  stockQuantity?: number;
+  discountPercent?: number;
+  categoryId?: string | null;
 }
 
 interface Store {
-  id: string; name: string; nameAr: string; category: string; address?: string;
+  id: string;
+  name: string;
+  nameAr: string;
+  category: string;
+  address?: string;
 }
 
 interface Category {
-  id: string; name: string; nameAr: string;
+  id: string;
+  name: string;
+  nameAr: string;
 }
 
+type ProductsResponse = {
+  items?: Product[];
+  products?: Product[];
+  categories?: Category[];
+};
+
 export default function StoreScreen() {
-  const { id, tenantId } = useLocalSearchParams<{ id: string; tenantId: string }>();
+  const { id, tenantId, spotId } = useLocalSearchParams<{ id: string; tenantId: string; spotId?: string }>();
   const router = useRouter();
   const { addItem, itemCount, total, setStore } = useCart();
 
@@ -34,32 +53,38 @@ export default function StoreScreen() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id || !tenantId) return;
-    setStore(id, tenantId);
+    setStore(id, tenantId, spotId ?? null);
+    setLoading(true);
+    setError(null);
 
     Promise.all([
       api.get(`/stores/${id}`),
       api.get(`/products/store/${id}?tenantId=${tenantId}`),
-    ]).then(([s, p]) => {
-      setStoreData(s as Store);
-      const prods = (p as { products: Product[]; categories: Category[] });
-      setProducts(prods.products ?? []);
-      setCategories(prods.categories ?? []);
+      api.get(`/products/store/${id}/categories?tenantId=${tenantId}`),
+    ]).then(([storeData, productData, categoryData]) => {
+      const catalog = productData as ProductsResponse;
+      setStoreData(storeData as unknown as Store);
+      setProducts(catalog.items ?? catalog.products ?? []);
+      setCategories(Array.isArray(categoryData) ? categoryData as Category[] : catalog.categories ?? []);
+    }).catch(() => {
+      setError('تعذر تحميل منتجات المتجر');
     }).finally(() => setLoading(false));
-  }, [id, tenantId]);
+  }, [id, tenantId, spotId, setStore]);
 
   const filtered = activeCategory
-    ? products.filter((p) => p.categoryId === activeCategory)
+    ? products.filter((product) => product.categoryId === activeCategory)
     : products;
 
   const handleAdd = useCallback((product: Product) => {
     addItem({
       productId: product.id,
       name: product.name,
-      nameAr: product.nameAr,
-      price: product.price,
+      nameAr: product.nameAr || product.name,
+      price: Number(product.salePrice ?? product.price),
       imageUrl: product.imageUrl,
     });
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -77,19 +102,17 @@ export default function StoreScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="arrow-forward" size={24} color="#fff" />
         </Pressable>
         <View style={styles.headerInfo}>
-          <Text style={styles.storeName}>{store?.nameAr}</Text>
+          <Text style={styles.storeName}>{store?.nameAr || store?.name || 'المتجر'}</Text>
           <Text style={styles.storeCategory}>{getCategoryLabel(store?.category ?? '')}</Text>
         </View>
       </Animated.View>
 
-      {/* Category Tabs */}
-      {categories.length > 0 && (
+      {categories.length > 0 ? (
         <Animated.ScrollView
           entering={FadeInUp.delay(200)}
           horizontal
@@ -103,21 +126,20 @@ export default function StoreScreen() {
           >
             <Text style={[styles.categoryChipText, !activeCategory && styles.categoryChipTextActive]}>الكل</Text>
           </Pressable>
-          {categories.map((cat) => (
+          {categories.map((category) => (
             <Pressable
-              key={cat.id}
-              onPress={() => setActiveCategory(cat.id)}
-              style={[styles.categoryChip, activeCategory === cat.id && styles.categoryChipActive]}
+              key={category.id}
+              onPress={() => setActiveCategory(category.id)}
+              style={[styles.categoryChip, activeCategory === category.id && styles.categoryChipActive]}
             >
-              <Text style={[styles.categoryChipText, activeCategory === cat.id && styles.categoryChipTextActive]}>
-                {cat.nameAr}
+              <Text style={[styles.categoryChipText, activeCategory === category.id && styles.categoryChipTextActive]}>
+                {category.nameAr || category.name}
               </Text>
             </Pressable>
           ))}
         </Animated.ScrollView>
-      )}
+      ) : null}
 
-      {/* Products Grid */}
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id}
@@ -129,10 +151,10 @@ export default function StoreScreen() {
           <View style={styles.gridItem}>
             <ProductCard
               id={item.id}
-              nameAr={item.nameAr}
-              price={item.price}
+              nameAr={item.nameAr || item.name}
+              price={Number(item.salePrice ?? item.price)}
               imageUrl={item.imageUrl}
-              stock={item.stock}
+              stock={item.stock ?? item.stockQuantity ?? 0}
               discountPercent={item.discountPercent}
               index={index}
               onAdd={() => handleAdd(item)}
@@ -142,13 +164,12 @@ export default function StoreScreen() {
         ListEmptyComponent={
           <View style={styles.empty}>
             <Ionicons name="cube-outline" size={48} color={colors.textMuted} />
-            <Text style={styles.emptyText}>لا توجد منتجات</Text>
+            <Text style={styles.emptyText}>{error ?? 'لا توجد منتجات'}</Text>
           </View>
         }
       />
 
-      {/* Cart Bar */}
-      {count > 0 && (
+      {count > 0 ? (
         <Animated.View entering={SlideInDown.springify()} style={styles.cartBar}>
           <View style={styles.cartInfo}>
             <View style={styles.cartBadge}>
@@ -156,12 +177,12 @@ export default function StoreScreen() {
             </View>
             <Text style={styles.cartTotal}>{formatPrice(total())}</Text>
           </View>
-          <Pressable style={styles.cartBtn} onPress={() => { /* TODO: navigate to checkout */ }}>
+          <Pressable style={styles.cartBtn} onPress={() => router.push('/cart')}>
             <Text style={styles.cartBtnText}>عرض السلة</Text>
             <Ionicons name="cart" size={20} color="#fff" />
           </Pressable>
         </Animated.View>
-      )}
+      ) : null}
     </View>
   );
 }
@@ -181,8 +202,8 @@ const styles = StyleSheet.create({
   },
   backBtn: { padding: spacing.sm },
   headerInfo: { flex: 1, marginHorizontal: spacing.md },
-  storeName: { ...typography.h3, color: '#fff' },
-  storeCategory: { ...typography.caption, color: 'rgba(255,255,255,0.7)', marginTop: 2 },
+  storeName: { ...typography.h3, color: '#fff', textAlign: 'right' },
+  storeCategory: { ...typography.caption, color: 'rgba(255,255,255,0.7)', marginTop: 2, textAlign: 'right' },
   categoryBar: { maxHeight: 52 },
   categoryList: {
     paddingHorizontal: spacing.base,

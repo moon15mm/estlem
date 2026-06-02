@@ -1,13 +1,13 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import Animated, { FadeIn } from '@/lib/animated';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../../src/lib/api';
 import { Button } from '../../src/components/ui/Button';
-import { colors, spacing, radius, typography } from '../../src/theme';
+import { colors, radius, spacing, typography } from '../../src/theme';
 
 export default function ScanScreen() {
   const router = useRouter();
@@ -51,14 +51,12 @@ export default function ScanScreen() {
         onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
       />
 
-      {/* Overlay */}
       <Animated.View entering={FadeIn.duration(600)} style={styles.overlay}>
         <View style={styles.topOverlay}>
           <Text style={styles.scanTitle}>امسح رمز QR</Text>
           <Text style={styles.scanDesc}>وجّه الكاميرا نحو الرمز الموجود على الموقف</Text>
         </View>
 
-        {/* Scanner frame */}
         <View style={styles.frameContainer}>
           <View style={styles.frame}>
             <View style={[styles.corner, styles.topRight]} />
@@ -69,9 +67,9 @@ export default function ScanScreen() {
         </View>
 
         <View style={styles.bottomOverlay}>
-          {scanned && (
+          {scanned ? (
             <Button title="إعادة المسح" variant="outline" onPress={() => setScanned(false)} />
-          )}
+          ) : null}
         </View>
       </Animated.View>
     </View>
@@ -83,7 +81,14 @@ const CORNER = 30;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl, gap: spacing.base, backgroundColor: colors.background },
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.xl,
+    gap: spacing.base,
+    backgroundColor: colors.background,
+  },
   permTitle: { ...typography.h3, color: colors.textPrimary, textAlign: 'center' },
   permDesc: { ...typography.bodySm, color: colors.textMuted, textAlign: 'center' },
   overlay: { ...StyleSheet.absoluteFillObject, justifyContent: 'space-between' },

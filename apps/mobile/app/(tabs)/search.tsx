@@ -1,15 +1,20 @@
 import { useEffect, useState } from 'react';
-import { View, Text, TextInput, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
+import Animated, { FadeInDown } from '@/lib/animated';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../../src/lib/api';
 import { StoreCard } from '../../src/components/StoreCard';
-import { colors, spacing, radius, typography } from '../../src/theme';
+import { colors, radius, spacing, typography } from '../../src/theme';
 
 interface StoreItem {
-  id: string; name: string; nameAr: string; category: string;
-  address?: string; tenantId: string; distance?: number;
+  id: string;
+  name: string;
+  nameAr: string;
+  category: string;
+  address?: string;
+  tenantId: string;
+  distance?: number;
 }
 
 export default function SearchScreen() {
@@ -19,21 +24,28 @@ export default function SearchScreen() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (query.length < 2) { setResults([]); return; }
+    if (query.length < 2) {
+      setResults([]);
+      return undefined;
+    }
+
     const timer = setTimeout(async () => {
       setLoading(true);
       try {
         const data = await api.get(`/stores/search?q=${encodeURIComponent(query)}`) as StoreItem[];
         setResults(data ?? []);
-      } catch { /* silent */ }
-      finally { setLoading(false); }
+      } catch {
+        setResults([]);
+      } finally {
+        setLoading(false);
+      }
     }, 400);
+
     return () => clearTimeout(timer);
   }, [query]);
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
         <Text style={styles.title}>بحث عن متجر</Text>
         <View style={styles.searchBox}>
@@ -46,13 +58,12 @@ export default function SearchScreen() {
             style={styles.input}
             autoFocus
           />
-          {query.length > 0 && (
+          {query.length > 0 ? (
             <Ionicons name="close-circle" size={20} color={colors.textMuted} onPress={() => setQuery('')} />
-          )}
+          ) : null}
         </View>
       </Animated.View>
 
-      {/* Results */}
       {loading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -66,7 +77,7 @@ export default function SearchScreen() {
           renderItem={({ item, index }) => (
             <StoreCard
               id={item.id}
-              nameAr={item.nameAr}
+              nameAr={item.nameAr || item.name}
               category={item.category}
               address={item.address}
               distance={item.distance}

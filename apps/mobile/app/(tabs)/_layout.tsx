@@ -1,8 +1,19 @@
-import { Tabs } from 'expo-router';
+import { useEffect } from 'react';
+import { Tabs, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography } from '../../src/theme';
+import { useAuth } from '../../src/stores/useAuth';
 
 export default function TabLayout() {
+  const router = useRouter();
+  const session = useAuth((state) => state.session);
+
+  useEffect(() => {
+    if (!session) router.replace('/login');
+    else if (session.type === 'staff') router.replace('/staff');
+    else if (session.type === 'superadmin') router.replace('/admin');
+  }, [router, session]);
+
   return (
     <Tabs
       screenOptions={{

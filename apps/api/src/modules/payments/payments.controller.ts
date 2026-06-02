@@ -1,7 +1,14 @@
-import { Controller, Post, Body, Param } from '@nestjs/common';
+import {
+  Controller, Post, Body, Param, UseGuards, Headers,
+  ForbiddenException, Request,
+} from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { ConfigService } from '@nestjs/config';
 import { PaymentsService } from './payments.service';
-import { PaymentMethod } from '@estlem/shared';
+import { PaymentMethod, StaffRole } from '@estlem/shared';
 import { IsEnum, IsString, IsUUID } from 'class-validator';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 
 class InitiateDto {
   @IsUUID() orderId: string;
@@ -11,19 +18,32 @@ class InitiateDto {
 
 @Controller('payments')
 export class PaymentsController {
-  constructor(private service: PaymentsService) {}
+  constructor(
+    private service: PaymentsService,
+    private config: ConfigService,
+  ) {}
 
   @Post('initiate')
+  @UseGuards(AuthGuard('jwt'))
   initiate(@Body() dto: InitiateDto) {
     return this.service.initiatePayment(dto.orderId, dto.method, dto.returnUrl);
   }
 
   @Post('webhook')
-  webhook(@Body() payload: Record<string, unknown>) {
+  webhook(
+    @Body() payload: Record<string, unknown>,
+    @Headers('authorization') signature: string,
+  ) {
+    const secret = this.config.get<string>('CHECKOUT_WEBHOOK_SECRET');
+    if (secret && signature !== secret) {
+      throw new ForbiddenException('Invalid webhook signature');
+    }
     return this.service.handleWebhook(payload);
   }
 
   @Post(':id/refund')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(StaffRole.OWNER, StaffRole.MANAGER)
   refund(@Param('id') id: string) {
     return this.service.refund(id);
   }
