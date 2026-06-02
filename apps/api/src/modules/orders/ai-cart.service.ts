@@ -64,13 +64,16 @@ Only return valid JSON, nothing else.`;
         }));
     }
 
-    // Try to match with actual products
     const result: ParsedItem[] = [];
     for (const item of parsed) {
+      const safeName = (item.name ?? '').replace(/[%_\\]/g, '').substring(0, 100).trim();
+      const safeNameAr = (item.nameAr ?? '').replace(/[%_\\]/g, '').substring(0, 100).trim();
+      if (!safeName && !safeNameAr) continue;
+
       const product = await this.productRepo.findOne({
         where: [
-          { storeId, name: ILike(`%${item.name}%`) },
-          { storeId, nameAr: ILike(`%${item.nameAr}%`) },
+          ...(safeName ? [{ storeId, name: ILike(`%${safeName}%`) }] : []),
+          ...(safeNameAr ? [{ storeId, nameAr: ILike(`%${safeNameAr}%`) }] : []),
         ],
       });
 

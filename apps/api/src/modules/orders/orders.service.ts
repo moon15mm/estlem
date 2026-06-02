@@ -243,9 +243,16 @@ export class OrdersService {
     }
   }
 
+  async verifyStoreOwnership(storeId: string, tenantId: string): Promise<boolean> {
+    const count = await this.dataSource
+      .getRepository('Store')
+      .count({ where: { id: storeId, tenantId, isActive: true } });
+    return count > 0;
+  }
+
   private generateOrderNumber(): string {
     const ts = Date.now().toString(36).toUpperCase();
-    const rand = Math.random().toString(36).substring(2, 5).toUpperCase();
+    const rand = uuidv4().replace(/-/g, '').substring(0, 6).toUpperCase();
     return `SP-${ts}${rand}`.substring(0, 12);
   }
 }

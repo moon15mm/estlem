@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ILike, FindOptionsWhere } from 'typeorm';
 import { Product } from '../../database/entities/product.entity';
@@ -80,5 +80,46 @@ export class ProductsService {
       where: { storeId, tenantId },
       order: { sortOrder: 'ASC' },
     });
+  }
+
+  async createCategory(
+    storeId: string,
+    tenantId: string,
+    dto: { name?: string; nameAr: string; sortOrder?: number; imageUrl?: string },
+  ) {
+    const nameAr = dto.nameAr?.trim();
+    const name = dto.name?.trim() || nameAr;
+
+    if (!nameAr) throw new BadRequestException('Category Arabic name is required');
+
+    const category = this.categoryRepo.create({
+      storeId,
+      tenantId,
+      name,
+      nameAr,
+      sortOrder: dto.sortOrder ?? 0,
+      imageUrl: dto.imageUrl,
+    });
+
+    return this.categoryRepo.save(category);
+  }
+
+  async updateCategory(
+    id: string,
+    tenantId: string,
+    dto: { name?: string; nameAr?: string; sortOrder?: number; imageUrl?: string },
+  ) {
+    const category = await this.categoryRepo.findOne({ where: { id, tenantId } });
+    if (!category) throw new NotFoundException('Category not found');
+
+    if (dto.name !== undefined) category.name = dto.name.trim();
+    if (dto.nameAr !== undefined) category.nameAr = dto.nameAr.trim();
+    if (dto.sortOrder !== undefined) category.sortOrder = dto.sortOrder;
+    if (dto.imageUrl !== undefined) category.imageUrl = dto.imageUrl;
+
+    if (!category.nameAr) throw new BadRequestException('Category Arabic name is required');
+    if (!category.name) category.name = category.nameAr;
+
+    return this.categoryRepo.save(category);
   }
 }

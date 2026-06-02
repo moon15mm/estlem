@@ -14,8 +14,9 @@ export interface CartItem {
 interface CartStore {
   storeId: string | null;
   tenantId: string | null;
+  parkingSpotId: string | null;
   items: CartItem[];
-  setStore: (storeId: string, tenantId: string) => void;
+  setStore: (storeId: string, tenantId: string, parkingSpotId?: string | null) => void;
   addItem: (item: Omit<CartItem, 'quantity'>) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
@@ -29,11 +30,12 @@ export const useCart = create<CartStore>()(
     (set, get) => ({
       storeId: null,
       tenantId: null,
+      parkingSpotId: null,
       items: [],
 
-      setStore: (storeId, tenantId) => {
-        if (get().storeId !== storeId) set({ storeId, tenantId, items: [] });
-        else set({ tenantId });
+      setStore: (storeId, tenantId, parkingSpotId = null) => {
+        if (get().storeId !== storeId) set({ storeId, tenantId, parkingSpotId, items: [] });
+        else set({ tenantId, parkingSpotId });
       },
 
       addItem: (item) => {
@@ -56,7 +58,7 @@ export const useCart = create<CartStore>()(
         });
       },
 
-      clearCart: () => set({ items: [] }),
+      clearCart: () => set({ items: [], parkingSpotId: null }),
 
       total: () => get().items.reduce((s, i) => s + i.price * i.quantity, 0),
 

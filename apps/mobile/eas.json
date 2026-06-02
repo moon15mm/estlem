@@ -15,7 +15,9 @@
       "distribution": "internal",
       "node": "20.19.1",
       "env": {
-        "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
+        "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
+        "NPM_CONFIG_WORKSPACES": "false",
+        "YARN_IGNORE_WORKSPACE_ROOT_CHECK": "1"
       }
     },
     "production": {

@@ -12,9 +12,7 @@ export const databaseConfig = (config: ConfigService): TypeOrmModuleOptions => {
     url: dbUrl,
     entities: [join(__dirname, '..', '**', '*.entity{.ts,.js}')],
     migrations: [join(__dirname, 'migrations', '*{.ts,.js}')],
-    // synchronize=true في production لأول مرة فقط لإنشاء الجداول تلقائياً
-    // غيّرها لـ false بعد أول deploy ناجح
-    synchronize: true,
+    synchronize: false,
     logging: !isProduction,
     ssl: (isProduction || isNeon) ? { rejectUnauthorized: false } : false,
     extra: (isProduction || isNeon) ? {

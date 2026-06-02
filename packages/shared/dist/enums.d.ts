@@ -40,6 +40,9 @@ export declare enum StaffRole {
     STAFF = "staff",
     CASHIER = "cashier"
 }
+export declare enum SystemRole {
+    SUPER_ADMIN = "superadmin"
+}
 export declare enum Language {
     AR = "ar",
     EN = "en"
