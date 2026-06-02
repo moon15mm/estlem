@@ -1,6 +1,5 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import * as catalogData from '../../data/saudi-catalog.json';
 
 interface CatalogItem {
   name: string;
@@ -16,20 +15,13 @@ interface CatalogCategory {
   items: CatalogItem[];
 }
 
-let catalogCache: CatalogCategory[] | null = null;
-
-function loadCatalog(): CatalogCategory[] {
-  if (catalogCache) return catalogCache;
-  const raw = readFileSync(join(__dirname, '..', '..', 'data', 'saudi-catalog.json'), 'utf-8');
-  catalogCache = JSON.parse(raw);
-  return catalogCache!;
-}
+const CATALOG: CatalogCategory[] = catalogData as unknown as CatalogCategory[];
 
 @Controller('catalog')
 export class CatalogController {
   @Get()
   getAll(@Query('search') search?: string, @Query('category') category?: string) {
-    let catalog = loadCatalog();
+    let catalog = CATALOG;
 
     if (category) {
       catalog = catalog.filter(
@@ -57,7 +49,7 @@ export class CatalogController {
 
   @Get('categories')
   getCategories() {
-    return loadCatalog().map((c) => ({
+    return CATALOG.map((c) => ({
       name: c.category,
       nameEn: c.categoryEn,
       count: c.items.length,
