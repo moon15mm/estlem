@@ -167,6 +167,7 @@ export function StoreClient({ storeId }: StoreClientProps) {
         onClose={() => setCartOpen(false)}
         storeId={storeId}
         tenantId={tenantId}
+        allowedPayments={(store as any)?.operatingHours?.paymentMethods}
       />
       <FreeTextModal
         open={aiOpen}

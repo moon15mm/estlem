@@ -8,14 +8,22 @@ import { OrderType, PaymentMethod } from '@estlem/shared';
 import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
 
+interface PaymentSettings {
+  cash?: boolean;
+  card?: boolean;
+  mada?: boolean;
+  apple_pay?: boolean;
+}
+
 interface Props {
   open: boolean;
   onClose: () => void;
   storeId: string;
   tenantId: string;
+  allowedPayments?: PaymentSettings;
 }
 
-export function CartDrawer({ open, onClose, storeId, tenantId }: Props) {
+export function CartDrawer({ open, onClose, storeId, tenantId, allowedPayments }: Props) {
   const router = useRouter();
   const { items, updateQty, removeItem, clearCart, total } = useCart();
   const [step, setStep] = useState<'cart' | 'checkout'>('cart');
@@ -171,11 +179,11 @@ export function CartDrawer({ open, onClose, storeId, tenantId }: Props) {
               <h3 className="font-bold text-gray-700 mb-2">طريقة الدفع</h3>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { label: 'مدى', value: PaymentMethod.MADA },
-                  { label: 'Apple Pay', value: PaymentMethod.APPLE_PAY },
-                  { label: 'بطاقة ائتمان', value: PaymentMethod.CARD },
-                  { label: 'كاش عند الاستلام', value: PaymentMethod.CASH },
-                ].map((m) => (
+                  { label: 'مدى', value: PaymentMethod.MADA, key: 'mada' },
+                  { label: 'Apple Pay', value: PaymentMethod.APPLE_PAY, key: 'apple_pay' },
+                  { label: 'بطاقة ائتمان', value: PaymentMethod.CARD, key: 'card' },
+                  { label: 'كاش عند الاستلام', value: PaymentMethod.CASH, key: 'cash' },
+                ].filter((m) => !allowedPayments || allowedPayments[m.key as keyof PaymentSettings] !== false).map((m) => (
                   <button
                     key={m.value}
                     onClick={() => setForm({ ...form, paymentMethod: m.value })}

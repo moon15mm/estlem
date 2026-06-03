@@ -3,11 +3,21 @@ import { WsEvent } from '@estlem/shared';
 
 let socket: Socket | null = null;
 
+function getToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('estlem_staff_token');
+}
+
 function getSocket(): Socket {
   if (!socket) {
     socket = io(`${process.env.NEXT_PUBLIC_WS_URL}/ws`, {
       transports: ['websocket'],
       autoConnect: false,
+      auth: { token: getToken() },
+    });
+    socket.on('connect_error', () => {
+      // Retry with fresh token
+      if (socket) socket.auth = { token: getToken() };
     });
   }
   return socket;
@@ -15,6 +25,7 @@ function getSocket(): Socket {
 
 export function joinStoreRoom(storeId: string) {
   const s = getSocket();
+  s.auth = { token: getToken() };
   if (!s.connected) s.connect();
   s.emit('join:store', { storeId });
 }
