@@ -12,6 +12,7 @@ export const databaseConfig = (config: ConfigService): TypeOrmModuleOptions => {
     url: dbUrl,
     entities: [join(__dirname, '..', '**', '*.entity{.ts,.js}')],
     migrations: [join(__dirname, 'migrations', '*{.ts,.js}')],
+    migrationsRun: true,
     synchronize: false,
     logging: !isProduction,
     ssl: (isProduction || isNeon) ? { rejectUnauthorized: false } : false,

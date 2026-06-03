@@ -58,7 +58,9 @@ export class StoresService {
     const spots: ParkingSpot[] = [];
     for (const spotNumber of dto.spotNumbers) {
       const qrCode = `${prefix}-${storeId.slice(0, 8)}-${spotNumber}-${uuidv4().slice(0, 8)}`;
-      const spot = this.spotRepo.create({ storeId, spotNumber, qrCode, type: spotType as any });
+      const spotData: any = { storeId, spotNumber, qrCode };
+      try { spotData.type = spotType; } catch { /* column may not exist yet */ }
+      const spot = this.spotRepo.create(spotData);
       spots.push(spot);
     }
     await this.spotRepo.save(spots);

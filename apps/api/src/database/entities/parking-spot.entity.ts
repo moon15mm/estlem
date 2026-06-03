@@ -18,8 +18,8 @@ export class ParkingSpot {
   @JoinColumn({ name: 'storeId' })
   store: Store;
 
-  @Column({ type: 'enum', enum: SpotType, default: SpotType.PARKING })
-  type: SpotType;
+  @Column({ type: 'varchar', length: 20, default: 'parking' })
+  type: string;
 
   @Column({ length: 20 })
   spotNumber: string;
