@@ -53,13 +53,13 @@ export default function HomePage() {
       {/* ── Hero ────────────────────────────────────── */}
       <header className="relative bg-gradient-to-bl from-[#0F3460] via-[#1B4F72] to-[#16537E] px-5 pt-14 pb-28 overflow-hidden">
         {/* Decorative circles */}
-        <div className="absolute -top-20 -left-20 w-64 h-64 bg-[#1ABC9C]/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-white/5 rounded-full blur-2xl" />
+        <div className="absolute -top-20 -left-20 w-64 h-64 bg-[#1ABC9C]/10 rounded-full blur-3xl animate-pulse-soft" />
+        <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-white/5 rounded-full blur-2xl animate-pulse-soft delay-200" />
 
         {/* Top bar */}
         <div className="relative z-10 flex items-center justify-between mb-10">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/10">
+            <div className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/10 animate-float">
               <Car className="h-5 w-5 text-white" />
             </div>
             <span className="text-lg font-extrabold text-white tracking-tight">استلم</span>
@@ -83,7 +83,7 @@ export default function HomePage() {
         </div>
 
         {/* Greeting */}
-        <div className="relative z-10 mb-8">
+        <div className="relative z-10 mb-8 animate-fade-up">
           <h1 className="text-[1.75rem] font-black text-white leading-tight mb-2">
             {isLoggedIn() && customer?.fullName ? `أهلاً ${customer.fullName}` : 'اطلب من سيارتك'}
           </h1>
@@ -93,7 +93,7 @@ export default function HomePage() {
         </div>
 
         {/* Search bar — glass */}
-        <Link href="/discover?tab=search" className="relative z-10 flex items-center gap-3 bg-white/10 backdrop-blur-xl rounded-2xl px-4 py-3.5 border border-white/15 active:scale-[0.98] transition-transform">
+        <Link href="/discover?tab=search" className="relative z-10 flex items-center gap-3 bg-white/10 backdrop-blur-xl rounded-2xl px-4 py-3.5 border border-white/15 active:scale-[0.98] transition-transform animate-fade-up delay-200">
           <Search className="h-5 w-5 text-white/50" />
           <span className="text-white/40 text-sm flex-1">ابحث عن متجر أو منتج...</span>
           <span className="text-[10px] text-white/30 bg-white/10 px-2 py-1 rounded-lg">بحث</span>
@@ -101,7 +101,7 @@ export default function HomePage() {
       </header>
 
       {/* ── Quick Actions ───────────────────────────── */}
-      <section className="px-5 -mt-14 mb-8 relative z-20">
+      <section className="px-5 -mt-14 mb-8 relative z-20 animate-scale-in delay-300">
         <div className="grid grid-cols-3 gap-3">
           {[
             { href: '/discover', icon: Compass, label: 'متاجر قريبة', color: 'text-[#1ABC9C]', bg: 'bg-[#1ABC9C]/10' },
@@ -164,11 +164,11 @@ export default function HomePage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {nearbyStores.slice(0, 5).map((store) => (
+            {nearbyStores.slice(0, 5).map((store, idx) => (
               <Link
                 key={store.id}
                 href={`/store/${store.id}?tenantId=${store.tenantId}`}
-                className="flex items-center gap-3.5 bg-white rounded-2xl p-4 shadow-[0_2px_20px_rgba(0,0,0,0.04)] cursor-pointer active:scale-[0.98] transition-transform"
+                className={`flex items-center gap-3.5 bg-white rounded-2xl p-4 shadow-[0_2px_20px_rgba(0,0,0,0.04)] cursor-pointer active:scale-[0.98] transition-transform animate-slide-right delay-${(idx + 1) * 100}`}
               >
                 <div className="w-14 h-14 bg-gradient-to-br from-[#1B4F72]/5 to-[#1ABC9C]/5 rounded-2xl flex items-center justify-center shrink-0">
                   {store.logoUrl ? (
@@ -218,7 +218,7 @@ export default function HomePage() {
             { icon: CreditCard, title: 'ادفع', desc: 'كاش أو مدى أو Apple Pay', gradient: 'from-amber-50 to-amber-100/40' },
             { icon: Car, title: 'استلم', desc: 'نوصّل طلبك لسيارتك', gradient: 'from-purple-50 to-purple-100/40' },
           ].map((step, i) => (
-            <div key={i} className={`bg-gradient-to-br ${step.gradient} rounded-2xl p-4`}>
+            <div key={i} className={`bg-gradient-to-br ${step.gradient} rounded-2xl p-4 animate-fade-up delay-${(i + 1) * 100}`}>
               <div className="w-10 h-10 bg-white/80 rounded-xl flex items-center justify-center mb-3 shadow-sm">
                 <step.icon className="h-5 w-5 text-[#1B4F72]" />
               </div>

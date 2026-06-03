@@ -67,8 +67,8 @@ export default function LoginPage() {
         <div className="absolute -top-16 -right-16 w-56 h-56 bg-[#1ABC9C]/8 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/5 rounded-full blur-2xl" />
 
-        <div className="relative z-10 text-center">
-          <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center mx-auto mb-5 border border-white/10">
+        <div className="relative z-10 text-center animate-fade-up">
+          <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center mx-auto mb-5 border border-white/10 animate-float">
             <Car className="h-8 w-8 text-white" />
           </div>
           <h1 className="text-2xl font-black text-white mb-1.5">استلم</h1>
@@ -77,7 +77,7 @@ export default function LoginPage() {
       </div>
 
       {/* Bottom — form card */}
-      <div className="bg-white rounded-t-[2rem] -mt-6 relative z-10 px-6 pt-8 pb-10 shadow-[0_-10px_40px_rgba(0,0,0,0.08)]">
+      <div className="bg-white rounded-t-[2rem] -mt-6 relative z-10 px-6 pt-8 pb-10 shadow-[0_-10px_40px_rgba(0,0,0,0.08)] animate-fade-up delay-200">
         {/* Step indicator */}
         <div className="flex items-center justify-center gap-2 mb-7">
           {['phone', 'otp', 'name'].map((s, i) => (
