@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
   Store as StoreIcon, QrCode, Plus, Copy, Loader2, LogOut,
-  MapPin, Navigation, Check, Phone,
+  MapPin, Navigation, Check, Phone, CreditCard, Banknote, Smartphone,
 } from 'lucide-react';
 
 const WEB_URL = 'https://estlem.store';
@@ -34,6 +34,13 @@ export default function SettingsPage() {
   const [editAddress, setEditAddress] = useState('');
   const [editPhone, setEditPhone] = useState('');
   const [savingInfo, setSavingInfo] = useState(false);
+  const [paymentMethods, setPaymentMethods] = useState({
+    cash: true,
+    card: true,
+    mada: true,
+    apple_pay: false,
+  });
+  const [savingPayment, setSavingPayment] = useState(false);
 
   const load = async () => {
     if (!storeId) return;
@@ -49,6 +56,11 @@ export default function SettingsPage() {
       setEditLng(storeData.lng ? String(storeData.lng) : '');
       setEditAddress(storeData.address ?? '');
       setEditPhone(storeData.phoneNumber ?? '');
+      // Load payment settings from store settings (stored in tenant or store metadata)
+      const storeSettings = (storeData as any).operatingHours?.paymentMethods;
+      if (storeSettings) {
+        setPaymentMethods(storeSettings);
+      }
       setSpots((sp as unknown as ParkingSpot[]) ?? []);
     } catch {
       toast.error('فشل تحميل الإعدادات');
@@ -135,6 +147,28 @@ export default function SettingsPage() {
     } finally {
       setSavingInfo(false);
     }
+  };
+
+  const savePaymentMethods = async () => {
+    setSavingPayment(true);
+    try {
+      await api.put(`/stores/${storeId}`, {
+        operatingHours: {
+          ...(store as any)?.operatingHours,
+          paymentMethods,
+        },
+      });
+      toast.success('تم حفظ إعدادات الدفع');
+      load();
+    } catch {
+      toast.error('فشل الحفظ');
+    } finally {
+      setSavingPayment(false);
+    }
+  };
+
+  const togglePayment = (key: keyof typeof paymentMethods) => {
+    setPaymentMethods((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   const hasLocation = !!editLat && !!editLng;
@@ -290,6 +324,61 @@ export default function SettingsPage() {
                 <Button onClick={saveLocation} disabled={savingLocation || !hasLocation} className="gap-2">
                   {savingLocation ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                   حفظ الموقع
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Payment Methods */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CreditCard className="h-5 w-5 text-primary" /> طرق الدفع المسموحة
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">اختر طرق الدفع التي تقبلها في متجرك.</p>
+
+                <div className="space-y-3">
+                  {[
+                    { key: 'cash' as const, label: 'الدفع عند الاستلام (كاش)', icon: <Banknote className="h-5 w-5" />, desc: 'العميل يدفع نقداً عند التوصيل' },
+                    { key: 'card' as const, label: 'بطاقة ائتمانية (Visa/MC)', icon: <CreditCard className="h-5 w-5" />, desc: 'الدفع ببطاقة ائتمانية أونلاين' },
+                    { key: 'mada' as const, label: 'مدى', icon: <CreditCard className="h-5 w-5" />, desc: 'الدفع عبر بطاقة مدى' },
+                    { key: 'apple_pay' as const, label: 'Apple Pay', icon: <Smartphone className="h-5 w-5" />, desc: 'الدفع عبر Apple Pay' },
+                  ].map((method) => (
+                    <div
+                      key={method.key}
+                      className={`flex items-center justify-between border rounded-xl p-4 transition-all cursor-pointer ${
+                        paymentMethods[method.key]
+                          ? 'border-primary/30 bg-primary/5'
+                          : 'border-border bg-secondary/20 opacity-60'
+                      }`}
+                      onClick={() => togglePayment(method.key)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                          paymentMethods[method.key] ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
+                        }`}>
+                          {method.icon}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-sm">{method.label}</p>
+                          <p className="text-xs text-muted-foreground">{method.desc}</p>
+                        </div>
+                      </div>
+                      <div className={`w-12 h-7 rounded-full relative transition-colors ${
+                        paymentMethods[method.key] ? 'bg-primary' : 'bg-gray-300'
+                      }`}>
+                        <div className={`absolute top-0.5 w-6 h-6 rounded-full bg-white shadow-sm transition-all ${
+                          paymentMethods[method.key] ? 'left-0.5' : 'left-[22px]'
+                        }`} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <Button onClick={savePaymentMethods} disabled={savingPayment} className="gap-2">
+                  {savingPayment ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                  حفظ إعدادات الدفع
                 </Button>
               </CardContent>
             </Card>

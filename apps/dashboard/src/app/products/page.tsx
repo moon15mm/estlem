@@ -21,12 +21,12 @@ interface CatalogItem {
   nameAr: string;
   price: number;
   sku: string;
-  imageUrl: string;
 }
 
 interface CatalogCategory {
   category: string;
   categoryEn: string;
+  icon: string;
   items: CatalogItem[];
 }
 
@@ -119,7 +119,6 @@ export default function ProductsPage() {
         nameAr: item.nameAr,
         price: item.price,
         sku: item.sku,
-        imageUrl: item.imageUrl || undefined,
         stockQuantity: 0,
         isActive: true,
       });
@@ -148,7 +147,6 @@ export default function ProductsPage() {
           nameAr: item.nameAr,
           price: item.price,
           sku: item.sku,
-          imageUrl: item.imageUrl || undefined,
           stockQuantity: 0,
           isActive: true,
         });
@@ -541,12 +539,8 @@ export default function ProductsPage() {
                                 exists ? 'bg-emerald-50 border-emerald-200' : 'border-border hover:border-primary/30 hover:shadow-sm'
                               }`}
                             >
-                              <div className="w-12 h-12 bg-primary/5 rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
-                                {item.imageUrl ? (
-                                  <img src={item.imageUrl} alt={item.nameAr} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                                ) : (
-                                  <span className="text-lg font-bold text-primary/30">{item.nameAr?.charAt(0)}</span>
-                                )}
+                              <div className="w-12 h-12 bg-primary/5 rounded-lg flex items-center justify-center shrink-0">
+                                <span className="text-2xl">{cat.icon}</span>
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="font-medium text-sm truncate">{item.nameAr}</p>
