@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from 'next';
-import { Noto_Sans_Arabic, Noto_Kufi_Arabic } from 'next/font/google';
 import { Toaster } from 'react-hot-toast';
 import { GeofenceProvider } from '@/components/GeofenceProvider';
 import './globals.css';
@@ -7,20 +6,6 @@ import './globals.css';
 function GeofenceProviderWrapper() {
   return <GeofenceProvider />;
 }
-
-const notoSans = Noto_Sans_Arabic({
-  subsets: ['arabic'],
-  weight: ['300', '400', '500', '600', '700'],
-  variable: '--font-sans',
-  display: 'swap',
-});
-
-const notoKufi = Noto_Kufi_Arabic({
-  subsets: ['arabic'],
-  weight: ['500', '700', '800'],
-  variable: '--font-heading',
-  display: 'swap',
-});
 
 export const metadata: Metadata = {
   title: 'استلم | اطلب من سيارتك',
@@ -38,11 +23,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ar" dir="rtl" className={`${notoSans.variable} ${notoKufi.variable}`}>
+    <html lang="ar" dir="rtl">
       <head>
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
-      <body className="bg-background font-sans antialiased">
+      <body className="bg-background antialiased">
         {children}
         <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
         {/* @ts-expect-error Async Server Component */}
