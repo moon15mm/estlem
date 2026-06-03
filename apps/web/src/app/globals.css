@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Thmanyah Fonts ──────────────────────────── */
+@font-face { font-family: 'ThmanyahSans'; src: url('/fonts/thmanyahsans-Light.otf') format('opentype'); font-weight: 300; font-display: swap; }
+@font-face { font-family: 'ThmanyahSans'; src: url('/fonts/thmanyahsans-Regular.otf') format('opentype'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'ThmanyahSans'; src: url('/fonts/thmanyahsans-Medium.otf') format('opentype'); font-weight: 500; font-display: swap; }
+@font-face { font-family: 'ThmanyahSans'; src: url('/fonts/thmanyahsans-Bold.otf') format('opentype'); font-weight: 700; font-display: swap; }
+@font-face { font-family: 'ThmanyahSans'; src: url('/fonts/thmanyahsans-Black.otf') format('opentype'); font-weight: 900; font-display: swap; }
+
+@font-face { font-family: 'ThmanyahSerif'; src: url('/fonts/thmanyahserifdisplay-Light.otf') format('opentype'); font-weight: 300; font-display: swap; }
+@font-face { font-family: 'ThmanyahSerif'; src: url('/fonts/thmanyahserifdisplay-Regular.otf') format('opentype'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'ThmanyahSerif'; src: url('/fonts/thmanyahserifdisplay-Medium.otf') format('opentype'); font-weight: 500; font-display: swap; }
+@font-face { font-family: 'ThmanyahSerif'; src: url('/fonts/thmanyahserifdisplay-Bold.otf') format('opentype'); font-weight: 700; font-display: swap; }
+@font-face { font-family: 'ThmanyahSerif'; src: url('/fonts/thmanyahserifdisplay-Black.otf') format('opentype'); font-weight: 900; font-display: swap; }
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -27,8 +40,8 @@
 
 @layer base {
   * { @apply border-border; box-sizing: border-box; }
-  body { @apply bg-background text-foreground; }
-  h1, h2, h3, .font-heading { font-family: var(--font-heading), var(--font-sans), sans-serif; }
+  body { @apply bg-background text-foreground; font-family: 'ThmanyahSans', var(--font-sans), system-ui, sans-serif; }
+  h1, h2, h3, .font-heading { font-family: 'ThmanyahSerif', 'ThmanyahSans', var(--font-heading), sans-serif; }
 }
 
 @layer utilities {
