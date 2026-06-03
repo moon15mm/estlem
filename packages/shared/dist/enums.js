@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.WsEvent = exports.PosProvider = exports.NotificationChannel = exports.StoreCategory = exports.Language = exports.SystemRole = exports.StaffRole = exports.TenantStatus = exports.TenantPlan = exports.OrderType = exports.PaymentStatus = exports.PaymentMethod = exports.OrderStatus = void 0;
+exports.WsEvent = exports.SpotType = exports.ServiceMode = exports.PosProvider = exports.NotificationChannel = exports.StoreCategory = exports.Language = exports.SystemRole = exports.StaffRole = exports.TenantStatus = exports.TenantPlan = exports.OrderType = exports.PaymentStatus = exports.PaymentMethod = exports.OrderStatus = void 0;
 var OrderStatus;
 (function (OrderStatus) {
     OrderStatus["NEW"] = "new";
@@ -84,6 +84,17 @@ var PosProvider;
     PosProvider["CSV"] = "csv";
     PosProvider["MANUAL"] = "manual";
 })(PosProvider || (exports.PosProvider = PosProvider = {}));
+var ServiceMode;
+(function (ServiceMode) {
+    ServiceMode["DRIVE_THROUGH"] = "drive_through";
+    ServiceMode["DINE_IN"] = "dine_in";
+    ServiceMode["BOTH"] = "both";
+})(ServiceMode || (exports.ServiceMode = ServiceMode = {}));
+var SpotType;
+(function (SpotType) {
+    SpotType["PARKING"] = "parking";
+    SpotType["TABLE"] = "table";
+})(SpotType || (exports.SpotType = SpotType = {}));
 var WsEvent;
 (function (WsEvent) {
     WsEvent["ORDER_CREATED"] = "order:created";

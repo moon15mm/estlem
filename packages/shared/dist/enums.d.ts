@@ -69,6 +69,15 @@ export declare enum PosProvider {
     CSV = "csv",
     MANUAL = "manual"
 }
+export declare enum ServiceMode {
+    DRIVE_THROUGH = "drive_through",
+    DINE_IN = "dine_in",
+    BOTH = "both"
+}
+export declare enum SpotType {
+    PARKING = "parking",
+    TABLE = "table"
+}
 export declare enum WsEvent {
     ORDER_CREATED = "order:created",
     ORDER_STATUS_UPDATED = "order:status_updated",

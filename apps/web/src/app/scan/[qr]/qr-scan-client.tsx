@@ -16,9 +16,11 @@ export function QrScanClient({ qr }: QrScanClientProps) {
   useEffect(() => {
     api
       .get(`/stores/qr/${qr}`)
-      .then((data: { store: { id: string; tenantId: string }; spot: { id: string; spotNumber: string } }) => {
+      .then((data: any) => {
         sessionStorage.setItem('estlem_spot_id', data.spot.id);
         sessionStorage.setItem('estlem_spot_number', data.spot.spotNumber);
+        // Store spot type (parking or table)
+        sessionStorage.setItem('estlem_spot_type', data.spot.type ?? 'parking');
         setStore(data.store.id);
         router.replace(`/store/${data.store.id}?tenantId=${data.store.tenantId}`);
       })

@@ -81,6 +81,17 @@ export enum PosProvider {
   MANUAL = 'manual',
 }
 
+export enum ServiceMode {
+  DRIVE_THROUGH = 'drive_through',
+  DINE_IN = 'dine_in',
+  BOTH = 'both',
+}
+
+export enum SpotType {
+  PARKING = 'parking',
+  TABLE = 'table',
+}
+
 export enum WsEvent {
   ORDER_CREATED = 'order:created',
   ORDER_STATUS_UPDATED = 'order:status_updated',

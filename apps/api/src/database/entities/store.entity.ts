@@ -2,7 +2,7 @@ import {
   Entity, PrimaryGeneratedColumn, Column, CreateDateColumn,
   UpdateDateColumn, ManyToOne, OneToMany, JoinColumn, Index,
 } from 'typeorm';
-import { StoreCategory } from '@estlem/shared';
+import { StoreCategory, ServiceMode } from '@estlem/shared';
 import { Tenant } from './tenant.entity';
 import { ParkingSpot } from './parking-spot.entity';
 import { Product } from './product.entity';
@@ -51,6 +51,9 @@ export class Store {
 
   @Column({ type: 'jsonb', default: {} })
   operatingHours: Record<string, unknown>;
+
+  @Column({ type: 'enum', enum: ServiceMode, default: ServiceMode.DRIVE_THROUGH })
+  serviceMode: ServiceMode;
 
   @Column({ default: true })
   isActive: boolean;
