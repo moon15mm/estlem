@@ -134,6 +134,7 @@ export function StoreClient({ storeId }: StoreClientProps) {
                   nameArSnapshot: product.nameAr,
                   priceSnapshot: Number(product.salePrice ?? product.price),
                   imageUrl: product.imageUrl,
+                  isFreeText: false,
                 });
                 toast.success(`تمت الإضافة: ${product.nameAr}`);
               }}
