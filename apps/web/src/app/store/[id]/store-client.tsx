@@ -33,8 +33,11 @@ export function StoreClient({ storeId }: StoreClientProps) {
 
   const { addItem, itemCount } = useCart();
 
+  const [spotType, setSpotType] = useState<string | null>(null);
+
   useEffect(() => {
     setSpotNumber(sessionStorage.getItem('estlem_spot_number'));
+    setSpotType(sessionStorage.getItem('estlem_spot_type'));
   }, []);
 
   useEffect(() => {
@@ -91,7 +94,7 @@ export function StoreClient({ storeId }: StoreClientProps) {
             <h1 className="text-xl font-bold">{store.nameAr}</h1>
             {spotNumber && (
               <span className="text-sm bg-white/20 px-2 py-0.5 rounded-full">
-                موقف {spotNumber}
+                {spotType === 'table' ? `طاولة ${spotNumber}` : `موقف ${spotNumber}`}
               </span>
             )}
           </div>

@@ -52,10 +52,13 @@ export class StoresService {
     const store = await this.storeRepo.findOne({ where: { id: storeId, tenantId } });
     if (!store) throw new NotFoundException('Store not found');
 
+    const spotType = dto.type ?? 'parking';
+    const prefix = spotType === 'table' ? 'TBL' : 'SP';
+
     const spots: ParkingSpot[] = [];
     for (const spotNumber of dto.spotNumbers) {
-      const qrCode = `SP-${storeId.slice(0, 8)}-${spotNumber}-${uuidv4().slice(0, 8)}`;
-      const spot = this.spotRepo.create({ storeId, spotNumber, qrCode });
+      const qrCode = `${prefix}-${storeId.slice(0, 8)}-${spotNumber}-${uuidv4().slice(0, 8)}`;
+      const spot = this.spotRepo.create({ storeId, spotNumber, qrCode, type: spotType as any });
       spots.push(spot);
     }
     await this.spotRepo.save(spots);

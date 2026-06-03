@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Store as StoreIcon, QrCode, Plus, Copy, Loader2, LogOut,
   MapPin, Navigation, Check, Phone, CreditCard, Banknote, Smartphone,
+  Car, UtensilsCrossed, Layers,
 } from 'lucide-react';
 
 const WEB_URL = 'https://estlem.store';
@@ -41,6 +42,10 @@ export default function SettingsPage() {
     apple_pay: false,
   });
   const [savingPayment, setSavingPayment] = useState(false);
+  const [serviceMode, setServiceMode] = useState('drive_through');
+  const [savingMode, setSavingMode] = useState(false);
+  const [newTable, setNewTable] = useState('');
+  const [addingTable, setAddingTable] = useState(false);
 
   const load = async () => {
     if (!storeId) return;
@@ -61,6 +66,7 @@ export default function SettingsPage() {
       if (storeSettings) {
         setPaymentMethods(storeSettings);
       }
+      setServiceMode((storeData as any).serviceMode ?? 'drive_through');
       setSpots((sp as unknown as ParkingSpot[]) ?? []);
     } catch {
       toast.error('فشل تحميل الإعدادات');
@@ -170,6 +176,41 @@ export default function SettingsPage() {
   const togglePayment = (key: keyof typeof paymentMethods) => {
     setPaymentMethods((prev) => ({ ...prev, [key]: !prev[key] }));
   };
+
+  const saveServiceMode = async (mode: string) => {
+    setServiceMode(mode);
+    setSavingMode(true);
+    try {
+      await api.put(`/stores/${storeId}`, { serviceMode: mode });
+      toast.success('تم تحديث وضع الخدمة');
+      load();
+    } catch {
+      toast.error('فشل الحفظ');
+    } finally {
+      setSavingMode(false);
+    }
+  };
+
+  const addTable = async () => {
+    if (!newTable.trim()) return;
+    setAddingTable(true);
+    try {
+      await api.post(`/stores/${storeId}/parking-spots`, {
+        spotNumbers: [newTable.trim()],
+        type: 'table',
+      });
+      toast.success('تمت إضافة الطاولة');
+      setNewTable('');
+      load();
+    } catch {
+      toast.error('فشل الإضافة');
+    } finally {
+      setAddingTable(false);
+    }
+  };
+
+  const tables = spots.filter((s) => (s as any).type === 'table');
+  const parkingSpots = spots.filter((s) => (s as any).type !== 'table');
 
   const hasLocation = !!editLat && !!editLng;
   const mapUrl = hasLocation
@@ -328,6 +369,86 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
 
+            {/* Service Mode */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Layers className="h-5 w-5 text-primary" /> وضع الخدمة
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">اختر نوع الخدمة التي يقدمها متجرك.</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {[
+                    { key: 'drive_through', label: 'طلب من السيارة', desc: 'مواقف سيارات + QR', icon: <Car className="h-5 w-5" /> },
+                    { key: 'dine_in', label: 'طلب من الطاولة', desc: 'طاولات داخل المطعم + QR', icon: <UtensilsCrossed className="h-5 w-5" /> },
+                    { key: 'both', label: 'الاثنان معاً', desc: 'سيارات + طاولات', icon: <Layers className="h-5 w-5" /> },
+                  ].map((mode) => (
+                    <button
+                      key={mode.key}
+                      onClick={() => saveServiceMode(mode.key)}
+                      disabled={savingMode}
+                      className={`border rounded-xl p-4 text-right transition-all cursor-pointer ${
+                        serviceMode === mode.key
+                          ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
+                          : 'border-border hover:border-primary/30'
+                      }`}
+                    >
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-2 ${
+                        serviceMode === mode.key ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
+                      }`}>
+                        {mode.icon}
+                      </div>
+                      <p className="font-bold text-sm">{mode.label}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{mode.desc}</p>
+                    </button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Tables (Dine-in) */}
+            {(serviceMode === 'dine_in' || serviceMode === 'both') && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <UtensilsCrossed className="h-5 w-5 text-primary" /> الطاولات ورموز QR
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex gap-2">
+                    <Input
+                      value={newTable}
+                      onChange={(e) => setNewTable(e.target.value)}
+                      placeholder="رقم الطاولة (مثل 1، 2، VIP-1)"
+                      onKeyDown={(e) => e.key === 'Enter' && addTable()}
+                    />
+                    <Button onClick={addTable} disabled={addingTable} className="gap-1 shrink-0">
+                      {addingTable ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                      إضافة
+                    </Button>
+                  </div>
+
+                  <div className="space-y-2">
+                    {tables.map((t) => (
+                      <div key={t.id} className="flex items-center justify-between border border-border rounded-xl p-3">
+                        <div className="flex items-center gap-3">
+                          <Badge variant="accent">🍽️ طاولة {t.spotNumber}</Badge>
+                          <code className="text-xs text-muted-foreground" dir="ltr">{t.qrCode}</code>
+                        </div>
+                        <Button variant="outline" size="sm" onClick={() => copyLink(t.qrCode)} className="gap-1">
+                          <Copy className="h-3.5 w-3.5" /> نسخ الرابط
+                        </Button>
+                      </div>
+                    ))}
+                    {tables.length === 0 && (
+                      <p className="text-center text-muted-foreground text-sm py-6">لا توجد طاولات بعد — أضف طاولة لبدء استقبال الطلبات</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Payment Methods */}
             <Card>
               <CardHeader>
@@ -384,7 +505,7 @@ export default function SettingsPage() {
             </Card>
 
             {/* Parking spots + QR */}
-            <Card>
+            {(serviceMode === 'drive_through' || serviceMode === 'both') && <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <QrCode className="h-5 w-5 text-primary" /> مواقف السيارات ورموز QR
@@ -421,7 +542,7 @@ export default function SettingsPage() {
                   )}
                 </div>
               </CardContent>
-            </Card>
+            </Card>}
 
             {/* Account */}
             <Card>

@@ -37,6 +37,9 @@ export function CartDrawer({ open, onClose, storeId, tenantId, allowedPayments }
     notes: '',
   });
 
+  const spotType = typeof window !== 'undefined' ? sessionStorage.getItem('estlem_spot_type') : null;
+  const isDineIn = spotType === 'table';
+
   // Auto-fill customer data
   useEffect(() => {
     if (isLoggedIn() && customer) {
@@ -221,19 +224,21 @@ export function CartDrawer({ open, onClose, storeId, tenantId, allowedPayments }
                 onChange={(e) => setForm({ ...form, mobile: e.target.value })} />
             </div>
 
-            <div className="space-y-3">
-              <h3 className="font-bold text-gray-700">بيانات السيارة (اختياري)</h3>
-              <div className="grid grid-cols-2 gap-2">
-                <input className="input" placeholder="الماركة" value={form.make}
-                  onChange={(e) => setForm({ ...form, make: e.target.value })} />
-                <input className="input" placeholder="الموديل" value={form.model}
-                  onChange={(e) => setForm({ ...form, model: e.target.value })} />
-                <input className="input" placeholder="اللون" value={form.color}
-                  onChange={(e) => setForm({ ...form, color: e.target.value })} />
-                <input className="input" placeholder="رقم اللوحة" value={form.plateNumber}
-                  onChange={(e) => setForm({ ...form, plateNumber: e.target.value })} />
+            {!isDineIn && (
+              <div className="space-y-3">
+                <h3 className="font-bold text-gray-700">بيانات السيارة (اختياري)</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  <input className="input" placeholder="الماركة" value={form.make}
+                    onChange={(e) => setForm({ ...form, make: e.target.value })} />
+                  <input className="input" placeholder="الموديل" value={form.model}
+                    onChange={(e) => setForm({ ...form, model: e.target.value })} />
+                  <input className="input" placeholder="اللون" value={form.color}
+                    onChange={(e) => setForm({ ...form, color: e.target.value })} />
+                  <input className="input" placeholder="رقم اللوحة" value={form.plateNumber}
+                    onChange={(e) => setForm({ ...form, plateNumber: e.target.value })} />
+                </div>
               </div>
-            </div>
+            )}
 
             <div>
               <h3 className="font-bold text-gray-700 mb-2">طريقة الدفع</h3>
