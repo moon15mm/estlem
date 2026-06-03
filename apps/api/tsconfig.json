@@ -21,6 +21,7 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noEmitOnError": false,
+    "resolveJsonModule": true,
     "allowJs": true,
     "types": ["node"],
     "paths": {
