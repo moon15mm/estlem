@@ -3,17 +3,20 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Car, MapPin, Search, QrCode, ShoppingBag, Clock, Star, Navigation, ChevronLeft, Loader2, User, LogOut } from 'lucide-react';
+import {
+  Car, MapPin, Search, QrCode, ShoppingBag, Clock, Navigation,
+  ChevronLeft, Loader2, User, LogOut, Compass, CreditCard, Package,
+  ArrowLeft, Store as StoreIcon, Zap,
+} from 'lucide-react';
 import { api } from '@/lib/api';
 import { useCustomerAuth } from '@/hooks/useCustomerAuth';
 import type { Store } from '@estlem/shared';
-import toast from 'react-hot-toast';
 
 type StoreWithDistance = Store & { distance?: number };
 
-const CATEGORY_ICONS: Record<string, string> = {
-  grocery: '🛒', pharmacy: '💊', restaurant: '🍽️', cafe: '☕',
-  pet_store: '🐾', electronics: '📱', stationery: '📚', other: '🏪',
+const CATEGORY_LABELS: Record<string, string> = {
+  grocery: 'بقالة', pharmacy: 'صيدلية', restaurant: 'مطعم', cafe: 'كافيه',
+  pet_store: 'حيوانات', electronics: 'إلكترونيات', stationery: 'مكتبة', other: 'متجر',
 };
 
 export default function HomePage() {
@@ -23,9 +26,7 @@ export default function HomePage() {
   const [loadingStores, setLoadingStores] = useState(false);
   const [locationStatus, setLocationStatus] = useState<'idle' | 'loading' | 'granted' | 'denied'>('idle');
 
-  useEffect(() => {
-    loadNearby();
-  }, []);
+  useEffect(() => { loadNearby(); }, []);
 
   const loadNearby = () => {
     if (!navigator.geolocation) return;
@@ -42,138 +43,124 @@ export default function HomePage() {
         } catch { /* ignore */ }
         finally { setLoadingStores(false); }
       },
-      () => {
-        setLocationStatus('denied');
-        setLoadingStores(false);
-      },
+      () => { setLocationStatus('denied'); setLoadingStores(false); },
       { enableHighAccuracy: true, timeout: 10000 },
     );
   };
 
-  const handleLogout = () => {
-    logout();
-    toast.success('تم تسجيل الخروج');
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50" dir="rtl">
-      {/* Header */}
-      <div className="bg-gradient-to-br from-primary via-blue-800 to-blue-900 px-5 pt-12 pb-24 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 left-10 w-40 h-40 bg-white rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-0 w-60 h-60 bg-accent rounded-full blur-3xl" />
-        </div>
+    <div className="min-h-screen bg-[#F8FAFC]" dir="rtl">
+      {/* ── Hero ────────────────────────────────────── */}
+      <header className="relative bg-gradient-to-bl from-[#0F3460] via-[#1B4F72] to-[#16537E] px-5 pt-14 pb-28 overflow-hidden">
+        {/* Decorative circles */}
+        <div className="absolute -top-20 -left-20 w-64 h-64 bg-[#1ABC9C]/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-white/5 rounded-full blur-2xl" />
 
-        <div className="relative z-10">
-          {/* Top bar */}
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 bg-white/15 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                <Car className="h-6 w-6 text-white" />
-              </div>
-              <span className="text-xl font-black text-white">استلم</span>
+        {/* Top bar */}
+        <div className="relative z-10 flex items-center justify-between mb-10">
+          <div className="flex items-center gap-2.5">
+            <div className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/10">
+              <Car className="h-5 w-5 text-white" />
             </div>
+            <span className="text-lg font-extrabold text-white tracking-tight">استلم</span>
+          </div>
 
-            {isLoggedIn() ? (
-              <div className="flex items-center gap-2">
-                <Link href="/orders" className="text-white/70 text-xs bg-white/10 px-3 py-2 rounded-xl">
-                  طلباتي
-                </Link>
-                <button onClick={handleLogout} className="text-white/50 p-2">
-                  <LogOut className="h-4 w-4" />
-                </button>
-              </div>
-            ) : (
-              <Link
-                href="/login"
-                className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm text-white text-sm font-medium px-4 py-2.5 rounded-2xl"
-              >
-                <User className="h-4 w-4" />
-                دخول
+          {isLoggedIn() ? (
+            <div className="flex items-center gap-2">
+              <Link href="/orders" className="text-white/80 text-xs bg-white/10 backdrop-blur-sm px-3.5 py-2 rounded-xl border border-white/10 font-medium">
+                طلباتي
               </Link>
-            )}
-          </div>
-
-          {/* Welcome */}
-          <div className="mb-6">
-            {isLoggedIn() && customer?.fullName ? (
-              <h1 className="text-2xl font-black text-white mb-1">أهلاً {customer.fullName}</h1>
-            ) : (
-              <h1 className="text-2xl font-black text-white mb-1">اطلب من سيارتك</h1>
-            )}
-            <p className="text-white/70 text-sm">اختر متجراً قريباً واطلب دون أن تنزل</p>
-          </div>
-
-          {/* Search bar */}
-          <Link
-            href="/discover?tab=search"
-            className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3.5 shadow-xl"
-          >
-            <Search className="h-5 w-5 text-gray-400" />
-            <span className="text-gray-400 text-sm flex-1">ابحث عن متجر أو منتج...</span>
-          </Link>
+              <button onClick={() => { logout(); }} className="w-9 h-9 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/10">
+                <LogOut className="h-4 w-4 text-white/60" />
+              </button>
+            </div>
+          ) : (
+            <Link href="/login" className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm text-white text-sm font-semibold px-4 py-2.5 rounded-xl border border-white/10 active:scale-95 transition-transform">
+              <User className="h-4 w-4" />
+              دخول
+            </Link>
+          )}
         </div>
-      </div>
 
-      {/* Quick actions */}
-      <div className="px-5 -mt-10 mb-6">
+        {/* Greeting */}
+        <div className="relative z-10 mb-8">
+          <h1 className="text-[1.75rem] font-black text-white leading-tight mb-2">
+            {isLoggedIn() && customer?.fullName ? `أهلاً ${customer.fullName}` : 'اطلب من سيارتك'}
+          </h1>
+          <p className="text-white/60 text-[0.9rem] leading-relaxed max-w-xs">
+            اختر متجراً قريباً واستلم طلبك دون أن تنزل من سيارتك
+          </p>
+        </div>
+
+        {/* Search bar — glass */}
+        <Link href="/discover?tab=search" className="relative z-10 flex items-center gap-3 bg-white/10 backdrop-blur-xl rounded-2xl px-4 py-3.5 border border-white/15 active:scale-[0.98] transition-transform">
+          <Search className="h-5 w-5 text-white/50" />
+          <span className="text-white/40 text-sm flex-1">ابحث عن متجر أو منتج...</span>
+          <span className="text-[10px] text-white/30 bg-white/10 px-2 py-1 rounded-lg">بحث</span>
+        </Link>
+      </header>
+
+      {/* ── Quick Actions ───────────────────────────── */}
+      <section className="px-5 -mt-14 mb-8 relative z-20">
         <div className="grid grid-cols-3 gap-3">
-          <Link href="/discover" className="bg-white rounded-2xl p-4 shadow-lg text-center active:scale-95 transition-transform">
-            <div className="w-12 h-12 bg-accent/10 rounded-2xl flex items-center justify-center mx-auto mb-2">
-              <MapPin className="h-6 w-6 text-accent" />
-            </div>
-            <p className="text-xs font-bold text-gray-800">متاجر قريبة</p>
-          </Link>
-          <Link href="/discover?tab=search" className="bg-white rounded-2xl p-4 shadow-lg text-center active:scale-95 transition-transform">
-            <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-2">
-              <Search className="h-6 w-6 text-primary" />
-            </div>
-            <p className="text-xs font-bold text-gray-800">بحث</p>
-          </Link>
-          <div className="bg-white rounded-2xl p-4 shadow-lg text-center relative">
-            <div className="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-2">
-              <QrCode className="h-6 w-6 text-amber-600" />
-            </div>
-            <p className="text-xs font-bold text-gray-800">مسح QR</p>
-          </div>
+          {[
+            { href: '/discover', icon: Compass, label: 'متاجر قريبة', color: 'text-[#1ABC9C]', bg: 'bg-[#1ABC9C]/10' },
+            { href: '/discover?tab=search', icon: Search, label: 'بحث', color: 'text-[#1B4F72]', bg: 'bg-[#1B4F72]/10' },
+            { href: '#qr', icon: QrCode, label: 'مسح QR', color: 'text-amber-600', bg: 'bg-amber-50' },
+          ].map((action) => (
+            <Link
+              key={action.label}
+              href={action.href}
+              className="bg-white rounded-2xl p-4 shadow-[0_2px_20px_rgba(0,0,0,0.06)] text-center cursor-pointer active:scale-95 transition-transform"
+            >
+              <div className={`w-12 h-12 ${action.bg} rounded-2xl flex items-center justify-center mx-auto mb-2.5`}>
+                <action.icon className={`h-5 w-5 ${action.color}`} />
+              </div>
+              <p className="text-xs font-bold text-gray-800">{action.label}</p>
+            </Link>
+          ))}
         </div>
-      </div>
+      </section>
 
-      {/* Nearby stores */}
-      <div className="px-5 mb-6">
+      {/* ── Nearby Stores ───────────────────────────── */}
+      <section className="px-5 mb-8">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Navigation className="h-4 w-4 text-accent" />
-            <h2 className="font-black text-gray-900">متاجر قريبة منك</h2>
+            <div className="w-7 h-7 bg-[#1ABC9C]/10 rounded-lg flex items-center justify-center">
+              <Navigation className="h-3.5 w-3.5 text-[#1ABC9C]" />
+            </div>
+            <h2 className="font-extrabold text-gray-900 text-[0.95rem]">متاجر قريبة منك</h2>
           </div>
-          {locationStatus === 'granted' && (
-            <Link href="/discover" className="text-primary text-xs font-bold flex items-center gap-0.5">
-              عرض الكل <ChevronLeft className="h-3 w-3" />
+          {locationStatus === 'granted' && nearbyStores.length > 0 && (
+            <Link href="/discover" className="text-[#1B4F72] text-xs font-bold flex items-center gap-0.5 cursor-pointer">
+              عرض الكل <ChevronLeft className="h-3.5 w-3.5" />
             </Link>
           )}
         </div>
 
         {locationStatus === 'loading' || loadingStores ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-3" />
-              <p className="text-sm text-gray-500">جاري تحديد موقعك...</p>
-            </div>
+          <div className="bg-white rounded-2xl p-10 shadow-[0_2px_20px_rgba(0,0,0,0.04)] text-center">
+            <Loader2 className="h-7 w-7 animate-spin text-[#1B4F72] mx-auto mb-3" />
+            <p className="text-sm text-gray-400 font-medium">جاري تحديد موقعك...</p>
           </div>
         ) : locationStatus === 'denied' ? (
-          <div className="bg-white rounded-2xl p-6 shadow-sm text-center">
-            <MapPin className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-            <p className="font-bold text-gray-700 mb-1">فعّل الموقع</p>
-            <p className="text-xs text-gray-500 mb-4">اسمح بتحديد موقعك لنعرض المتاجر القريبة</p>
-            <button onClick={loadNearby} className="bg-primary text-white px-6 py-2.5 rounded-xl text-sm font-bold">
+          <div className="bg-white rounded-2xl p-8 shadow-[0_2px_20px_rgba(0,0,0,0.04)] text-center">
+            <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <MapPin className="h-6 w-6 text-gray-400" />
+            </div>
+            <p className="font-bold text-gray-700 mb-1 text-sm">فعّل خدمة الموقع</p>
+            <p className="text-xs text-gray-400 mb-5 leading-relaxed">اسمح بتحديد موقعك لنعرض المتاجر القريبة</p>
+            <button onClick={loadNearby} className="bg-[#1B4F72] text-white px-6 py-2.5 rounded-xl text-sm font-bold cursor-pointer active:scale-95 transition-transform">
               إعادة المحاولة
             </button>
           </div>
-        ) : nearbyStores.length === 0 ? (
-          <div className="bg-white rounded-2xl p-6 shadow-sm text-center">
-            <ShoppingBag className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-            <p className="font-bold text-gray-700">لا توجد متاجر قريبة</p>
-            <p className="text-xs text-gray-500 mt-1">جرّب البحث بالاسم</p>
+        ) : nearbyStores.length === 0 && locationStatus === 'granted' ? (
+          <div className="bg-white rounded-2xl p-8 shadow-[0_2px_20px_rgba(0,0,0,0.04)] text-center">
+            <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <StoreIcon className="h-6 w-6 text-gray-400" />
+            </div>
+            <p className="font-bold text-gray-700 text-sm">لا توجد متاجر قريبة</p>
+            <p className="text-xs text-gray-400 mt-1">جرّب البحث بالاسم</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -181,26 +168,23 @@ export default function HomePage() {
               <Link
                 key={store.id}
                 href={`/store/${store.id}?tenantId=${store.tenantId}`}
-                className="flex items-center gap-3 bg-white rounded-2xl p-4 shadow-sm active:scale-[0.98] transition-transform"
+                className="flex items-center gap-3.5 bg-white rounded-2xl p-4 shadow-[0_2px_20px_rgba(0,0,0,0.04)] cursor-pointer active:scale-[0.98] transition-transform"
               >
-                <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center text-2xl shrink-0">
+                <div className="w-14 h-14 bg-gradient-to-br from-[#1B4F72]/5 to-[#1ABC9C]/5 rounded-2xl flex items-center justify-center shrink-0">
                   {store.logoUrl ? (
                     <img src={store.logoUrl} alt="" className="w-full h-full rounded-2xl object-cover" />
                   ) : (
-                    CATEGORY_ICONS[store.category] ?? '🏪'
+                    <StoreIcon className="h-6 w-6 text-[#1B4F72]/40" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-gray-900 truncate">{store.nameAr}</p>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
-                      {store.category === 'grocery' ? 'بقالة' :
-                       store.category === 'pharmacy' ? 'صيدلية' :
-                       store.category === 'restaurant' ? 'مطعم' :
-                       store.category === 'cafe' ? 'كافيه' : 'متجر'}
+                  <p className="font-bold text-gray-900 text-[0.9rem] truncate">{store.nameAr}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[10px] bg-[#1B4F72]/8 text-[#1B4F72] px-2 py-0.5 rounded-md font-semibold">
+                      {CATEGORY_LABELS[store.category] ?? 'متجر'}
                     </span>
                     {store.distance !== undefined && store.distance > 0 && (
-                      <span className="text-xs text-gray-400 flex items-center gap-0.5">
+                      <span className="text-[11px] text-gray-400 flex items-center gap-0.5 font-medium">
                         <MapPin className="h-3 w-3" />
                         {store.distance < 1
                           ? `${Math.round(store.distance * 1000)} م`
@@ -209,44 +193,51 @@ export default function HomePage() {
                     )}
                   </div>
                   {store.address && (
-                    <p className="text-xs text-gray-400 truncate mt-0.5">{store.address}</p>
+                    <p className="text-[11px] text-gray-400 truncate mt-0.5">{store.address}</p>
                   )}
                 </div>
-                <ChevronLeft className="h-5 w-5 text-gray-300 shrink-0" />
+                <ChevronLeft className="h-4 w-4 text-gray-300 shrink-0" />
               </Link>
             ))}
           </div>
         )}
-      </div>
+      </section>
 
-      {/* How it works */}
-      <div className="px-5 pb-10">
-        <h2 className="font-black text-gray-900 mb-4">كيف تعمل؟</h2>
+      {/* ── How It Works ────────────────────────────── */}
+      <section className="px-5 pb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-7 h-7 bg-[#1B4F72]/10 rounded-lg flex items-center justify-center">
+            <Zap className="h-3.5 w-3.5 text-[#1B4F72]" />
+          </div>
+          <h2 className="font-extrabold text-gray-900 text-[0.95rem]">كيف يعمل؟</h2>
+        </div>
         <div className="grid grid-cols-2 gap-3">
           {[
-            { icon: '📍', title: 'حدد موقعك', desc: 'نعرض لك أقرب المتاجر', color: 'bg-blue-50' },
-            { icon: '🛒', title: 'اختر منتجاتك', desc: 'من الكتالوج أو اكتب قائمتك', color: 'bg-emerald-50' },
-            { icon: '💳', title: 'ادفع', desc: 'كاش أو مدى أو Apple Pay', color: 'bg-amber-50' },
-            { icon: '🚗', title: 'استلم', desc: 'نوصّل طلبك لسيارتك', color: 'bg-purple-50' },
+            { icon: MapPin, title: 'حدد موقعك', desc: 'نعرض لك أقرب المتاجر', gradient: 'from-blue-50 to-blue-100/40' },
+            { icon: Package, title: 'اختر منتجاتك', desc: 'من الكتالوج أو اكتب قائمتك', gradient: 'from-emerald-50 to-emerald-100/40' },
+            { icon: CreditCard, title: 'ادفع', desc: 'كاش أو مدى أو Apple Pay', gradient: 'from-amber-50 to-amber-100/40' },
+            { icon: Car, title: 'استلم', desc: 'نوصّل طلبك لسيارتك', gradient: 'from-purple-50 to-purple-100/40' },
           ].map((step, i) => (
-            <div key={i} className={`${step.color} rounded-2xl p-4`}>
-              <span className="text-3xl">{step.icon}</span>
-              <p className="font-bold text-gray-800 text-sm mt-2">{step.title}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{step.desc}</p>
+            <div key={i} className={`bg-gradient-to-br ${step.gradient} rounded-2xl p-4`}>
+              <div className="w-10 h-10 bg-white/80 rounded-xl flex items-center justify-center mb-3 shadow-sm">
+                <step.icon className="h-5 w-5 text-[#1B4F72]" />
+              </div>
+              <p className="font-bold text-gray-800 text-sm">{step.title}</p>
+              <p className="text-[11px] text-gray-500 mt-0.5 leading-relaxed">{step.desc}</p>
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
-      {/* Footer */}
-      <div className="bg-white border-t border-gray-100 px-5 py-6 text-center">
+      {/* ── Footer ──────────────────────────────────── */}
+      <footer className="bg-white border-t border-gray-100 px-5 py-6 text-center">
         <p className="text-xs text-gray-400">
           هل أنت صاحب متجر؟{' '}
-          <a href="https://dashboard.estlem.store/login" className="text-primary font-bold underline">
+          <a href="https://dashboard.estlem.store/login" className="text-[#1B4F72] font-bold underline underline-offset-2 cursor-pointer">
             سجّل متجرك
           </a>
         </p>
-      </div>
+      </footer>
     </div>
   );
 }

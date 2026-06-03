@@ -4,43 +4,33 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useCustomerAuth } from '@/hooks/useCustomerAuth';
-import { Car, Phone, Shield, ArrowLeft, Loader2, User } from 'lucide-react';
+import { Car, Phone, Shield, ArrowRight, Loader2, User, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useCustomerAuth();
+  const { login, updateProfile } = useCustomerAuth();
   const [step, setStep] = useState<'phone' | 'otp' | 'name'>('phone');
   const [mobile, setMobile] = useState('');
   const [otp, setOtp] = useState('');
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isNewUser, setIsNewUser] = useState(false);
 
   const sendOtp = async () => {
-    if (mobile.length < 9) {
-      toast.error('أدخل رقم جوال صحيح');
-      return;
-    }
+    if (mobile.length < 9) { toast.error('أدخل رقم جوال صحيح'); return; }
     setLoading(true);
     try {
-      const formattedMobile = mobile.startsWith('0') ? mobile : `0${mobile}`;
-      await api.post('/auth/otp/send', { mobile: formattedMobile });
+      const formatted = mobile.startsWith('0') ? mobile : `0${mobile}`;
+      await api.post('/auth/otp/send', { mobile: formatted });
       toast.success('تم إرسال رمز التحقق');
-      setMobile(formattedMobile);
+      setMobile(formatted);
       setStep('otp');
-    } catch {
-      toast.error('فشل إرسال الرمز، حاول مجدداً');
-    } finally {
-      setLoading(false);
-    }
+    } catch { toast.error('فشل إرسال الرمز'); }
+    finally { setLoading(false); }
   };
 
   const verifyOtp = async () => {
-    if (otp.length !== 6) {
-      toast.error('أدخل الرمز المكون من 6 أرقام');
-      return;
-    }
+    if (otp.length !== 6) { toast.error('أدخل الرمز المكون من 6 أرقام'); return; }
     setLoading(true);
     try {
       const result = await api.post('/auth/otp/verify', { mobile, otp }) as {
@@ -48,163 +38,176 @@ export default function LoginPage() {
         accessToken: string;
         refreshToken: string;
       };
-
       if (!result.customer.fullName) {
-        setIsNewUser(true);
-        // Store temp data
-        login(
-          { id: result.customer.id, mobile: result.customer.mobile },
-          result.accessToken,
-          result.refreshToken,
-        );
+        login({ id: result.customer.id, mobile: result.customer.mobile }, result.accessToken, result.refreshToken);
         setStep('name');
       } else {
         login(
           { id: result.customer.id, mobile: result.customer.mobile, fullName: result.customer.fullName },
-          result.accessToken,
-          result.refreshToken,
+          result.accessToken, result.refreshToken,
         );
-        toast.success(`أهلاً ${result.customer.fullName}!`);
-        router.push('/discover');
+        toast.success(`مرحباً ${result.customer.fullName}`);
+        router.push('/');
       }
-    } catch {
-      toast.error('رمز التحقق غير صحيح');
-    } finally {
-      setLoading(false);
-    }
+    } catch { toast.error('رمز التحقق غير صحيح'); }
+    finally { setLoading(false); }
   };
 
   const saveName = () => {
-    if (!fullName.trim()) {
-      toast.error('أدخل اسمك');
-      return;
-    }
-    const { useCustomerAuth: store } = require('@/hooks/useCustomerAuth');
-    store.getState().updateProfile({ fullName: fullName.trim() });
-    toast.success(`أهلاً ${fullName}!`);
-    router.push('/discover');
+    if (!fullName.trim()) { toast.error('أدخل اسمك'); return; }
+    updateProfile({ fullName: fullName.trim() });
+    toast.success(`مرحباً ${fullName}`);
+    router.push('/');
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary via-primary to-blue-900 flex flex-col" dir="rtl">
-      {/* Top section */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 pt-16 pb-8">
-        <div className="w-20 h-20 bg-white/15 rounded-3xl flex items-center justify-center backdrop-blur-sm mb-6">
-          <Car className="h-10 w-10 text-white" />
+    <div className="min-h-screen flex flex-col" dir="rtl">
+      {/* Top — gradient */}
+      <div className="flex-1 bg-gradient-to-bl from-[#0F3460] via-[#1B4F72] to-[#16537E] flex flex-col items-center justify-center px-6 relative overflow-hidden">
+        <div className="absolute -top-16 -right-16 w-56 h-56 bg-[#1ABC9C]/8 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/5 rounded-full blur-2xl" />
+
+        <div className="relative z-10 text-center">
+          <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center mx-auto mb-5 border border-white/10">
+            <Car className="h-8 w-8 text-white" />
+          </div>
+          <h1 className="text-2xl font-black text-white mb-1.5">استلم</h1>
+          <p className="text-white/50 text-sm">اطلب من سيارتك بسهولة</p>
         </div>
-        <h1 className="text-3xl font-black text-white mb-2">استلم</h1>
-        <p className="text-white/70 text-sm">اطلب من سيارتك دون أن تنزل</p>
       </div>
 
-      {/* Form card */}
-      <div className="bg-white rounded-t-[2rem] px-6 pt-8 pb-10 shadow-2xl">
-        {step === 'phone' && (
-          <>
-            <h2 className="text-xl font-black text-gray-900 mb-1">تسجيل الدخول</h2>
-            <p className="text-gray-500 text-sm mb-6">أدخل رقم جوالك وسنرسل لك رمز تحقق</p>
+      {/* Bottom — form card */}
+      <div className="bg-white rounded-t-[2rem] -mt-6 relative z-10 px-6 pt-8 pb-10 shadow-[0_-10px_40px_rgba(0,0,0,0.08)]">
+        {/* Step indicator */}
+        <div className="flex items-center justify-center gap-2 mb-7">
+          {['phone', 'otp', 'name'].map((s, i) => (
+            <div key={s} className="flex items-center gap-2">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                step === s ? 'bg-[#1B4F72] text-white scale-110' :
+                ['phone', 'otp', 'name'].indexOf(step) > i ? 'bg-[#1ABC9C] text-white' :
+                'bg-gray-100 text-gray-400'
+              }`}>
+                {['phone', 'otp', 'name'].indexOf(step) > i ? <CheckCircle className="h-4 w-4" /> : i + 1}
+              </div>
+              {i < 2 && <div className={`w-8 h-0.5 rounded ${['phone', 'otp', 'name'].indexOf(step) > i ? 'bg-[#1ABC9C]' : 'bg-gray-100'}`} />}
+            </div>
+          ))}
+        </div>
 
-            <div className="relative mb-4">
-              <Phone className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
-                type="tel"
-                value={mobile}
-                onChange={(e) => setMobile(e.target.value.replace(/\D/g, ''))}
-                placeholder="05xxxxxxxx"
-                dir="ltr"
-                className="w-full bg-gray-50 border border-gray-200 rounded-2xl pr-12 pl-4 py-4 text-lg text-center tracking-wider focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                maxLength={10}
-              />
+        {step === 'phone' && (
+          <div className="space-y-5">
+            <div>
+              <h2 className="text-xl font-black text-gray-900 mb-1">تسجيل الدخول</h2>
+              <p className="text-gray-400 text-sm">أدخل رقم جوالك لنرسل لك رمز تحقق</p>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-gray-500 mb-1.5 block">رقم الجوال</label>
+              <div className="relative">
+                <Phone className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-300" />
+                <input
+                  type="tel"
+                  value={mobile}
+                  onChange={(e) => setMobile(e.target.value.replace(/\D/g, ''))}
+                  placeholder="05xxxxxxxx"
+                  dir="ltr"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl pr-12 pl-4 py-4 text-base text-center tracking-wider focus:outline-none focus:border-[#1B4F72] focus:ring-2 focus:ring-[#1B4F72]/10 transition-all"
+                  maxLength={10}
+                />
+              </div>
             </div>
 
             <button
               onClick={sendOtp}
               disabled={loading || mobile.length < 9}
-              className="w-full bg-primary text-white py-4 rounded-2xl font-bold text-base disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+              className="w-full bg-[#1B4F72] text-white py-4 rounded-xl font-bold text-base disabled:opacity-40 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition-all shadow-lg shadow-[#1B4F72]/20"
             >
               {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'إرسال رمز التحقق'}
             </button>
-
-            <p className="text-center text-xs text-gray-400 mt-4">
-              بالمتابعة، أنت توافق على شروط الخدمة وسياسة الخصوصية
-            </p>
-          </>
+          </div>
         )}
 
         {step === 'otp' && (
-          <>
-            <button onClick={() => setStep('phone')} className="flex items-center gap-1 text-primary text-sm mb-4">
-              <ArrowLeft className="h-4 w-4" /> تغيير الرقم
+          <div className="space-y-5">
+            <button onClick={() => setStep('phone')} className="flex items-center gap-1 text-[#1B4F72] text-sm font-medium cursor-pointer">
+              <ArrowRight className="h-4 w-4" /> تغيير الرقم
             </button>
 
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center">
-                <Shield className="h-6 w-6 text-emerald-600" />
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 bg-[#1ABC9C]/10 rounded-xl flex items-center justify-center shrink-0">
+                <Shield className="h-5 w-5 text-[#1ABC9C]" />
               </div>
               <div>
                 <h2 className="text-lg font-black text-gray-900">رمز التحقق</h2>
-                <p className="text-gray-500 text-sm">أرسلناه إلى <span className="font-bold" dir="ltr">{mobile}</span></p>
+                <p className="text-gray-400 text-sm">أرسلناه إلى <span className="font-bold text-gray-600" dir="ltr">{mobile}</span></p>
               </div>
             </div>
 
-            <input
-              type="text"
-              inputMode="numeric"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-              placeholder="000000"
-              dir="ltr"
-              className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-4 text-2xl text-center tracking-[0.5em] font-bold focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 mb-4"
-              maxLength={6}
-              autoFocus
-            />
+            <div>
+              <label className="text-xs font-semibold text-gray-500 mb-1.5 block">الرمز</label>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="------"
+                dir="ltr"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-4 text-2xl text-center tracking-[0.4em] font-bold focus:outline-none focus:border-[#1B4F72] focus:ring-2 focus:ring-[#1B4F72]/10 transition-all"
+                maxLength={6}
+                autoFocus
+              />
+            </div>
 
             <button
               onClick={verifyOtp}
               disabled={loading || otp.length !== 6}
-              className="w-full bg-primary text-white py-4 rounded-2xl font-bold text-base disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full bg-[#1B4F72] text-white py-4 rounded-xl font-bold text-base disabled:opacity-40 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] transition-all shadow-lg shadow-[#1B4F72]/20"
             >
               {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'تحقق'}
             </button>
 
-            <button
-              onClick={sendOtp}
-              disabled={loading}
-              className="w-full text-primary text-sm font-medium mt-3 py-2"
-            >
+            <button onClick={sendOtp} disabled={loading} className="w-full text-[#1B4F72] text-sm font-medium py-2 cursor-pointer">
               إعادة إرسال الرمز
             </button>
-          </>
+          </div>
         )}
 
         {step === 'name' && (
-          <>
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center">
-                <User className="h-6 w-6 text-blue-600" />
+          <div className="space-y-5">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
+                <User className="h-5 w-5 text-[#1B4F72]" />
               </div>
               <div>
                 <h2 className="text-lg font-black text-gray-900">مرحباً بك!</h2>
-                <p className="text-gray-500 text-sm">أخبرنا باسمك لنتمكن من خدمتك</p>
+                <p className="text-gray-400 text-sm">أخبرنا باسمك لنتمكن من خدمتك</p>
               </div>
             </div>
 
-            <input
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder="الاسم الكامل"
-              className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-4 text-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 mb-4"
-              autoFocus
-            />
+            <div>
+              <label className="text-xs font-semibold text-gray-500 mb-1.5 block">الاسم الكامل</label>
+              <input
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="أدخل اسمك"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-4 text-base focus:outline-none focus:border-[#1B4F72] focus:ring-2 focus:ring-[#1B4F72]/10 transition-all"
+                autoFocus
+              />
+            </div>
 
             <button
               onClick={saveName}
               disabled={!fullName.trim()}
-              className="w-full bg-primary text-white py-4 rounded-2xl font-bold text-base disabled:opacity-50"
+              className="w-full bg-[#1B4F72] text-white py-4 rounded-xl font-bold text-base disabled:opacity-40 cursor-pointer active:scale-[0.98] transition-all shadow-lg shadow-[#1B4F72]/20"
             >
               ابدأ الطلب
             </button>
-          </>
+          </div>
         )}
+
+        <p className="text-center text-[10px] text-gray-300 mt-6">
+          بالمتابعة، أنت توافق على شروط الخدمة وسياسة الخصوصية
+        </p>
       </div>
     </div>
   );
