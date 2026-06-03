@@ -85,10 +85,21 @@ export default function ProductsPage() {
     if (!editing) return;
     setSaving(true);
     try {
+      const payload = {
+        name: editing.name,
+        nameAr: editing.nameAr,
+        price: editing.price,
+        salePrice: editing.salePrice || undefined,
+        stockQuantity: editing.stockQuantity ?? 0,
+        sku: editing.sku || undefined,
+        imageUrl: editing.imageUrl || undefined,
+        isActive: editing.isActive,
+        categoryId: editing.categoryId || undefined,
+      };
       if (editing.id) {
-        await api.put(`/products/${editing.id}`, editing);
+        await api.put(`/products/${editing.id}`, payload);
       } else {
-        await api.post(`/products/store/${storeId}`, editing);
+        await api.post(`/products/store/${storeId}`, payload);
       }
       toast.success('تم الحفظ');
       setEditing(null);
@@ -283,9 +294,9 @@ export default function ProductsPage() {
               <Card key={p.id} className="overflow-hidden hover:shadow-md transition-all group cursor-pointer" onClick={() => setEditing(p)}>
                 <div className="h-32 bg-gradient-to-br from-secondary to-muted flex items-center justify-center relative">
                   {p.imageUrl ? (
-                    <img src={p.imageUrl} alt={p.nameAr} className="h-full w-full object-cover" />
+                    <img src={p.imageUrl} alt={p.nameAr} className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                   ) : (
-                    <Package className="h-12 w-12 text-muted-foreground/30" />
+                    <span className="text-4xl font-black text-primary/15">{p.nameAr?.charAt(0) ?? '?'}</span>
                   )}
                   <div className="absolute top-2 left-2">
                     <button onClick={(e) => { e.stopPropagation(); toggleActive(p); }}>
@@ -510,11 +521,11 @@ export default function ProductsPage() {
                                 exists ? 'bg-emerald-50 border-emerald-200' : 'border-border hover:border-primary/30 hover:shadow-sm'
                               }`}
                             >
-                              <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
+                              <div className="w-12 h-12 bg-primary/5 rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
                                 {item.imageUrl ? (
-                                  <img src={item.imageUrl} alt={item.nameAr} className="w-full h-full object-cover" />
+                                  <img src={item.imageUrl} alt={item.nameAr} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                                 ) : (
-                                  <Package className="h-5 w-5 text-muted-foreground/40" />
+                                  <span className="text-lg font-bold text-primary/30">{item.nameAr?.charAt(0)}</span>
                                 )}
                               </div>
                               <div className="flex-1 min-w-0">
