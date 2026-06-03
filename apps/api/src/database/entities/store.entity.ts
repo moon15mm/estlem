@@ -52,8 +52,8 @@ export class Store {
   @Column({ type: 'jsonb', default: {} })
   operatingHours: Record<string, unknown>;
 
-  @Column({ type: 'enum', enum: ServiceMode, default: ServiceMode.DRIVE_THROUGH })
-  serviceMode: ServiceMode;
+  @Column({ type: 'varchar', length: 20, default: 'drive_through' })
+  serviceMode: string;
 
   @Column({ default: true })
   isActive: boolean;
