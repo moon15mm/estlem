@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/hooks/useCart';
+import { useCustomerAuth } from '@/hooks/useCustomerAuth';
 import { formatPrice } from '@/lib/utils';
 import { OrderType, PaymentMethod } from '@estlem/shared';
 import { api } from '@/lib/api';
@@ -26,6 +27,7 @@ interface Props {
 export function CartDrawer({ open, onClose, storeId, tenantId, allowedPayments }: Props) {
   const router = useRouter();
   const { items, updateQty, removeItem, clearCart, total, freeTextNotes, getItemKey, hasFreeTextItems } = useCart();
+  const { customer, isLoggedIn } = useCustomerAuth();
   const [step, setStep] = useState<'cart' | 'checkout'>('cart');
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
@@ -34,6 +36,17 @@ export function CartDrawer({ open, onClose, storeId, tenantId, allowedPayments }
     paymentMethod: PaymentMethod.MADA,
     notes: '',
   });
+
+  // Auto-fill customer data
+  useEffect(() => {
+    if (isLoggedIn() && customer) {
+      setForm((prev) => ({
+        ...prev,
+        fullName: prev.fullName || customer.fullName || '',
+        mobile: prev.mobile || customer.mobile || '',
+      }));
+    }
+  }, [customer]);
 
   const TAX = 0.15;
   const subtotal = total();
