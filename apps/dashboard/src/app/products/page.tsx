@@ -171,6 +171,17 @@ export default function ProductsPage() {
     setProducts((prev) => prev.map((p) => p.id === product.id ? { ...p, isActive: !p.isActive } : p));
   };
 
+  const deleteProduct = async (id: string) => {
+    try {
+      await api.delete(`/products/${id}`);
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+      setEditing(null);
+      toast.success('تم حذف المنتج');
+    } catch {
+      toast.error('فشل الحذف');
+    }
+  };
+
   const stats = useMemo(() => ({
     total: products.length,
     active: products.filter((p) => p.isActive).length,
@@ -383,8 +394,9 @@ export default function ProductsPage() {
                         </Badge>
                       </button>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 flex gap-2">
                       <Button variant="link" size="sm" onClick={() => setEditing(p)} className="text-xs h-auto p-0">تعديل</Button>
+                      <Button variant="link" size="sm" onClick={() => { if (confirm('حذف المنتج؟')) deleteProduct(p.id); }} className="text-xs h-auto p-0 text-destructive">حذف</Button>
                     </td>
                   </tr>
                 ))}
@@ -440,6 +452,14 @@ export default function ProductsPage() {
                     {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'حفظ'}
                   </Button>
                 </div>
+                {editing.id && (
+                  <button
+                    onClick={() => { if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) deleteProduct(editing.id!); }}
+                    className="w-full text-center text-destructive text-xs py-2 hover:underline"
+                  >
+                    حذف المنتج
+                  </button>
+                )}
               </div>
             </Card>
           </div>
