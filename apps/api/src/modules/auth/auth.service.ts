@@ -31,14 +31,17 @@ export class AuthService {
     const rate = await this.otpService.getRateLimit(dto.mobile);
     if (rate > 5) throw new HttpException('Too many OTP requests', HttpStatus.TOO_MANY_REQUESTS);
 
-    const otp = this.otpService.generate();
+    // Use test OTP (123456) until Twilio is configured
+    const testMode = !this.config.get('TWILIO_ACCOUNT_SID');
+    const otp = testMode ? '123456' : this.otpService.generate();
     await this.otpService.store(dto.mobile, otp);
 
-    // In production: send via Twilio
-    // For development: log it
-    if (this.config.get('NODE_ENV') === 'development') {
-      console.log(`[DEV OTP] ${dto.mobile}: ${otp}`);
+    if (!testMode) {
+      // TODO: Send via Twilio SMS when configured
+      // await this.smsProvider.send(dto.mobile, `رمز التحقق من استلم: ${otp}`);
     }
+
+    console.log(`[OTP] ${dto.mobile}: ${otp}${testMode ? ' (test mode — use 123456)' : ''}`);
 
     return { message: 'OTP sent successfully' };
   }
