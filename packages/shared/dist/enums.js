@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.WsEvent = exports.SpotType = exports.ServiceMode = exports.PosProvider = exports.NotificationChannel = exports.StoreCategory = exports.Language = exports.SystemRole = exports.StaffRole = exports.TenantStatus = exports.TenantPlan = exports.OrderType = exports.PaymentStatus = exports.PaymentMethod = exports.OrderStatus = void 0;
+exports.WsEvent = exports.BillingCycle = exports.SubscriptionStatus = exports.LoyaltyTransactionType = exports.MembershipTier = exports.InvoiceStatus = exports.CommissionStatus = exports.CommissionType = exports.SpotType = exports.ServiceMode = exports.PosProvider = exports.NotificationChannel = exports.StoreCategory = exports.Language = exports.SystemRole = exports.StaffRole = exports.TenantStatus = exports.TenantPlan = exports.OrderType = exports.PaymentStatus = exports.PaymentMethod = exports.OrderStatus = void 0;
 var OrderStatus;
 (function (OrderStatus) {
     OrderStatus["NEW"] = "new";
@@ -95,6 +95,56 @@ var SpotType;
     SpotType["PARKING"] = "parking";
     SpotType["TABLE"] = "table";
 })(SpotType || (exports.SpotType = SpotType = {}));
+var CommissionType;
+(function (CommissionType) {
+    CommissionType["NONE"] = "none";
+    CommissionType["PERCENTAGE"] = "percentage";
+    CommissionType["FIXED"] = "fixed";
+})(CommissionType || (exports.CommissionType = CommissionType = {}));
+var CommissionStatus;
+(function (CommissionStatus) {
+    CommissionStatus["PENDING"] = "pending";
+    CommissionStatus["COLLECTED"] = "collected";
+    CommissionStatus["PAID"] = "paid";
+    CommissionStatus["CANCELLED"] = "cancelled";
+})(CommissionStatus || (exports.CommissionStatus = CommissionStatus = {}));
+var InvoiceStatus;
+(function (InvoiceStatus) {
+    InvoiceStatus["DRAFT"] = "draft";
+    InvoiceStatus["SENT"] = "sent";
+    InvoiceStatus["PAID"] = "paid";
+    InvoiceStatus["OVERDUE"] = "overdue";
+    InvoiceStatus["CANCELLED"] = "cancelled";
+})(InvoiceStatus || (exports.InvoiceStatus = InvoiceStatus = {}));
+var MembershipTier;
+(function (MembershipTier) {
+    MembershipTier["BRONZE"] = "bronze";
+    MembershipTier["SILVER"] = "silver";
+    MembershipTier["GOLD"] = "gold";
+    MembershipTier["PLATINUM"] = "platinum";
+})(MembershipTier || (exports.MembershipTier = MembershipTier = {}));
+var LoyaltyTransactionType;
+(function (LoyaltyTransactionType) {
+    LoyaltyTransactionType["EARN"] = "earn";
+    LoyaltyTransactionType["REDEEM"] = "redeem";
+    LoyaltyTransactionType["EXPIRE"] = "expire";
+    LoyaltyTransactionType["ADJUST"] = "adjust";
+    LoyaltyTransactionType["BONUS"] = "bonus";
+})(LoyaltyTransactionType || (exports.LoyaltyTransactionType = LoyaltyTransactionType = {}));
+var SubscriptionStatus;
+(function (SubscriptionStatus) {
+    SubscriptionStatus["TRIAL"] = "trial";
+    SubscriptionStatus["ACTIVE"] = "active";
+    SubscriptionStatus["PAST_DUE"] = "past_due";
+    SubscriptionStatus["CANCELLED"] = "cancelled";
+    SubscriptionStatus["EXPIRED"] = "expired";
+})(SubscriptionStatus || (exports.SubscriptionStatus = SubscriptionStatus = {}));
+var BillingCycle;
+(function (BillingCycle) {
+    BillingCycle["MONTHLY"] = "monthly";
+    BillingCycle["QUARTERLY"] = "quarterly";
+    BillingCycle["YEARLY"] = "yearly";
+})(BillingCycle || (exports.BillingCycle = BillingCycle = {}));
 var WsEvent;
 (function (WsEvent) {
     WsEvent["ORDER_CREATED"] = "order:created";

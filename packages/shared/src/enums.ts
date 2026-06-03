@@ -92,6 +92,56 @@ export enum SpotType {
   TABLE = 'table',
 }
 
+export enum CommissionType {
+  NONE = 'none',
+  PERCENTAGE = 'percentage',
+  FIXED = 'fixed',
+}
+
+export enum CommissionStatus {
+  PENDING = 'pending',
+  COLLECTED = 'collected',
+  PAID = 'paid',
+  CANCELLED = 'cancelled',
+}
+
+export enum InvoiceStatus {
+  DRAFT = 'draft',
+  SENT = 'sent',
+  PAID = 'paid',
+  OVERDUE = 'overdue',
+  CANCELLED = 'cancelled',
+}
+
+export enum MembershipTier {
+  BRONZE = 'bronze',
+  SILVER = 'silver',
+  GOLD = 'gold',
+  PLATINUM = 'platinum',
+}
+
+export enum LoyaltyTransactionType {
+  EARN = 'earn',
+  REDEEM = 'redeem',
+  EXPIRE = 'expire',
+  ADJUST = 'adjust',
+  BONUS = 'bonus',
+}
+
+export enum SubscriptionStatus {
+  TRIAL = 'trial',
+  ACTIVE = 'active',
+  PAST_DUE = 'past_due',
+  CANCELLED = 'cancelled',
+  EXPIRED = 'expired',
+}
+
+export enum BillingCycle {
+  MONTHLY = 'monthly',
+  QUARTERLY = 'quarterly',
+  YEARLY = 'yearly',
+}
+
 export enum WsEvent {
   ORDER_CREATED = 'order:created',
   ORDER_STATUS_UPDATED = 'order:status_updated',

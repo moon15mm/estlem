@@ -78,6 +78,49 @@ export declare enum SpotType {
     PARKING = "parking",
     TABLE = "table"
 }
+export declare enum CommissionType {
+    NONE = "none",
+    PERCENTAGE = "percentage",
+    FIXED = "fixed"
+}
+export declare enum CommissionStatus {
+    PENDING = "pending",
+    COLLECTED = "collected",
+    PAID = "paid",
+    CANCELLED = "cancelled"
+}
+export declare enum InvoiceStatus {
+    DRAFT = "draft",
+    SENT = "sent",
+    PAID = "paid",
+    OVERDUE = "overdue",
+    CANCELLED = "cancelled"
+}
+export declare enum MembershipTier {
+    BRONZE = "bronze",
+    SILVER = "silver",
+    GOLD = "gold",
+    PLATINUM = "platinum"
+}
+export declare enum LoyaltyTransactionType {
+    EARN = "earn",
+    REDEEM = "redeem",
+    EXPIRE = "expire",
+    ADJUST = "adjust",
+    BONUS = "bonus"
+}
+export declare enum SubscriptionStatus {
+    TRIAL = "trial",
+    ACTIVE = "active",
+    PAST_DUE = "past_due",
+    CANCELLED = "cancelled",
+    EXPIRED = "expired"
+}
+export declare enum BillingCycle {
+    MONTHLY = "monthly",
+    QUARTERLY = "quarterly",
+    YEARLY = "yearly"
+}
 export declare enum WsEvent {
     ORDER_CREATED = "order:created",
     ORDER_STATUS_UPDATED = "order:status_updated",
