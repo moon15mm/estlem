@@ -83,7 +83,7 @@ export default function StaffPage() {
   return (
     <div className="flex min-h-screen" dir="rtl">
       <Sidebar />
-      <main className="flex-1 p-6">
+      <main className="flex-1 p-4 md:p-6 pb-24 md:pb-6">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-black text-foreground">الموظفون</h1>

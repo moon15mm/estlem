@@ -179,7 +179,7 @@ export default function SettingsPage() {
   return (
     <div className="flex min-h-screen bg-background" dir="rtl">
       <Sidebar />
-      <main className="flex-1 p-6 space-y-6 max-w-3xl">
+      <main className="flex-1 p-4 md:p-6 pb-24 md:pb-6 space-y-6 max-w-3xl">
         <h1 className="text-2xl font-black text-foreground">الإعدادات</h1>
 
         {loading ? (

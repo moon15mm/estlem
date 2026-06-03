@@ -139,7 +139,7 @@ export default function OrdersPage() {
   return (
     <div className="flex min-h-screen" dir="rtl">
       <Sidebar />
-      <main className="flex-1 p-6">
+      <main className="flex-1 p-4 md:p-6 pb-24 md:pb-6">
         {/* New Order Alert Banner */}
         {newOrderAlert && (
           <div className="fixed top-0 left-0 right-0 z-[100] animate-in slide-in-from-top duration-300">

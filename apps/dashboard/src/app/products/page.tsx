@@ -198,7 +198,7 @@ export default function ProductsPage() {
   return (
     <div className="flex min-h-screen bg-background" dir="rtl">
       <Sidebar />
-      <main className="flex-1 p-6 space-y-6">
+      <main className="flex-1 p-4 md:p-6 pb-24 md:pb-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -216,7 +216,7 @@ export default function ProductsPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <Card className="p-4 border-0 bg-gradient-to-br from-blue-50 to-blue-100/50">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">

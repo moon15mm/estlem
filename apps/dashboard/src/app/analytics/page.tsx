@@ -109,19 +109,19 @@ export default function AnalyticsPage() {
   return (
     <div className="flex min-h-screen bg-background" dir="rtl">
       <Sidebar />
-      <main className="flex-1 p-6 space-y-6">
+      <main className="flex-1 p-4 md:p-6 pb-24 md:pb-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-black text-foreground">التحليلات والأداء</h1>
             <p className="text-muted-foreground text-sm">نظرة شاملة على أداء متجرك</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 flex-wrap">
             {[7, 14, 30, 90].map((d) => (
               <button
                 key={d}
                 onClick={() => setRange(d)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                className={`px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-medium transition-all cursor-pointer ${
                   range === d
                     ? 'bg-primary text-white shadow-md'
                     : 'bg-secondary text-muted-foreground hover:bg-muted'
