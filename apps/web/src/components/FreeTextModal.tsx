@@ -1,9 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
-import { OrderType, PaymentMethod } from '@estlem/shared';
+import { useCart, type CartItem } from '@/hooks/useCart';
 import { formatPrice } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
@@ -23,18 +22,12 @@ interface ParsedItem {
   confidence: number;
 }
 
-export function FreeTextModal({ open, onClose, storeId, tenantId }: Props) {
-  const router = useRouter();
-  const [step, setStep] = useState<'input' | 'confirm' | 'checkout'>('input');
+export function FreeTextModal({ open, onClose, storeId }: Props) {
+  const { addFreeTextItems, itemCount } = useCart();
   const [text, setText] = useState('');
   const [parsed, setParsed] = useState<ParsedItem[]>([]);
   const [parsing, setParsing] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({
-    fullName: '', mobile: '',
-    make: '', model: '', color: '', plateNumber: '',
-    paymentMethod: PaymentMethod.CASH,
-  });
+  const [step, setStep] = useState<'input' | 'confirm'>('input');
 
   const parseList = async () => {
     if (!text.trim()) return;
@@ -52,37 +45,39 @@ export function FreeTextModal({ open, onClose, storeId, tenantId }: Props) {
     }
   };
 
-  const submit = async () => {
-    if (!form.fullName || !form.mobile) {
-      toast.error('يرجى إدخال الاسم ورقم الجوال');
-      return;
-    }
-    setLoading(true);
-    try {
-      const spotId = sessionStorage.getItem('estlem_spot_id');
-      const order = await api.post('/orders', {
-        storeId, tenantId,
-        type: OrderType.FREE_TEXT,
-        paymentMethod: form.paymentMethod,
-        parkingSpotId: spotId ?? undefined,
-        rawRequest: text,
-        customer: {
-          fullName: form.fullName, mobile: form.mobile,
-          vehicle: form.make ? {
-            make: form.make, model: form.model,
-            color: form.color, plateNumber: form.plateNumber,
-          } : undefined,
-        },
-      }) as { id: string };
-      router.push(`/order/${order.id}`);
-    } catch {
-      toast.error('فشل إرسال الطلب');
-    } finally {
-      setLoading(false);
-    }
+  const addToCart = () => {
+    const cartItems: CartItem[] = parsed.map((p) => ({
+      productId: p.productId,
+      nameSnapshot: p.name,
+      nameArSnapshot: p.nameAr,
+      priceSnapshot: p.price,
+      quantity: p.quantity,
+      isFreeText: !p.productId,
+    }));
+    addFreeTextItems(cartItems, text);
+
+    const count = parsed.reduce((s, p) => s + p.quantity, 0);
+    toast.success(`تمت إضافة ${count} عنصر للسلة`);
+
+    // Reset and close
+    setText('');
+    setParsed([]);
+    setStep('input');
+    onClose();
+  };
+
+  const removeItem = (index: number) => {
+    setParsed((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const updateQty = (index: number, qty: number) => {
+    if (qty < 1) return removeItem(index);
+    setParsed((prev) => prev.map((p, i) => i === index ? { ...p, quantity: qty } : p));
   };
 
   if (!open) return null;
+
+  const parsedTotal = parsed.reduce((s, p) => s + p.price * p.quantity, 0);
 
   return (
     <div className="fixed inset-0 z-50" dir="rtl">
@@ -93,10 +88,16 @@ export function FreeTextModal({ open, onClose, storeId, tenantId }: Props) {
           <button onClick={onClose} className="text-gray-400 text-2xl">&times;</button>
         </div>
 
+        {itemCount() > 0 && (
+          <div className="bg-blue-50 rounded-xl p-3 mb-4 text-sm text-blue-800">
+            عندك <strong>{itemCount()}</strong> عنصر في السلة — العناصر الجديدة ستُضاف معها
+          </div>
+        )}
+
         {step === 'input' && (
           <>
             <p className="text-gray-500 text-sm mb-3">
-              اكتب قائمة مشترياتك بحرية — سنحولها إلى طلب تلقائياً
+              اكتب قائمة مشترياتك بحرية — سنحللها ونضيفها للسلة مع المنتجات اللي اخترتها
             </p>
             <textarea
               className="w-full border border-gray-200 rounded-xl p-4 text-sm h-36 resize-none focus:outline-none focus:border-blue-400 bg-gray-50"
@@ -116,70 +117,57 @@ export function FreeTextModal({ open, onClose, storeId, tenantId }: Props) {
 
         {step === 'confirm' && (
           <>
-            <p className="text-sm text-gray-500 mb-3">راجع القائمة المحللة:</p>
+            <p className="text-sm text-gray-500 mb-3">راجع العناصر — يمكنك تعديل الكمية أو حذف عنصر:</p>
             <div className="space-y-2 mb-4">
               {parsed.map((item, i) => (
-                <div key={i} className="flex items-center justify-between bg-gray-50 rounded-xl p-3">
-                  <div>
-                    <p className="font-medium text-sm">{item.nameAr}</p>
-                    {item.price > 0 && (
-                      <p className="text-blue-700 text-xs">{formatPrice(item.price)}</p>
-                    )}
+                <div key={i} className="flex items-center gap-3 bg-gray-50 rounded-xl p-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{item.nameAr}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      {item.price > 0 && (
+                        <span className="text-blue-700 text-xs font-bold">{formatPrice(item.price)}</span>
+                      )}
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                        item.productId ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                      }`}>
+                        {item.productId ? '✓ مطابق' : 'حر'}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${
-                      item.confidence > 0.7 ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                    }`}>
-                      {item.confidence > 0.7 ? 'مطابق' : 'تقريبي'}
-                    </span>
-                    <span className="text-sm font-bold">× {item.quantity}</span>
+                  <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-full px-1 py-0.5">
+                    <button onClick={() => updateQty(i, item.quantity - 1)}
+                      className="w-7 h-7 flex items-center justify-center text-gray-500 font-bold">−</button>
+                    <span className="text-sm font-bold w-5 text-center">{item.quantity}</span>
+                    <button onClick={() => updateQty(i, item.quantity + 1)}
+                      className="w-7 h-7 flex items-center justify-center text-gray-500 font-bold">+</button>
                   </div>
+                  <button onClick={() => removeItem(i)} className="text-red-400 text-lg">×</button>
                 </div>
               ))}
             </div>
+
+            {parsedTotal > 0 && (
+              <div className="bg-gray-50 rounded-xl p-3 flex justify-between mb-4 text-sm">
+                <span className="text-gray-500">مجموع العناصر الجديدة</span>
+                <span className="font-bold text-blue-900">{formatPrice(parsedTotal)}</span>
+              </div>
+            )}
+
             <div className="flex gap-2">
               <button onClick={() => setStep('input')} className="flex-1 border border-gray-200 py-3 rounded-xl text-sm">
-                تعديل
+                ← تعديل النص
               </button>
-              <button onClick={() => setStep('checkout')} className="flex-1 bg-blue-900 text-white py-3 rounded-xl font-bold text-sm">
-                متابعة
+              <button
+                onClick={addToCart}
+                disabled={parsed.length === 0}
+                className="flex-1 bg-blue-900 text-white py-3 rounded-xl font-bold text-sm disabled:opacity-50"
+              >
+                إضافة للسلة 🛒
               </button>
             </div>
           </>
         )}
-
-        {step === 'checkout' && (
-          <div className="space-y-4">
-            <button onClick={() => setStep('confirm')} className="text-blue-600 text-sm">
-              ← رجوع
-            </button>
-            <input className="input" placeholder="الاسم الكامل *" value={form.fullName}
-              onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
-            <input className="input" placeholder="رقم الجوال *" type="tel" value={form.mobile}
-              onChange={(e) => setForm({ ...form, mobile: e.target.value })} />
-            <div className="grid grid-cols-2 gap-2">
-              <input className="input" placeholder="الماركة" value={form.make}
-                onChange={(e) => setForm({ ...form, make: e.target.value })} />
-              <input className="input" placeholder="الموديل" value={form.model}
-                onChange={(e) => setForm({ ...form, model: e.target.value })} />
-              <input className="input" placeholder="اللون" value={form.color}
-                onChange={(e) => setForm({ ...form, color: e.target.value })} />
-              <input className="input" placeholder="رقم اللوحة" value={form.plateNumber}
-                onChange={(e) => setForm({ ...form, plateNumber: e.target.value })} />
-            </div>
-            <button
-              onClick={submit}
-              disabled={loading}
-              className="w-full bg-blue-900 text-white py-4 rounded-xl font-bold disabled:opacity-60 flex items-center justify-center gap-2"
-            >
-              {loading
-                ? <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                : '✅ إرسال الطلب'}
-            </button>
-          </div>
-        )}
       </div>
-      <style jsx>{`.input { @apply w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-400 bg-gray-50; }`}</style>
     </div>
   );
 }
