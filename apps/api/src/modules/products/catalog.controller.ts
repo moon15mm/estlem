@@ -6,12 +6,12 @@ interface CatalogItem {
   nameAr: string;
   price: number;
   sku: string;
-  imageUrl: string;
 }
 
 interface CatalogCategory {
   category: string;
   categoryEn: string;
+  icon: string;
   items: CatalogItem[];
 }
 
