@@ -66,7 +66,7 @@ export default function SettingsPage() {
       if (storeSettings) {
         setPaymentMethods(storeSettings);
       }
-      setServiceMode((storeData as any).serviceMode ?? 'drive_through');
+      setServiceMode((storeData as any).operatingHours?.serviceMode ?? 'drive_through');
       setSpots((sp as unknown as ParkingSpot[]) ?? []);
     } catch {
       toast.error('فشل تحميل الإعدادات');
@@ -181,7 +181,12 @@ export default function SettingsPage() {
     setServiceMode(mode);
     setSavingMode(true);
     try {
-      await api.put(`/stores/${storeId}`, { serviceMode: mode });
+      await api.put(`/stores/${storeId}`, {
+        operatingHours: {
+          ...(store as any)?.operatingHours,
+          serviceMode: mode,
+        },
+      });
       toast.success('تم تحديث وضع الخدمة');
       load();
     } catch {
@@ -209,8 +214,8 @@ export default function SettingsPage() {
     }
   };
 
-  const tables = spots.filter((s) => (s as any).type === 'table');
-  const parkingSpots = spots.filter((s) => (s as any).type !== 'table');
+  const tables = spots.filter((s) => s.spotNumber?.startsWith('T:'));
+  const parkingSpots = spots.filter((s) => !s.spotNumber?.startsWith('T:'));
 
   const hasLocation = !!editLat && !!editLng;
   const mapUrl = hasLocation
@@ -433,7 +438,7 @@ export default function SettingsPage() {
                     {tables.map((t) => (
                       <div key={t.id} className="flex items-center justify-between border border-border rounded-xl p-3">
                         <div className="flex items-center gap-3">
-                          <Badge variant="accent">🍽️ طاولة {t.spotNumber}</Badge>
+                          <Badge variant="accent">🍽️ طاولة {t.spotNumber.replace('T:', '')}</Badge>
                           <code className="text-xs text-muted-foreground" dir="ltr">{t.qrCode}</code>
                         </div>
                         <Button variant="outline" size="sm" onClick={() => copyLink(t.qrCode)} className="gap-1">

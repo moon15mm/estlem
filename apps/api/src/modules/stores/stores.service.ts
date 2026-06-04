@@ -57,10 +57,10 @@ export class StoresService {
 
     const spots: ParkingSpot[] = [];
     for (const spotNumber of dto.spotNumbers) {
+      // Embed type in spotNumber: "T:1" for table, just "1" for parking
+      const storedNumber = spotType === 'table' ? `T:${spotNumber}` : spotNumber;
       const qrCode = `${prefix}-${storeId.slice(0, 8)}-${spotNumber}-${uuidv4().slice(0, 8)}`;
-      const spotData: any = { storeId, spotNumber, qrCode };
-      try { spotData.type = spotType; } catch { /* column may not exist yet */ }
-      const spot = this.spotRepo.create(spotData);
+      const spot = this.spotRepo.create({ storeId, spotNumber: storedNumber, qrCode });
       spots.push(spot);
     }
     await this.spotRepo.save(spots as any);
