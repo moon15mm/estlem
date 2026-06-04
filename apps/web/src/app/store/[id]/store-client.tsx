@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useCustomerAuth } from '@/hooks/useCustomerAuth';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { Search, ShoppingBag, Sparkles, Car, UtensilsCrossed, Store as StoreIcon } from 'lucide-react';
@@ -20,8 +21,18 @@ interface StoreClientProps {
 }
 
 export function StoreClient({ storeId }: StoreClientProps) {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const tenantId = searchParams.get('tenantId') ?? '';
+  const { isLoggedIn } = useCustomerAuth();
+
+  // Redirect to login if not logged in
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isLoggedIn()) {
+      const redirect = encodeURIComponent(`/store/${storeId}?tenantId=${tenantId}`);
+      router.replace(`/login?redirect=${redirect}`);
+    }
+  }, [isLoggedIn, router, storeId, tenantId]);
 
   const [spotNumber, setSpotNumber] = useState<string | null>(null);
   const [spotType, setSpotType] = useState<string | null>(null);

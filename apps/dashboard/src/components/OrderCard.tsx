@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, Clock, Car as CarIcon, DollarSign, HourglassIcon } from 'lucide-react';
+import { ChevronDown, ChevronUp, Clock, Car as CarIcon, DollarSign, HourglassIcon, Ban } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { api } from '@/lib/api';
 import { OrderStatus } from '@estlem/shared';
 import type { Customer, CustomerVehicle, Order, OrderItem, ParkingSpot } from '@estlem/shared';
 import { formatPrice, formatDate, cn } from '@/lib/utils';
@@ -131,6 +133,24 @@ export function OrderCard({ order, onUpdateStatus, onQuoteSubmitted }: Props) {
           ))}
           {order.notes && (
             <p className="text-xs text-amber-700 bg-amber-50 p-2 rounded-lg mt-2">📝 {order.notes}</p>
+          )}
+          {order.customerId && (
+            <button
+              onClick={async () => {
+                const reason = prompt('سبب الحظر (اختياري):') ?? undefined;
+                if (reason === null) return;
+                try {
+                  await api.post(`/customers/${order.customerId}/block`, { reason: reason || undefined });
+                  toast.success('تم حظر العميل من المتجر');
+                } catch (err: any) {
+                  toast.error(err?.response?.data?.message || 'فشل الحظر');
+                }
+              }}
+              className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg px-2 py-1.5 mt-2 flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <Ban className="h-3 w-3" />
+              حظر هذا العميل من متجري
+            </button>
           )}
         </div>
       )}

@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ClipboardList, Package, Users, BarChart3, Settings, LogOut, Car } from 'lucide-react';
+import { ClipboardList, Package, Users, BarChart3, Settings, LogOut, Car, Ban } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 
@@ -12,6 +12,7 @@ const NAV = [
   { href: '/products',  icon: Package,       label: 'المنتجات' },
   { href: '/staff',     icon: Users,         label: 'الموظفون' },
   { href: '/analytics', icon: BarChart3,     label: 'التحليلات' },
+  { href: '/blocked',   icon: Ban,           label: 'المحظورين' },
   { href: '/settings',  icon: Settings,      label: 'الإعدادات' },
 ];
 

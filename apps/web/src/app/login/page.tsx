@@ -1,14 +1,24 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useCustomerAuth } from '@/hooks/useCustomerAuth';
 import { Car, Phone, Shield, ArrowRight, Loader2, User, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#1B4F72]" />}>
+      <LoginPageInner />
+    </Suspense>
+  );
+}
+
+function LoginPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get('redirect') ?? '/';
   const { login, updateProfile } = useCustomerAuth();
   const [step, setStep] = useState<'phone' | 'otp' | 'name'>('phone');
   const [mobile, setMobile] = useState('');
@@ -34,7 +44,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const result = await api.post('/auth/otp/verify', { mobile, otp }) as {
-        customer: { id: string; mobile: string; fullName?: string };
+        customer: { id: string; mobile: string; fullName?: string; vehicles?: any[] };
         accessToken: string;
         refreshToken: string;
       };
@@ -43,11 +53,16 @@ export default function LoginPage() {
         setStep('name');
       } else {
         login(
-          { id: result.customer.id, mobile: result.customer.mobile, fullName: result.customer.fullName },
+          {
+            id: result.customer.id,
+            mobile: result.customer.mobile,
+            fullName: result.customer.fullName,
+            vehicles: result.customer.vehicles ?? [],
+          },
           result.accessToken, result.refreshToken,
         );
         toast.success(`مرحباً ${result.customer.fullName}`);
-        router.push('/');
+        router.push(redirect);
       }
     } catch { toast.error('رمز التحقق غير صحيح'); }
     finally { setLoading(false); }

@@ -40,16 +40,23 @@ export function CartDrawer({ open, onClose, storeId, tenantId, allowedPayments }
   const spotType = typeof window !== 'undefined' ? sessionStorage.getItem('estlem_spot_type') : null;
   const isDineIn = spotType === 'table';
 
-  // Auto-fill customer data
+  // Auto-fill customer data + default vehicle
   useEffect(() => {
     if (isLoggedIn() && customer) {
+      const defaultVehicle = customer.vehicles?.find((v) => v.isDefault) || customer.vehicles?.[0];
       setForm((prev) => ({
         ...prev,
         fullName: prev.fullName || customer.fullName || '',
         mobile: prev.mobile || customer.mobile || '',
+        make: prev.make || defaultVehicle?.make || '',
+        model: prev.model || defaultVehicle?.model || '',
+        color: prev.color || defaultVehicle?.color || '',
+        plateNumber: prev.plateNumber || defaultVehicle?.plateNumber || '',
       }));
     }
   }, [customer]);
+
+  const savedVehicles = customer?.vehicles ?? [];
 
   const TAX = 0.15;
   const subtotal = total();
