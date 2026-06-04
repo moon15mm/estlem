@@ -92,16 +92,7 @@ export default function OrdersPage() {
     const offNew = onNewOrder((order) => {
       const newOrder = order as Order;
       setOrders((prev) => [newOrder, ...prev]);
-
-      // Show big alert banner
-      setNewOrderAlert(newOrder);
-      if (alertTimeoutRef.current) clearTimeout(alertTimeoutRef.current);
-      alertTimeoutRef.current = setTimeout(() => setNewOrderAlert(null), 15000);
-
-      // Play alert sound (repeated)
-      playAlertSound();
-      setTimeout(playAlertSound, 1500);
-      setTimeout(playAlertSound, 3000);
+      // Note: visual + audio alert handled globally in GlobalOrderNotifications
     });
 
     const offStatus = onOrderStatusUpdate((update) => {
