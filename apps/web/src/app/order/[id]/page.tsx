@@ -8,6 +8,7 @@ import { formatPrice, formatDate } from '@/lib/utils';
 import { OrderStatus } from '@estlem/shared';
 import type { Order } from '@estlem/shared';
 import { QuoteApprovalCard } from '@/components/QuoteApprovalCard';
+import { PaymentModal } from '@/components/PaymentModal';
 
 interface Props { params: { id: string } }
 
@@ -33,6 +34,7 @@ const STATUS_COLORS: Record<OrderStatus, string> = {
 
 export default function OrderTrackerPage({ params }: Props) {
   const [order, setOrder] = useState<Order | null>(null);
+  const [payOpen, setPayOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -136,12 +138,12 @@ export default function OrderTrackerPage({ params }: Props) {
             <p className="text-xs text-amber-700 leading-relaxed mb-4">
               لم يتم إرسال طلبك للمحل بعد. الرجاء إتمام الدفع لتأكيد الطلب وبدء التحضير.
             </p>
-            <a
-              href={`/pay/${params.id}`}
-              className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-xl font-bold text-sm w-full inline-block text-center cursor-pointer"
+            <button
+              onClick={() => setPayOpen(true)}
+              className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-xl font-bold text-sm w-full cursor-pointer"
             >
               💳 ادفع الآن
-            </a>
+            </button>
           </div>
         </div>
       )}
@@ -270,6 +272,21 @@ export default function OrderTrackerPage({ params }: Props) {
           </div>
         </div>
       </div>
+
+      {/* Payment Modal */}
+      {payOpen && order && (
+        <PaymentModal
+          order={order}
+          onClose={() => setPayOpen(false)}
+          onSuccess={async () => {
+            setPayOpen(false);
+            try {
+              const refreshed = await api.get(`/orders/${params.id}`) as Order;
+              setOrder(refreshed);
+            } catch { /* ignore */ }
+          }}
+        />
+      )}
     </div>
   );
 }
