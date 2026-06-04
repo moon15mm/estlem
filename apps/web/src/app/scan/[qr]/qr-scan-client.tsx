@@ -19,8 +19,12 @@ export function QrScanClient({ qr }: QrScanClientProps) {
       .then((data: any) => {
         sessionStorage.setItem('estlem_spot_id', data.spot.id);
         sessionStorage.setItem('estlem_spot_number', data.spot.spotNumber);
-        // Store spot type (parking or table)
-        sessionStorage.setItem('estlem_spot_type', data.spot.type ?? 'parking');
+        // Detect spot type from spotNumber prefix (T:) or qrCode prefix (TBL-)
+        const isTable =
+          data.spot.spotNumber?.startsWith('T:') ||
+          data.spot.qrCode?.startsWith('TBL-') ||
+          data.spot.type === 'table';
+        sessionStorage.setItem('estlem_spot_type', isTable ? 'table' : 'parking');
         setStore(data.store.id);
         router.replace(`/store/${data.store.id}?tenantId=${data.store.tenantId}`);
       })

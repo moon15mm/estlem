@@ -95,7 +95,7 @@ export function StoreClient({ storeId }: StoreClientProps) {
     );
   }
 
-  const isTable = spotType === 'table';
+  const isTable = spotType === 'table' || (spotNumber?.startsWith('T:') ?? false);
   const displaySpotNumber = spotNumber?.replace('T:', '') ?? '';
 
   return (
@@ -174,11 +174,33 @@ export function StoreClient({ storeId }: StoreClientProps) {
           </div>
 
           {/* Welcome ribbon — between hero and search */}
-          <div className="bg-white px-4 py-3 flex items-center gap-2 border-b border-gray-100 animate-fade-up delay-300">
-            <Sparkles className="h-4 w-4 text-[#1ABC9C]" />
-            <p className="text-xs font-bold text-gray-700">
-              {isTable ? 'مرحباً! اطلب من قائمتنا وسنحضر لك على الطاولة' : 'مرحباً! اطلب من قائمتنا وسنحضر لك في سيارتك'}
-            </p>
+          <div className={`relative overflow-hidden animate-fade-up delay-300 ${
+            isTable
+              ? 'bg-gradient-to-l from-emerald-50 via-white to-emerald-50 border-b border-emerald-100'
+              : 'bg-gradient-to-l from-blue-50 via-white to-blue-50 border-b border-blue-100'
+          }`}>
+            <div className="px-4 py-3.5 flex items-start gap-3">
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
+                isTable ? 'bg-emerald-500' : 'bg-[#1B4F72]'
+              }`}>
+                {isTable ? (
+                  <UtensilsCrossed className="h-4 w-4 text-white" />
+                ) : (
+                  <Car className="h-4 w-4 text-white" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-black text-gray-900 flex items-center gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                  {isTable ? `أهلاً بك على الطاولة ${displaySpotNumber}` : `أهلاً بك في الموقف ${displaySpotNumber}`}
+                </p>
+                <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+                  {isTable
+                    ? 'تصفح قائمتنا واختر طلبك — سيصلك على طاولتك فور تجهيزه'
+                    : 'تصفح قائمتنا واختر طلبك — سنحضره إلى سيارتك دون الحاجة للنزول'}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
