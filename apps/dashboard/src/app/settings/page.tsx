@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Sidebar } from '@/components/Sidebar';
 import toast from 'react-hot-toast';
 import type { Store, ParkingSpot } from '@estlem/shared';
+import { DINE_IN_CATEGORIES, StoreCategory } from '@estlem/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -66,7 +67,10 @@ export default function SettingsPage() {
       if (storeSettings) {
         setPaymentMethods(storeSettings);
       }
-      setServiceMode((storeData as any).operatingHours?.serviceMode ?? 'drive_through');
+      // Only allow dine-in modes for restaurants/cafes/buffets
+      const savedMode = (storeData as any).operatingHours?.serviceMode ?? 'drive_through';
+      const canDineIn = DINE_IN_CATEGORIES.includes(storeData.category as StoreCategory);
+      setServiceMode(canDineIn ? savedMode : 'drive_through');
       setSpots((sp as unknown as ParkingSpot[]) ?? []);
     } catch {
       toast.error('فشل تحميل الإعدادات');
@@ -381,8 +385,8 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
 
-            {/* Service Mode */}
-            <Card>
+            {/* Service Mode — only for restaurants, cafes, buffets */}
+            {store?.category && DINE_IN_CATEGORIES.includes(store.category as StoreCategory) && <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Layers className="h-5 w-5 text-primary" /> وضع الخدمة
@@ -417,10 +421,11 @@ export default function SettingsPage() {
                   ))}
                 </div>
               </CardContent>
-            </Card>
+            </Card>}
 
-            {/* Tables (Dine-in) */}
-            {(serviceMode === 'dine_in' || serviceMode === 'both') && (
+            {/* Tables (Dine-in) — only for eligible categories AND when dine-in is active */}
+            {store?.category && DINE_IN_CATEGORIES.includes(store.category as StoreCategory) &&
+              (serviceMode === 'dine_in' || serviceMode === 'both') && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">

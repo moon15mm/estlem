@@ -167,6 +167,7 @@ const CATEGORY_LABELS: Record<StoreCategory, string> = {
   [StoreCategory.PHARMACY]: 'صيدلية',
   [StoreCategory.RESTAURANT]: 'مطعم',
   [StoreCategory.CAFE]: 'مقهى',
+  [StoreCategory.BUFFET]: 'بوفيه',
   [StoreCategory.PET_STORE]: 'مستلزمات الحيوانات',
   [StoreCategory.ELECTRONICS]: 'إلكترونيات',
   [StoreCategory.STATIONERY]: 'قرطاسية',

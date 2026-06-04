@@ -63,11 +63,19 @@ export enum StoreCategory {
   PHARMACY = 'pharmacy',
   RESTAURANT = 'restaurant',
   CAFE = 'cafe',
+  BUFFET = 'buffet',
   PET_STORE = 'pet_store',
   ELECTRONICS = 'electronics',
   STATIONERY = 'stationery',
   OTHER = 'other',
 }
+
+/** Store categories that support dine-in (table ordering) */
+export const DINE_IN_CATEGORIES: StoreCategory[] = [
+  StoreCategory.RESTAURANT,
+  StoreCategory.CAFE,
+  StoreCategory.BUFFET,
+];
 
 export enum NotificationChannel {
   SMS = 'sms',
