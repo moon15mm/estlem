@@ -35,15 +35,30 @@ REPO_URL="${1:-}"
 DOMAIN="${2:-}"
 
 if [[ -z "$REPO_URL" || -z "$DOMAIN" ]]; then
-  err "Usage: bash $0 <github-repo-url> <domain>"
-  echo "Example: bash $0 https://github.com/moon15mm/estlem.git estlem.store"
+  err "Usage: bash $0 <github-repo-url> <web-domain> [dashboard-domain] [api-domain]"
+  echo
+  echo "Defaults (when only web-domain is given):"
+  echo "  dashboard.<web-domain> for the dashboard"
+  echo "  api.<web-domain>       for the API"
+  echo
+  echo "Examples:"
+  echo "  # Standard layout — defaults work:"
+  echo "  bash $0 https://github.com/moon15mm/estlem.git estlem.store"
+  echo
+  echo "  # Custom subdomains (when DNS uses different names):"
+  echo "  bash $0 https://github.com/moon15mm/estlem.git vps.estlem.store dash-vps.estlem.store api-vps.estlem.store"
   exit 1
 fi
 
 APP_DIR=/opt/estlem
 WEB_DOMAIN="$DOMAIN"
-DASH_DOMAIN="dashboard.$DOMAIN"
-API_DOMAIN="api.$DOMAIN"
+DASH_DOMAIN="${3:-dashboard.$DOMAIN}"
+API_DOMAIN="${4:-api.$DOMAIN}"
+
+log "Domains:"
+ok "  web:       $WEB_DOMAIN"
+ok "  dashboard: $DASH_DOMAIN"
+ok "  api:       $API_DOMAIN"
 
 # ─── 1. Clone or update repo ─────────────────────────────────────────────────
 if [[ -d "$APP_DIR/.git" ]]; then
@@ -158,7 +173,7 @@ cat > /etc/nginx/sites-available/estlem <<EOF
 # Web — main customer site
 server {
   listen 80;
-  server_name ${WEB_DOMAIN} www.${WEB_DOMAIN};
+  server_name ${WEB_DOMAIN};
   location / {
     proxy_pass http://127.0.0.1:3000;
     proxy_http_version 1.1;
@@ -228,11 +243,15 @@ log "Requesting SSL certificates"
 warn "Make sure DNS A records for $WEB_DOMAIN, $DASH_DOMAIN, $API_DOMAIN point to this server's IP."
 sleep 2
 
-certbot --nginx --non-interactive --agree-tos --email "admin@${DOMAIN}" \
-  -d "$WEB_DOMAIN" -d "www.$WEB_DOMAIN" \
-  -d "$DASH_DOMAIN" \
-  -d "$API_DOMAIN" \
-  --redirect 2>&1 | tail -5 || warn "Certbot failed — re-run after DNS propagates"
+# Build certbot domain list — include www only for root-level domains
+CERT_DOMAINS="-d $WEB_DOMAIN -d $DASH_DOMAIN -d $API_DOMAIN"
+# Only add www if web domain is a root (no subdomain in front)
+if [[ "$WEB_DOMAIN" =~ ^[^.]+\.[^.]+$ ]]; then
+  CERT_DOMAINS="$CERT_DOMAINS -d www.$WEB_DOMAIN"
+fi
+
+certbot --nginx --non-interactive --agree-tos --email "admin@${DOMAIN##*.}" \
+  $CERT_DOMAINS --redirect 2>&1 | tail -5 || warn "Certbot failed — re-run after DNS propagates"
 
 ok "SSL configured (if DNS was ready)"
 
