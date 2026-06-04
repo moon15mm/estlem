@@ -136,34 +136,12 @@ export default function OrderTrackerPage({ params }: Props) {
             <p className="text-xs text-amber-700 leading-relaxed mb-4">
               لم يتم إرسال طلبك للمحل بعد. الرجاء إتمام الدفع لتأكيد الطلب وبدء التحضير.
             </p>
-            <button
-              onClick={async () => {
-                try {
-                  const returnUrl = `${window.location.origin}/order/${params.id}`;
-                  const session = await api.post('/payments/initiate', {
-                    orderId: params.id,
-                    method: order.paymentMethod,
-                    returnUrl,
-                  }) as { paymentUrl?: string; testMode?: boolean; sessionId?: string };
-
-                  if (session?.testMode && session.sessionId) {
-                    await api.post(`/payments/test-confirm/${session.sessionId}`, {}).catch(() => {});
-                    const refreshed = await api.get(`/orders/${params.id}`) as Order;
-                    setOrder(refreshed);
-                    toast.success('تم تأكيد الدفع — طلبك في طريقه للمحل', { icon: '✓' });
-                  } else if (session?.paymentUrl) {
-                    window.location.href = session.paymentUrl;
-                  } else {
-                    toast.error('فشل بدء الدفع');
-                  }
-                } catch (err: any) {
-                  toast.error('فشل بدء الدفع');
-                }
-              }}
-              className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-xl font-bold text-sm w-full"
+            <a
+              href={`/pay/${params.id}`}
+              className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-xl font-bold text-sm w-full inline-block text-center cursor-pointer"
             >
               💳 ادفع الآن
-            </button>
+            </a>
           </div>
         </div>
       )}
