@@ -12,15 +12,19 @@ async function ensureColumns(ds: DataSource) {
     const qr = ds.createQueryRunner();
     const cols = await qr.query(`SELECT column_name FROM information_schema.columns WHERE table_name = 'stores'`);
     const colNames = cols.map((c: any) => c.column_name);
-    if (!colNames.includes('serviceMode')) {
-      await qr.query(`ALTER TABLE "stores" ADD COLUMN "serviceMode" varchar(20) DEFAULT 'drive_through'`);
-      console.log('[DB] Added stores.serviceMode column');
+    if (!colNames.includes('service_mode')) {
+      await qr.query(`ALTER TABLE stores ADD COLUMN service_mode varchar(20) DEFAULT 'drive_through'`);
+      console.log('[DB] Added stores.service_mode column');
+    }
+    // Drop old camelCase column if exists
+    if (colNames.includes('serviceMode')) {
+      await qr.query(`ALTER TABLE stores DROP COLUMN "serviceMode"`).catch(() => {});
     }
     const spotCols = await qr.query(`SELECT column_name FROM information_schema.columns WHERE table_name = 'parking_spots'`);
     const spotColNames = spotCols.map((c: any) => c.column_name);
-    if (!spotColNames.includes('type')) {
-      await qr.query(`ALTER TABLE "parking_spots" ADD COLUMN "type" varchar(20) DEFAULT 'parking'`);
-      console.log('[DB] Added parking_spots.type column');
+    if (!spotColNames.includes('spot_type')) {
+      await qr.query(`ALTER TABLE parking_spots ADD COLUMN spot_type varchar(20) DEFAULT 'parking'`);
+      console.log('[DB] Added parking_spots.spot_type column');
     }
     await qr.release();
   } catch (e) {

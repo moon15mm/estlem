@@ -52,7 +52,7 @@ export class Store {
   @Column({ type: 'jsonb', default: {} })
   operatingHours: Record<string, unknown>;
 
-  @Column({ type: 'varchar', length: 20, default: 'drive_through' })
+  @Column({ name: 'service_mode', type: 'varchar', length: 20, default: 'drive_through', nullable: true })
   serviceMode: string;
 
   @Column({ default: true })
