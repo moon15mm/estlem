@@ -18,7 +18,7 @@ export class ParkingSpot {
   @JoinColumn({ name: 'storeId' })
   store: Store;
 
-  @Column({ type: 'varchar', length: 20, default: 'parking' })
+  @Column({ name: 'spot_type', type: 'varchar', length: 20, default: 'parking', nullable: true })
   type: string;
 
   @Column({ length: 20 })
