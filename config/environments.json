@@ -1,0 +1,115 @@
+{
+  "$schema": "./environments.schema.json",
+  "_comment": "Single source of truth for all environment URLs and infrastructure. Update via scripts/setup-wizard.sh — do not edit env files by hand.",
+  "active": "production",
+  "environments": {
+    "production": {
+      "label": "Production (Render + Vercel) — current setup",
+      "apiUrl": "https://estlem-api.onrender.com",
+      "apiBase": "https://estlem-api.onrender.com/api/v1",
+      "wsUrl": "https://estlem-api.onrender.com",
+      "webUrl": "https://estlem.store",
+      "dashboardUrl": "https://dashboard.estlem.store",
+      "database": {
+        "provider": "render",
+        "name": "estlem-db",
+        "connectionEnv": "DATABASE_URL"
+      },
+      "deployment": {
+        "api": {
+          "platform": "render",
+          "service": "estlem-api"
+        },
+        "web": {
+          "platform": "vercel",
+          "project": "estlem-web"
+        },
+        "dashboard": {
+          "platform": "vercel",
+          "project": "estlem-dashboard"
+        }
+      }
+    },
+    "vps": {
+      "label": "Self-hosted VPS (Contabo)",
+      "_note": "Fill in after VPS migration. See docs/VPS-MIGRATION.md",
+      "apiUrl": "https://api.estlem.store",
+      "apiBase": "https://api.estlem.store/api/v1",
+      "wsUrl": "https://api.estlem.store",
+      "webUrl": "https://estlem.store",
+      "dashboardUrl": "https://dashboard.estlem.store",
+      "database": {
+        "provider": "self-hosted",
+        "host": "127.0.0.1",
+        "port": 5432,
+        "name": "estlem",
+        "connectionEnv": "DATABASE_URL"
+      },
+      "deployment": {
+        "api": {
+          "platform": "vps",
+          "host": "167.86.77.174",
+          "pm2": "estlem-api",
+          "port": 3001
+        },
+        "web": {
+          "platform": "vps",
+          "host": "167.86.77.174",
+          "pm2": "estlem-web",
+          "port": 3000
+        },
+        "dashboard": {
+          "platform": "vps",
+          "host": "167.86.77.174",
+          "pm2": "estlem-dashboard",
+          "port": 3002
+        }
+      }
+    },
+    "local": {
+      "label": "Local development",
+      "apiUrl": "http://localhost:3001",
+      "apiBase": "http://localhost:3001/api/v1",
+      "wsUrl": "http://localhost:3001",
+      "webUrl": "http://localhost:3000",
+      "dashboardUrl": "http://localhost:3002",
+      "database": {
+        "provider": "local",
+        "host": "127.0.0.1",
+        "port": 5432,
+        "name": "estlem_dev",
+        "connectionEnv": "DATABASE_URL"
+      },
+      "deployment": {
+        "api": {
+          "platform": "local",
+          "port": 3001
+        },
+        "web": {
+          "platform": "local",
+          "port": 3000
+        },
+        "dashboard": {
+          "platform": "local",
+          "port": 3002
+        }
+      }
+    }
+  },
+  "checkpoints": [
+    {
+      "tag": "checkpoint-pre-vps-stable",
+      "createdAt": "2026-06-04",
+      "environment": "production",
+      "note": "Stable production on Vercel+Render before VPS migration consideration. All features working: dine-in, blocking, expanded catalog, Moyasar payment SDK.",
+      "rollback": "node scripts/checkpoint.js restore checkpoint-pre-vps-stable"
+    },
+    {
+      "tag": "checkpoint-pre-vps-2026-06-04",
+      "createdAt": "2026-06-04",
+      "environment": "production",
+      "note": "Stable state before VPS migration consideration. Vercel + Render fully working (rate-limited daily). DB on Render Postgres. Last commit before checkpoint system was added.",
+      "rollback": "git checkout checkpoint-pre-vps-2026-06-04 && pnpm install && pnpm build"
+    }
+  ]
+}

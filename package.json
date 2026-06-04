@@ -23,7 +23,12 @@
     "test": "pnpm --parallel -r test",
     "lint": "pnpm --parallel -r lint",
     "db:migrate": "pnpm --filter @estlem/api migration:run",
-    "db:seed": "pnpm --filter @estlem/api seed:run"
+    "db:seed": "pnpm --filter @estlem/api seed:run",
+    "env:switch": "node scripts/setup-wizard.js",
+    "checkpoint": "node scripts/checkpoint.js",
+    "checkpoint:create": "node scripts/checkpoint.js create",
+    "checkpoint:list": "node scripts/checkpoint.js list",
+    "checkpoint:restore": "node scripts/checkpoint.js restore"
   },
   "devDependencies": {
     "typescript": "^5.4.0"
