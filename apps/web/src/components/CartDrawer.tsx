@@ -140,15 +140,23 @@ export function CartDrawer({ open, onClose, storeId, tenantId, allowedPayments }
         } catch (err: any) {
           const status = err?.response?.status;
           const rawMsg = err?.response?.data?.message;
-          const msg = Array.isArray(rawMsg) ? rawMsg.join(', ') : rawMsg;
+          const msg =
+            typeof rawMsg === 'string' ? rawMsg :
+            Array.isArray(rawMsg) ? rawMsg.join(', ') :
+            rawMsg ? JSON.stringify(rawMsg) : null;
           console.error('[Payment Initiate Error]', { status, msg, err });
 
           if (status === 401) {
             toast.error('انتهت جلستك — سجّل دخول مرة أخرى');
           } else if (status === 404) {
-            toast.error('endpoint /payments/initiate غير موجود — API لم يُحدّث');
+            // Fallback: API doesn't have payment endpoint — go directly to tracker
+            router.push(`/order/${order.id}`);
+            return;
           } else if (msg) {
             toast.error(`فشل الدفع: ${msg}`);
+            // Still navigate to tracker so customer sees the order
+            router.push(`/order/${order.id}`);
+            return;
           } else {
             toast.error('فشل بدء الدفع، تم حفظ طلبك');
           }
