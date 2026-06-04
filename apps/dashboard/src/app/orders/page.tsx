@@ -93,7 +93,14 @@ export default function OrdersPage() {
 
     const offNew = onNewOrder((order) => {
       const newOrder = order as Order;
-      setOrders((prev) => [newOrder, ...prev]);
+      setOrders((prev) => {
+        // Avoid duplicates — if order already exists, update it; otherwise prepend
+        const exists = prev.find((o) => o.id === newOrder.id);
+        if (exists) {
+          return prev.map((o) => o.id === newOrder.id ? newOrder : o);
+        }
+        return [newOrder, ...prev];
+      });
       // Note: visual + audio alert handled globally in GlobalOrderNotifications
     });
 
