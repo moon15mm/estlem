@@ -1,6 +1,6 @@
 import {
   IsEnum, IsOptional, IsString, IsArray, ValidateNested,
-  IsNumber, IsPositive, IsUUID, Min,
+  IsNumber, IsUUID, Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { OrderType, PaymentMethod } from '@estlem/shared';
@@ -22,7 +22,7 @@ class OrderItemDto {
   @IsOptional() @IsUUID() productId?: string;
   @IsString() nameSnapshot: string;
   @IsOptional() @IsString() nameArSnapshot?: string;
-  @IsNumber() @IsPositive() priceSnapshot: number;
+  @IsNumber() @Min(0) priceSnapshot: number;
   @IsNumber() @Min(1) quantity: number;
   @IsOptional() @IsString() notes?: string;
 }
