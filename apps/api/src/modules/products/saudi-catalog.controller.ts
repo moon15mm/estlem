@@ -26,20 +26,20 @@ export class SaudiCatalogController {
     // Create categories
     const categoryMap = new Map<string, string>();
     for (const cat of saudiCategories) {
-      const existing = await this.catRepo.findOne({
-        where: { storeId, name: cat.name },
+      const existing: any = await this.catRepo.findOne({
+        where: { storeId, name: cat.name } as any,
       });
       if (existing) {
         categoryMap.set(cat.key, existing.id);
       } else {
-        const created = await this.catRepo.save(this.catRepo.create({
+        const created: any = await this.catRepo.save(this.catRepo.create({
           storeId,
           tenantId,
           name: cat.name,
           nameAr: cat.nameAr,
           sortOrder: cat.sortOrder,
           isActive: true,
-        }));
+        } as any));
         categoryMap.set(cat.key, created.id);
       }
     }
@@ -48,7 +48,7 @@ export class SaudiCatalogController {
     let importedCount = 0;
     for (const prod of saudiProducts) {
       const exists = await this.prodRepo.findOne({
-        where: { storeId, name: prod.name },
+        where: { storeId, name: prod.name } as any,
       });
       if (!exists) {
         await this.prodRepo.save(this.prodRepo.create({
@@ -60,7 +60,7 @@ export class SaudiCatalogController {
           price: prod.price,
           isActive: true,
           trackInventory: false,
-        }));
+        } as any));
         importedCount++;
       }
     }
