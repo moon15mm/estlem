@@ -15,8 +15,20 @@ async function cleanupOldColumns(ds: DataSource) {
     await qr.query(`ALTER TABLE stores DROP COLUMN IF EXISTS service_mode`).catch(() => {});
     await qr.query(`ALTER TABLE parking_spots DROP COLUMN IF EXISTS "type"`).catch(() => {});
     await qr.query(`ALTER TABLE parking_spots DROP COLUMN IF EXISTS spot_type`).catch(() => {});
+
+    // Convert orders.status from enum to varchar so new statuses
+    // (pending_quote, pending_approval) work without enum migration
+    const statusInfo = await qr.query(`
+      SELECT data_type FROM information_schema.columns
+      WHERE table_name = 'orders' AND column_name = 'status'
+    `).catch(() => []);
+    if (statusInfo?.[0]?.data_type === 'USER-DEFINED') {
+      await qr.query(`ALTER TABLE orders ALTER COLUMN status TYPE varchar(30) USING status::text`).catch(() => {});
+      console.log('[DB] Converted orders.status from enum to varchar');
+    }
+
     await qr.release();
-    console.log('[DB] Cleaned up old columns');
+    console.log('[DB] Cleanup done');
   } catch (e) {
     console.warn('[DB] Cleanup skipped:', (e as Error).message);
   }
