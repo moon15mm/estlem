@@ -1,131 +1,886 @@
-[
-  {
-    "category": "مياه",
-    "categoryEn": "Water",
-    "icon": "💧",
-    "items": [
-      { "name": "Nova Water 330ml", "nameAr": "مياه نوفا 330 مل", "price": 0.50, "sku": "NOVA-330" },
-      { "name": "Nova Water 600ml", "nameAr": "مياه نوفا 600 مل", "price": 1.00, "sku": "NOVA-600" },
-      { "name": "Nova Water 1.5L", "nameAr": "مياه نوفا 1.5 لتر", "price": 1.50, "sku": "NOVA-1500" },
-      { "name": "Berain Water 330ml", "nameAr": "مياه بيرين 330 مل", "price": 0.50, "sku": "BERAIN-330" },
-      { "name": "Berain Water 600ml", "nameAr": "مياه بيرين 600 مل", "price": 1.00, "sku": "BERAIN-600" },
-      { "name": "Berain Water 1.5L", "nameAr": "مياه بيرين 1.5 لتر", "price": 1.50, "sku": "BERAIN-1500" },
-      { "name": "Hana Water 330ml", "nameAr": "مياه هنا 330 مل", "price": 0.50, "sku": "HANA-330" },
-      { "name": "Hana Water 600ml", "nameAr": "مياه هنا 600 مل", "price": 1.00, "sku": "HANA-600" },
-      { "name": "Al Qassim Water 600ml", "nameAr": "مياه القصيم 600 مل", "price": 0.75, "sku": "QASSIM-600" },
-      { "name": "Evian Water 500ml", "nameAr": "مياه إيفيان 500 مل", "price": 5.00, "sku": "EVIAN-500" }
-    ]
-  },
-  {
-    "category": "مشروبات غازية",
-    "categoryEn": "Soft Drinks",
-    "icon": "🥤",
-    "items": [
-      { "name": "Pepsi 330ml Can", "nameAr": "بيبسي 330 مل علبة", "price": 2.00, "sku": "PEPSI-330" },
-      { "name": "Pepsi 1L", "nameAr": "بيبسي 1 لتر", "price": 4.50, "sku": "PEPSI-1000" },
-      { "name": "Pepsi 2.25L", "nameAr": "بيبسي 2.25 لتر", "price": 6.50, "sku": "PEPSI-2250" },
-      { "name": "Coca Cola 330ml Can", "nameAr": "كوكا كولا 330 مل علبة", "price": 2.00, "sku": "COCA-330" },
-      { "name": "Coca Cola 1L", "nameAr": "كوكا كولا 1 لتر", "price": 4.50, "sku": "COCA-1000" },
-      { "name": "Sprite 330ml Can", "nameAr": "سبرايت 330 مل علبة", "price": 2.00, "sku": "SPRITE-330" },
-      { "name": "Mirinda Orange 330ml", "nameAr": "ميرندا برتقال 330 مل", "price": 2.00, "sku": "MIRINDA-O-330" },
-      { "name": "7UP 330ml Can", "nameAr": "سفن أب 330 مل علبة", "price": 2.00, "sku": "7UP-330" },
-      { "name": "Mountain Dew 330ml", "nameAr": "ماونتن ديو 330 مل", "price": 2.00, "sku": "MTD-330" },
-      { "name": "Shani 330ml", "nameAr": "شاني 330 مل", "price": 2.00, "sku": "SHANI-330" }
-    ]
-  },
-  {
-    "category": "عصائر",
-    "categoryEn": "Juices",
-    "icon": "🧃",
-    "items": [
-      { "name": "Almarai Orange Juice 1L", "nameAr": "عصير المراعي برتقال 1 لتر", "price": 7.50, "sku": "MARAI-OJ-1000" },
-      { "name": "Almarai Apple Juice 1L", "nameAr": "عصير المراعي تفاح 1 لتر", "price": 7.50, "sku": "MARAI-AJ-1000" },
-      { "name": "Almarai Mango Juice 1L", "nameAr": "عصير المراعي مانجو 1 لتر", "price": 7.50, "sku": "MARAI-MJ-1000" },
-      { "name": "Almarai Mixed Fruit 1L", "nameAr": "عصير المراعي فواكه مشكلة 1 لتر", "price": 7.50, "sku": "MARAI-MX-1000" },
-      { "name": "Nadec Orange Juice 1L", "nameAr": "عصير نادك برتقال 1 لتر", "price": 6.50, "sku": "NADEC-OJ-1000" },
-      { "name": "Nadec Apple Juice 1L", "nameAr": "عصير نادك تفاح 1 لتر", "price": 6.50, "sku": "NADEC-AJ-1000" },
-      { "name": "Rani Orange 240ml", "nameAr": "راني برتقال 240 مل", "price": 2.50, "sku": "RANI-O-240" },
-      { "name": "Tang Orange 375g", "nameAr": "تانج برتقال 375 جرام", "price": 8.00, "sku": "TANG-O-375" },
-      { "name": "Vimto 710ml", "nameAr": "فيمتو 710 مل", "price": 9.00, "sku": "VIMTO-710" },
-      { "name": "Sun Top Orange 125ml", "nameAr": "صن توب برتقال 125 مل", "price": 0.75, "sku": "SUNTOP-O-125" }
-    ]
-  },
-  {
-    "category": "حليب وألبان",
-    "categoryEn": "Dairy",
-    "icon": "🥛",
-    "items": [
-      { "name": "Almarai Full Fat Milk 1L", "nameAr": "حليب المراعي كامل الدسم 1 لتر", "price": 6.50, "sku": "MARAI-FM-1000" },
-      { "name": "Almarai Low Fat Milk 1L", "nameAr": "حليب المراعي قليل الدسم 1 لتر", "price": 6.50, "sku": "MARAI-LF-1000" },
-      { "name": "Almarai Laban 1L", "nameAr": "لبن المراعي 1 لتر", "price": 5.00, "sku": "MARAI-LB-1000" },
-      { "name": "Almarai Yogurt 170g", "nameAr": "زبادي المراعي 170 جرام", "price": 1.50, "sku": "MARAI-YG-170" },
-      { "name": "Nadec Full Fat Milk 1L", "nameAr": "حليب نادك كامل الدسم 1 لتر", "price": 5.75, "sku": "NADEC-FM-1000" },
-      { "name": "Nadec Laban 1L", "nameAr": "لبن نادك 1 لتر", "price": 4.50, "sku": "NADEC-LB-1000" },
-      { "name": "Almarai Cheese Slices 200g", "nameAr": "جبن المراعي شرائح 200 جرام", "price": 8.50, "sku": "MARAI-CS-200" },
-      { "name": "Puck Cream Cheese 240g", "nameAr": "جبنة بوك كريمي 240 جرام", "price": 7.00, "sku": "PUCK-CC-240" },
-      { "name": "Kiri Cheese 6 pcs", "nameAr": "جبنة كيري 6 قطع", "price": 6.50, "sku": "KIRI-6" },
-      { "name": "Almarai Cream 200ml", "nameAr": "كريمة المراعي 200 مل", "price": 4.50, "sku": "MARAI-CR-200" }
-    ]
-  },
-  {
-    "category": "خبز ومعجنات",
-    "categoryEn": "Bread & Bakery",
-    "icon": "🍞",
-    "items": [
-      { "name": "Lusine White Bread", "nameAr": "خبز لوزين أبيض", "price": 4.50, "sku": "LUSINE-WB" },
-      { "name": "Lusine Brown Bread", "nameAr": "خبز لوزين بر", "price": 4.50, "sku": "LUSINE-BB" },
-      { "name": "Lusine Sandwich Bread", "nameAr": "خبز لوزين سندويش", "price": 5.00, "sku": "LUSINE-SB" },
-      { "name": "Samoli Bread", "nameAr": "خبز صامولي", "price": 3.00, "sku": "SAMOLI" },
-      { "name": "Arabic Bread Pack", "nameAr": "خبز عربي", "price": 1.50, "sku": "ARABIC-BREAD" },
-      { "name": "Tortilla Wrap 8pcs", "nameAr": "خبز تورتيلا 8 قطع", "price": 7.00, "sku": "TORTILLA-8" }
-    ]
-  },
-  {
-    "category": "سناكات وشيبس",
-    "categoryEn": "Snacks & Chips",
-    "icon": "🍿",
-    "items": [
-      { "name": "Lays Classic 170g", "nameAr": "ليز كلاسيك 170 جرام", "price": 7.50, "sku": "LAYS-C-170" },
-      { "name": "Lays Salt & Vinegar 170g", "nameAr": "ليز ملح وخل 170 جرام", "price": 7.50, "sku": "LAYS-SV-170" },
-      { "name": "Doritos Nacho 180g", "nameAr": "دوريتوس ناتشو 180 جرام", "price": 8.00, "sku": "DORITOS-N-180" },
-      { "name": "Cheetos Crunchy 205g", "nameAr": "شيتوس كرانشي 205 جرام", "price": 8.00, "sku": "CHEETOS-C-205" },
-      { "name": "Pringles Original 165g", "nameAr": "برينجلز أوريجنال 165 جرام", "price": 10.00, "sku": "PRING-O-165" },
-      { "name": "Indomie Noodles Chicken 5pcs", "nameAr": "إندومي دجاج 5 أكياس", "price": 5.50, "sku": "INDO-CH-5" },
-      { "name": "Indomie Noodles Vegetables 5pcs", "nameAr": "إندومي خضار 5 أكياس", "price": 5.50, "sku": "INDO-VG-5" },
-      { "name": "Oreo Cookies 137g", "nameAr": "أوريو بسكويت 137 جرام", "price": 5.00, "sku": "OREO-137" },
-      { "name": "Ulker Biscuits 165g", "nameAr": "بسكويت أولكر 165 جرام", "price": 3.50, "sku": "ULKER-165" },
-      { "name": "Galaxy Chocolate 90g", "nameAr": "شوكولاتة جالكسي 90 جرام", "price": 5.00, "sku": "GALAXY-90" }
-    ]
-  },
-  {
-    "category": "مشروبات طاقة وقهوة",
-    "categoryEn": "Energy & Coffee",
-    "icon": "☕",
-    "items": [
-      { "name": "Red Bull 250ml", "nameAr": "ريد بول 250 مل", "price": 7.00, "sku": "REDBULL-250" },
-      { "name": "Power Horse 250ml", "nameAr": "باور هورس 250 مل", "price": 4.50, "sku": "PHORSE-250" },
-      { "name": "Code Red 250ml", "nameAr": "كود ريد 250 مل", "price": 4.00, "sku": "CODERED-250" },
-      { "name": "Nescafe Classic 200g", "nameAr": "نسكافيه كلاسيك 200 جرام", "price": 22.00, "sku": "NESCAFE-C-200" },
-      { "name": "Nescafe 3in1 Sachet", "nameAr": "نسكافيه 3 في 1 ظرف", "price": 1.00, "sku": "NESCAFE-3IN1" },
-      { "name": "Lipton Tea 100 bags", "nameAr": "شاي ليبتون 100 كيس", "price": 15.00, "sku": "LIPTON-100" },
-      { "name": "Rabea Tea 100 bags", "nameAr": "شاي ربيع 100 كيس", "price": 10.00, "sku": "RABEA-100" }
-    ]
-  },
-  {
-    "category": "بقالة أساسية",
-    "categoryEn": "Grocery Essentials",
-    "icon": "🛒",
-    "items": [
-      { "name": "Saudia Sugar 1kg", "nameAr": "سكر سعودية 1 كيلو", "price": 4.50, "sku": "SUGAR-1KG" },
-      { "name": "Afia Corn Oil 1.5L", "nameAr": "زيت عافية ذرة 1.5 لتر", "price": 18.00, "sku": "AFIA-CO-1500" },
-      { "name": "Goody Spaghetti 450g", "nameAr": "مكرونة قودي سباغيتي 450 جرام", "price": 3.50, "sku": "GOODY-SP-450" },
-      { "name": "Goody Tomato Paste 135g", "nameAr": "معجون طماطم قودي 135 جرام", "price": 2.50, "sku": "GOODY-TP-135" },
-      { "name": "Al Alali Tuna 170g", "nameAr": "تونة العلالي 170 جرام", "price": 7.50, "sku": "ALALI-TUNA-170" },
-      { "name": "Abu Kass Basmati Rice 5kg", "nameAr": "أرز أبو كأس بسمتي 5 كيلو", "price": 38.00, "sku": "ABUKASS-R-5KG" },
-      { "name": "Heinz Ketchup 570g", "nameAr": "كاتشب هاينز 570 جرام", "price": 12.00, "sku": "HEINZ-K-570" },
-      { "name": "Fairy Dish Soap 750ml", "nameAr": "صابون أطباق فيري 750 مل", "price": 9.00, "sku": "FAIRY-750" },
-      { "name": "Persil Detergent 3kg", "nameAr": "مسحوق غسيل برسيل 3 كيلو", "price": 35.00, "sku": "PERSIL-3KG" },
-      { "name": "Fine Tissues 200 sheets", "nameAr": "مناديل فاين 200 منديل", "price": 5.50, "sku": "FINE-T-200" }
-    ]
-  }
-]
+{
+  "grocery": [
+    {
+      "category": "مياه",
+      "categoryEn": "Water",
+      "icon": "💧",
+      "items": [
+        { "name": "Nova Water 330ml", "nameAr": "مياه نوفا 330 مل", "price": 0.50, "sku": "NOVA-330" },
+        { "name": "Nova Water 600ml", "nameAr": "مياه نوفا 600 مل", "price": 1.00, "sku": "NOVA-600" },
+        { "name": "Nova Water 1.5L", "nameAr": "مياه نوفا 1.5 لتر", "price": 1.50, "sku": "NOVA-1500" },
+        { "name": "Berain Water 330ml", "nameAr": "مياه بيرين 330 مل", "price": 0.50, "sku": "BERAIN-330" },
+        { "name": "Berain Water 600ml", "nameAr": "مياه بيرين 600 مل", "price": 1.00, "sku": "BERAIN-600" },
+        { "name": "Berain Water 1.5L", "nameAr": "مياه بيرين 1.5 لتر", "price": 1.50, "sku": "BERAIN-1500" },
+        { "name": "Hana Water 330ml", "nameAr": "مياه هنا 330 مل", "price": 0.50, "sku": "HANA-330" },
+        { "name": "Hana Water 600ml", "nameAr": "مياه هنا 600 مل", "price": 1.00, "sku": "HANA-600" },
+        { "name": "Al Qassim Water 600ml", "nameAr": "مياه القصيم 600 مل", "price": 0.75, "sku": "QASSIM-600" },
+        { "name": "Evian Water 500ml", "nameAr": "مياه إيفيان 500 مل", "price": 5.00, "sku": "EVIAN-500" },
+        { "name": "Aquafina 600ml", "nameAr": "أكوافينا 600 مل", "price": 1.00, "sku": "AQUA-600" },
+        { "name": "Tania Water 600ml", "nameAr": "مياه تانيا 600 مل", "price": 0.75, "sku": "TANIA-600" },
+        { "name": "Sparkling Water 330ml", "nameAr": "مياه فوارة 330 مل", "price": 2.50, "sku": "SPARK-330" }
+      ]
+    },
+    {
+      "category": "مشروبات غازية",
+      "categoryEn": "Soft Drinks",
+      "icon": "🥤",
+      "items": [
+        { "name": "Pepsi 330ml Can", "nameAr": "بيبسي 330 مل علبة", "price": 2.00, "sku": "PEPSI-330" },
+        { "name": "Pepsi 1L", "nameAr": "بيبسي 1 لتر", "price": 4.50, "sku": "PEPSI-1000" },
+        { "name": "Pepsi 2.25L", "nameAr": "بيبسي 2.25 لتر", "price": 6.50, "sku": "PEPSI-2250" },
+        { "name": "Pepsi Diet 330ml", "nameAr": "بيبسي دايت 330 مل", "price": 2.00, "sku": "PEPSI-D-330" },
+        { "name": "Coca Cola 330ml Can", "nameAr": "كوكا كولا 330 مل علبة", "price": 2.00, "sku": "COCA-330" },
+        { "name": "Coca Cola 1L", "nameAr": "كوكا كولا 1 لتر", "price": 4.50, "sku": "COCA-1000" },
+        { "name": "Coca Cola Zero 330ml", "nameAr": "كوكا كولا زيرو 330 مل", "price": 2.00, "sku": "COCA-Z-330" },
+        { "name": "Sprite 330ml Can", "nameAr": "سبرايت 330 مل علبة", "price": 2.00, "sku": "SPRITE-330" },
+        { "name": "Sprite 1L", "nameAr": "سبرايت 1 لتر", "price": 4.50, "sku": "SPRITE-1000" },
+        { "name": "Fanta 330ml", "nameAr": "فانتا 330 مل", "price": 2.00, "sku": "FANTA-330" },
+        { "name": "Mirinda Orange 330ml", "nameAr": "ميرندا برتقال 330 مل", "price": 2.00, "sku": "MIRINDA-O-330" },
+        { "name": "Mirinda Citrus 330ml", "nameAr": "ميرندا سترس 330 مل", "price": 2.00, "sku": "MIRINDA-C-330" },
+        { "name": "7UP 330ml Can", "nameAr": "سفن أب 330 مل علبة", "price": 2.00, "sku": "7UP-330" },
+        { "name": "Mountain Dew 330ml", "nameAr": "ماونتن ديو 330 مل", "price": 2.00, "sku": "MTD-330" },
+        { "name": "Shani 330ml", "nameAr": "شاني 330 مل", "price": 2.00, "sku": "SHANI-330" },
+        { "name": "Hawaii Pineapple 330ml", "nameAr": "هاواي أناناس 330 مل", "price": 2.00, "sku": "HAWAII-330" },
+        { "name": "Barbican Non-Alcoholic 330ml", "nameAr": "باربيكان شعير 330 مل", "price": 3.50, "sku": "BARB-330" }
+      ]
+    },
+    {
+      "category": "عصائر",
+      "categoryEn": "Juices",
+      "icon": "🧃",
+      "items": [
+        { "name": "Almarai Orange 1L", "nameAr": "عصير المراعي برتقال 1 لتر", "price": 7.50, "sku": "MARAI-OJ-1000" },
+        { "name": "Almarai Apple 1L", "nameAr": "عصير المراعي تفاح 1 لتر", "price": 7.50, "sku": "MARAI-AJ-1000" },
+        { "name": "Almarai Mango 1L", "nameAr": "عصير المراعي مانجو 1 لتر", "price": 7.50, "sku": "MARAI-MJ-1000" },
+        { "name": "Almarai Mixed Fruit 1L", "nameAr": "عصير المراعي فواكه مشكلة 1 لتر", "price": 7.50, "sku": "MARAI-MX-1000" },
+        { "name": "Almarai Strawberry 1L", "nameAr": "عصير المراعي فراولة 1 لتر", "price": 7.50, "sku": "MARAI-ST-1000" },
+        { "name": "Nadec Orange 1L", "nameAr": "عصير نادك برتقال 1 لتر", "price": 6.50, "sku": "NADEC-OJ-1000" },
+        { "name": "Nadec Apple 1L", "nameAr": "عصير نادك تفاح 1 لتر", "price": 6.50, "sku": "NADEC-AJ-1000" },
+        { "name": "Nadec Mango 1L", "nameAr": "عصير نادك مانجو 1 لتر", "price": 6.50, "sku": "NADEC-MJ-1000" },
+        { "name": "Rani Orange 240ml", "nameAr": "راني برتقال 240 مل", "price": 2.50, "sku": "RANI-O-240" },
+        { "name": "Rani Float Mango 240ml", "nameAr": "راني فلوت مانجو 240 مل", "price": 3.00, "sku": "RANI-F-240" },
+        { "name": "Tang Orange 375g", "nameAr": "تانج برتقال 375 جرام", "price": 8.00, "sku": "TANG-O-375" },
+        { "name": "Tang Mango 375g", "nameAr": "تانج مانجو 375 جرام", "price": 8.00, "sku": "TANG-M-375" },
+        { "name": "Vimto 710ml", "nameAr": "فيمتو 710 مل", "price": 9.00, "sku": "VIMTO-710" },
+        { "name": "Sun Top Orange 125ml", "nameAr": "صن توب برتقال 125 مل", "price": 0.75, "sku": "SUNTOP-O-125" },
+        { "name": "Sun Top Mango 125ml", "nameAr": "صن توب مانجو 125 مل", "price": 0.75, "sku": "SUNTOP-M-125" },
+        { "name": "Caprisun 200ml", "nameAr": "كابري صن 200 مل", "price": 2.00, "sku": "CAPRI-200" }
+      ]
+    },
+    {
+      "category": "حليب وألبان",
+      "categoryEn": "Dairy",
+      "icon": "🥛",
+      "items": [
+        { "name": "Almarai Full Fat Milk 1L", "nameAr": "حليب المراعي كامل الدسم 1 لتر", "price": 6.50, "sku": "MARAI-FM-1000" },
+        { "name": "Almarai Low Fat Milk 1L", "nameAr": "حليب المراعي قليل الدسم 1 لتر", "price": 6.50, "sku": "MARAI-LF-1000" },
+        { "name": "Almarai Skimmed Milk 1L", "nameAr": "حليب المراعي خالي الدسم 1 لتر", "price": 6.50, "sku": "MARAI-SK-1000" },
+        { "name": "Almarai Chocolate Milk 1L", "nameAr": "حليب المراعي شوكولاتة 1 لتر", "price": 7.00, "sku": "MARAI-CH-1000" },
+        { "name": "Almarai Laban 1L", "nameAr": "لبن المراعي 1 لتر", "price": 5.00, "sku": "MARAI-LB-1000" },
+        { "name": "Almarai Yogurt 170g", "nameAr": "زبادي المراعي 170 جرام", "price": 1.50, "sku": "MARAI-YG-170" },
+        { "name": "Almarai Strawberry Yogurt 200g", "nameAr": "زبادي المراعي فراولة 200 جرام", "price": 2.50, "sku": "MARAI-YS-200" },
+        { "name": "Nadec Full Fat Milk 1L", "nameAr": "حليب نادك كامل الدسم 1 لتر", "price": 5.75, "sku": "NADEC-FM-1000" },
+        { "name": "Nadec Laban 1L", "nameAr": "لبن نادك 1 لتر", "price": 4.50, "sku": "NADEC-LB-1000" },
+        { "name": "Almarai Cheese Slices 200g", "nameAr": "جبن المراعي شرائح 200 جرام", "price": 8.50, "sku": "MARAI-CS-200" },
+        { "name": "Almarai Feta Cheese 400g", "nameAr": "جبنة فيتا المراعي 400 جرام", "price": 14.00, "sku": "MARAI-FT-400" },
+        { "name": "Puck Cream Cheese 240g", "nameAr": "جبنة بوك كريمي 240 جرام", "price": 7.00, "sku": "PUCK-CC-240" },
+        { "name": "Puck Mozzarella 200g", "nameAr": "جبنة موزاريلا بوك 200 جرام", "price": 12.00, "sku": "PUCK-MZ-200" },
+        { "name": "Kiri Cheese 6 pcs", "nameAr": "جبنة كيري 6 قطع", "price": 6.50, "sku": "KIRI-6" },
+        { "name": "Almarai Cream 200ml", "nameAr": "كريمة المراعي 200 مل", "price": 4.50, "sku": "MARAI-CR-200" },
+        { "name": "Almarai Butter 200g", "nameAr": "زبدة المراعي 200 جرام", "price": 12.00, "sku": "MARAI-BU-200" },
+        { "name": "Eggs 30 pcs", "nameAr": "بيض 30 حبة", "price": 18.00, "sku": "EGGS-30" },
+        { "name": "Eggs 15 pcs", "nameAr": "بيض 15 حبة", "price": 10.00, "sku": "EGGS-15" }
+      ]
+    },
+    {
+      "category": "خبز ومعجنات",
+      "categoryEn": "Bread & Bakery",
+      "icon": "🍞",
+      "items": [
+        { "name": "Lusine White Bread", "nameAr": "خبز لوزين أبيض", "price": 4.50, "sku": "LUSINE-WB" },
+        { "name": "Lusine Brown Bread", "nameAr": "خبز لوزين بر", "price": 4.50, "sku": "LUSINE-BB" },
+        { "name": "Lusine Sandwich Bread", "nameAr": "خبز لوزين سندويش", "price": 5.00, "sku": "LUSINE-SB" },
+        { "name": "Lusine Toast Bread", "nameAr": "خبز توست لوزين", "price": 5.50, "sku": "LUSINE-TB" },
+        { "name": "Samoli Bread", "nameAr": "خبز صامولي", "price": 3.00, "sku": "SAMOLI" },
+        { "name": "Arabic Bread Pack", "nameAr": "خبز عربي", "price": 1.50, "sku": "ARABIC-BREAD" },
+        { "name": "Tortilla Wrap 8pcs", "nameAr": "خبز تورتيلا 8 قطع", "price": 7.00, "sku": "TORTILLA-8" },
+        { "name": "Burger Buns 6pcs", "nameAr": "خبز برجر 6 قطع", "price": 8.00, "sku": "BURGER-6" },
+        { "name": "Hot Dog Buns 6pcs", "nameAr": "خبز هوت دوغ 6 قطع", "price": 8.00, "sku": "HOTDOG-6" },
+        { "name": "Croissant 6pcs", "nameAr": "كرواسون 6 قطع", "price": 12.00, "sku": "CROIS-6" }
+      ]
+    },
+    {
+      "category": "سناكات وشيبس",
+      "categoryEn": "Snacks & Chips",
+      "icon": "🍿",
+      "items": [
+        { "name": "Lays Classic 170g", "nameAr": "ليز كلاسيك 170 جرام", "price": 7.50, "sku": "LAYS-C-170" },
+        { "name": "Lays Salt & Vinegar 170g", "nameAr": "ليز ملح وخل 170 جرام", "price": 7.50, "sku": "LAYS-SV-170" },
+        { "name": "Lays Cheese 170g", "nameAr": "ليز جبن 170 جرام", "price": 7.50, "sku": "LAYS-CH-170" },
+        { "name": "Lays BBQ 170g", "nameAr": "ليز باربكيو 170 جرام", "price": 7.50, "sku": "LAYS-BBQ-170" },
+        { "name": "Doritos Nacho 180g", "nameAr": "دوريتوس ناتشو 180 جرام", "price": 8.00, "sku": "DORITOS-N-180" },
+        { "name": "Doritos Cool 180g", "nameAr": "دوريتوس كول 180 جرام", "price": 8.00, "sku": "DORITOS-CL-180" },
+        { "name": "Cheetos Crunchy 205g", "nameAr": "شيتوس كرانشي 205 جرام", "price": 8.00, "sku": "CHEETOS-C-205" },
+        { "name": "Cheetos Crispy 80g", "nameAr": "شيتوس كرسبي 80 جرام", "price": 3.00, "sku": "CHEETOS-X-80" },
+        { "name": "Pringles Original 165g", "nameAr": "برينجلز أوريجنال 165 جرام", "price": 10.00, "sku": "PRING-O-165" },
+        { "name": "Pringles Sour Cream 165g", "nameAr": "برينجلز كريمة 165 جرام", "price": 10.00, "sku": "PRING-S-165" },
+        { "name": "Indomie Chicken 5pcs", "nameAr": "إندومي دجاج 5 أكياس", "price": 5.50, "sku": "INDO-CH-5" },
+        { "name": "Indomie Vegetables 5pcs", "nameAr": "إندومي خضار 5 أكياس", "price": 5.50, "sku": "INDO-VG-5" },
+        { "name": "Indomie Special Chicken 5pcs", "nameAr": "إندومي دجاج خاص 5 أكياس", "price": 6.00, "sku": "INDO-SP-5" },
+        { "name": "Oreo Cookies 137g", "nameAr": "أوريو بسكويت 137 جرام", "price": 5.00, "sku": "OREO-137" },
+        { "name": "Ulker Biscuits 165g", "nameAr": "بسكويت أولكر 165 جرام", "price": 3.50, "sku": "ULKER-165" },
+        { "name": "Tea Biscuits", "nameAr": "بسكويت شاي", "price": 1.00, "sku": "TEA-BISC" },
+        { "name": "Galaxy Chocolate 90g", "nameAr": "جالكسي 90 جرام", "price": 5.00, "sku": "GALAXY-90" },
+        { "name": "Kitkat 4 Finger", "nameAr": "كت كات 4 أصابع", "price": 3.50, "sku": "KITKAT-4" },
+        { "name": "Snickers Bar", "nameAr": "سنيكرز", "price": 3.50, "sku": "SNICKERS" },
+        { "name": "Mars Bar", "nameAr": "مارس", "price": 3.50, "sku": "MARS" },
+        { "name": "Twix Bar", "nameAr": "تويكس", "price": 3.50, "sku": "TWIX" },
+        { "name": "Bounty Bar", "nameAr": "باونتي", "price": 3.50, "sku": "BOUNTY" },
+        { "name": "M&Ms 45g", "nameAr": "إم آند إم 45 جرام", "price": 4.00, "sku": "MMS-45" },
+        { "name": "Popcorn 100g", "nameAr": "بوب كورن 100 جرام", "price": 3.00, "sku": "POP-100" }
+      ]
+    },
+    {
+      "category": "مشروبات طاقة وقهوة",
+      "categoryEn": "Energy & Coffee",
+      "icon": "☕",
+      "items": [
+        { "name": "Red Bull 250ml", "nameAr": "ريد بول 250 مل", "price": 7.00, "sku": "REDBULL-250" },
+        { "name": "Red Bull Sugar Free 250ml", "nameAr": "ريد بول دايت 250 مل", "price": 7.00, "sku": "REDBULL-D-250" },
+        { "name": "Power Horse 250ml", "nameAr": "باور هورس 250 مل", "price": 4.50, "sku": "PHORSE-250" },
+        { "name": "Code Red 250ml", "nameAr": "كود ريد 250 مل", "price": 4.00, "sku": "CODERED-250" },
+        { "name": "Monster Energy 355ml", "nameAr": "مونستر 355 مل", "price": 9.00, "sku": "MONSTER-355" },
+        { "name": "Nescafe Classic 200g", "nameAr": "نسكافيه كلاسيك 200 جرام", "price": 22.00, "sku": "NESCAFE-C-200" },
+        { "name": "Nescafe Gold 100g", "nameAr": "نسكافيه قولد 100 جرام", "price": 28.00, "sku": "NESCAFE-G-100" },
+        { "name": "Nescafe 3in1 Sachet", "nameAr": "نسكافيه 3 في 1 ظرف", "price": 1.00, "sku": "NESCAFE-3IN1" },
+        { "name": "Davidoff Coffee 100g", "nameAr": "قهوة دافيدوف 100 جرام", "price": 32.00, "sku": "DAVID-100" },
+        { "name": "Maatouk Turkish Coffee 250g", "nameAr": "قهوة معتوق تركي 250 جرام", "price": 18.00, "sku": "MAATOUK-250" },
+        { "name": "Saudi Coffee 200g", "nameAr": "قهوة عربية 200 جرام", "price": 25.00, "sku": "SAUDI-C-200" },
+        { "name": "Lipton Tea 100 bags", "nameAr": "شاي ليبتون 100 كيس", "price": 15.00, "sku": "LIPTON-100" },
+        { "name": "Lipton Green Tea 100 bags", "nameAr": "ليبتون أخضر 100 كيس", "price": 17.00, "sku": "LIPTON-G-100" },
+        { "name": "Rabea Tea 100 bags", "nameAr": "شاي ربيع 100 كيس", "price": 10.00, "sku": "RABEA-100" },
+        { "name": "Twinings Earl Grey 25 bags", "nameAr": "توينينجز إيرل جراي 25 كيس", "price": 22.00, "sku": "TWIN-EG-25" },
+        { "name": "Karak Tea Mix", "nameAr": "خليط شاي كرك", "price": 12.00, "sku": "KARAK-MIX" }
+      ]
+    },
+    {
+      "category": "بقالة أساسية",
+      "categoryEn": "Grocery Essentials",
+      "icon": "🛒",
+      "items": [
+        { "name": "Saudia Sugar 1kg", "nameAr": "سكر سعودية 1 كيلو", "price": 4.50, "sku": "SUGAR-1KG" },
+        { "name": "Saudia Sugar 5kg", "nameAr": "سكر سعودية 5 كيلو", "price": 22.00, "sku": "SUGAR-5KG" },
+        { "name": "Saudia Salt 1kg", "nameAr": "ملح سعودية 1 كيلو", "price": 2.50, "sku": "SALT-1KG" },
+        { "name": "Afia Corn Oil 1.5L", "nameAr": "زيت عافية ذرة 1.5 لتر", "price": 18.00, "sku": "AFIA-CO-1500" },
+        { "name": "Afia Sunflower Oil 1.5L", "nameAr": "زيت عافية دوار شمس 1.5 لتر", "price": 17.00, "sku": "AFIA-SF-1500" },
+        { "name": "Olive Oil 1L", "nameAr": "زيت زيتون 1 لتر", "price": 38.00, "sku": "OLIVE-1000" },
+        { "name": "Goody Spaghetti 450g", "nameAr": "مكرونة قودي سباغيتي 450 جرام", "price": 3.50, "sku": "GOODY-SP-450" },
+        { "name": "Goody Penne 450g", "nameAr": "مكرونة قودي بنّي 450 جرام", "price": 3.50, "sku": "GOODY-PN-450" },
+        { "name": "Goody Tomato Paste 135g", "nameAr": "معجون طماطم قودي 135 جرام", "price": 2.50, "sku": "GOODY-TP-135" },
+        { "name": "Al Alali Tuna 170g", "nameAr": "تونة العلالي 170 جرام", "price": 7.50, "sku": "ALALI-TUNA-170" },
+        { "name": "Al Alali Tuna Chunks 95g", "nameAr": "تونة العلالي قطع 95 جرام", "price": 4.50, "sku": "ALALI-T-95" },
+        { "name": "Sardine 125g", "nameAr": "سردين 125 جرام", "price": 6.50, "sku": "SARDINE-125" },
+        { "name": "Abu Kass Basmati Rice 5kg", "nameAr": "أرز أبو كأس بسمتي 5 كيلو", "price": 38.00, "sku": "ABUKASS-R-5KG" },
+        { "name": "Mazza Basmati Rice 10kg", "nameAr": "أرز مزة بسمتي 10 كيلو", "price": 68.00, "sku": "MAZZA-R-10KG" },
+        { "name": "Egyptian Rice 5kg", "nameAr": "أرز مصري 5 كيلو", "price": 28.00, "sku": "EGYP-R-5KG" },
+        { "name": "Lentils 1kg", "nameAr": "عدس 1 كيلو", "price": 8.00, "sku": "LENTIL-1KG" },
+        { "name": "Chickpeas 1kg", "nameAr": "حمص 1 كيلو", "price": 9.00, "sku": "CHICK-1KG" },
+        { "name": "White Beans 1kg", "nameAr": "فاصولياء بيضاء 1 كيلو", "price": 10.00, "sku": "BEAN-1KG" },
+        { "name": "Heinz Ketchup 570g", "nameAr": "كاتشب هاينز 570 جرام", "price": 12.00, "sku": "HEINZ-K-570" },
+        { "name": "Heinz Mayonnaise 295g", "nameAr": "مايونيز هاينز 295 جرام", "price": 9.50, "sku": "HEINZ-M-295" },
+        { "name": "Mustard 200g", "nameAr": "مسطردة 200 جرام", "price": 6.00, "sku": "MUSTARD-200" },
+        { "name": "Soy Sauce 250ml", "nameAr": "صلصة الصويا 250 مل", "price": 8.00, "sku": "SOY-250" },
+        { "name": "Vinegar White 500ml", "nameAr": "خل أبيض 500 مل", "price": 4.00, "sku": "VIN-W-500" },
+        { "name": "Honey 500g", "nameAr": "عسل 500 جرام", "price": 35.00, "sku": "HONEY-500" },
+        { "name": "Tahini 400g", "nameAr": "طحينة 400 جرام", "price": 11.00, "sku": "TAHINI-400" },
+        { "name": "Halawa 500g", "nameAr": "حلاوة 500 جرام", "price": 14.00, "sku": "HALAWA-500" },
+        { "name": "Jam Strawberry 320g", "nameAr": "مربى فراولة 320 جرام", "price": 8.50, "sku": "JAM-S-320" },
+        { "name": "Nutella 350g", "nameAr": "نوتيلا 350 جرام", "price": 22.00, "sku": "NUTELLA-350" },
+        { "name": "Peanut Butter 340g", "nameAr": "زبدة فول سوداني 340 جرام", "price": 15.00, "sku": "PB-340" }
+      ]
+    },
+    {
+      "category": "منظفات ومستلزمات",
+      "categoryEn": "Cleaning & Household",
+      "icon": "🧹",
+      "items": [
+        { "name": "Fairy Dish Soap 750ml", "nameAr": "صابون أطباق فيري 750 مل", "price": 9.00, "sku": "FAIRY-750" },
+        { "name": "Pril Dish Soap 1L", "nameAr": "صابون بريل 1 لتر", "price": 10.00, "sku": "PRIL-1000" },
+        { "name": "Persil Detergent 3kg", "nameAr": "مسحوق غسيل برسيل 3 كيلو", "price": 35.00, "sku": "PERSIL-3KG" },
+        { "name": "Persil Liquid 3L", "nameAr": "برسيل سائل 3 لتر", "price": 42.00, "sku": "PERSIL-L-3L" },
+        { "name": "Ariel Detergent 3kg", "nameAr": "مسحوق غسيل أريال 3 كيلو", "price": 33.00, "sku": "ARIEL-3KG" },
+        { "name": "Clorox Bleach 1L", "nameAr": "كلوركس مبيض 1 لتر", "price": 8.00, "sku": "CLOROX-1000" },
+        { "name": "Dettol Antiseptic 500ml", "nameAr": "ديتول مطهر 500 مل", "price": 18.00, "sku": "DETTOL-500" },
+        { "name": "Glade Air Freshener 300ml", "nameAr": "جليد معطر جو 300 مل", "price": 14.00, "sku": "GLADE-300" },
+        { "name": "Fine Tissues 200 sheets", "nameAr": "مناديل فاين 200 منديل", "price": 5.50, "sku": "FINE-T-200" },
+        { "name": "Fine Toilet Paper 12 rolls", "nameAr": "مناديل حمام فاين 12 لفة", "price": 22.00, "sku": "FINE-TP-12" },
+        { "name": "Kleenex Tissues 150", "nameAr": "مناديل كلينكس 150", "price": 7.00, "sku": "KLEEN-150" },
+        { "name": "Garbage Bags 30pcs", "nameAr": "أكياس قمامة 30 كيس", "price": 9.50, "sku": "GARB-30" },
+        { "name": "Aluminum Foil 30m", "nameAr": "ورق ألمنيوم 30 متر", "price": 11.00, "sku": "FOIL-30" },
+        { "name": "Cling Film 30m", "nameAr": "نايلون لاصق 30 متر", "price": 7.50, "sku": "CLING-30" }
+      ]
+    },
+    {
+      "category": "تبغ ومستلزمات",
+      "categoryEn": "Tobacco",
+      "icon": "🚬",
+      "items": [
+        { "name": "Marlboro Red", "nameAr": "مارلبورو أحمر", "price": 25.00, "sku": "MARL-R" },
+        { "name": "Marlboro Gold", "nameAr": "مارلبورو ذهبي", "price": 25.00, "sku": "MARL-G" },
+        { "name": "Camel Blue", "nameAr": "كامل أزرق", "price": 23.00, "sku": "CAMEL-B" },
+        { "name": "Lighter", "nameAr": "ولاعة", "price": 3.00, "sku": "LIGHTER" }
+      ]
+    }
+  ],
+  "restaurant": [
+    {
+      "category": "وجبات سعودية شعبية",
+      "categoryEn": "Saudi Traditional",
+      "icon": "🍛",
+      "items": [
+        { "name": "Chicken Kabsa", "nameAr": "كبسة دجاج", "price": 25.00, "sku": "KABSA-CH" },
+        { "name": "Lamb Kabsa", "nameAr": "كبسة لحم", "price": 35.00, "sku": "KABSA-LM" },
+        { "name": "Chicken Mandi", "nameAr": "مندي دجاج", "price": 28.00, "sku": "MANDI-CH" },
+        { "name": "Lamb Mandi", "nameAr": "مندي لحم", "price": 40.00, "sku": "MANDI-LM" },
+        { "name": "Chicken Mathlooth", "nameAr": "مثلوثة دجاج", "price": 30.00, "sku": "MATHL-CH" },
+        { "name": "Lamb Mathlooth", "nameAr": "مثلوثة لحم", "price": 42.00, "sku": "MATHL-LM" },
+        { "name": "Chicken Madhbi", "nameAr": "مظبي دجاج", "price": 28.00, "sku": "MADHBI-CH" },
+        { "name": "Saleeg", "nameAr": "صليق", "price": 32.00, "sku": "SALEEG" },
+        { "name": "Jareesh", "nameAr": "جريش", "price": 22.00, "sku": "JAREESH" },
+        { "name": "Mathlooth Plate", "nameAr": "طبق مظلوم", "price": 30.00, "sku": "MATHLOOM" },
+        { "name": "Mutabbaq Meat", "nameAr": "مطبق لحم", "price": 12.00, "sku": "MUTAB-M" },
+        { "name": "Mutabbaq Cheese", "nameAr": "مطبق جبن", "price": 10.00, "sku": "MUTAB-C" },
+        { "name": "Sambousa Meat 6pcs", "nameAr": "سمبوسة لحم 6 قطع", "price": 12.00, "sku": "SAMB-M-6" },
+        { "name": "Sambousa Cheese 6pcs", "nameAr": "سمبوسة جبن 6 قطع", "price": 10.00, "sku": "SAMB-C-6" },
+        { "name": "Marqooq", "nameAr": "مرقوق", "price": 35.00, "sku": "MARQ" }
+      ]
+    },
+    {
+      "category": "مشاوي",
+      "categoryEn": "Grills",
+      "icon": "🍢",
+      "items": [
+        { "name": "Mixed Grill", "nameAr": "مشاوي مشكلة", "price": 55.00, "sku": "GRILL-MIX" },
+        { "name": "Lamb Kebab", "nameAr": "كباب لحم", "price": 38.00, "sku": "KEB-LM" },
+        { "name": "Chicken Tikka", "nameAr": "تكا دجاج", "price": 28.00, "sku": "TIKKA-CH" },
+        { "name": "Shish Tawook", "nameAr": "شيش طاووق", "price": 30.00, "sku": "TAWOOK" },
+        { "name": "Lamb Chops", "nameAr": "ريش لحم", "price": 65.00, "sku": "CHOPS" },
+        { "name": "Grilled Half Chicken", "nameAr": "نصف دجاج مشوي", "price": 25.00, "sku": "GR-HCH" },
+        { "name": "Grilled Full Chicken", "nameAr": "دجاج مشوي كامل", "price": 45.00, "sku": "GR-FCH" },
+        { "name": "Beef Steak", "nameAr": "ستيك لحم", "price": 75.00, "sku": "STEAK" },
+        { "name": "Hawawshi", "nameAr": "حواوشي", "price": 18.00, "sku": "HAWAW" }
+      ]
+    },
+    {
+      "category": "ساندوتشات وبرجر",
+      "categoryEn": "Sandwiches & Burgers",
+      "icon": "🍔",
+      "items": [
+        { "name": "Beef Burger", "nameAr": "برجر لحم", "price": 18.00, "sku": "BURG-B" },
+        { "name": "Chicken Burger", "nameAr": "برجر دجاج", "price": 16.00, "sku": "BURG-C" },
+        { "name": "Cheese Burger", "nameAr": "تشيز برجر", "price": 20.00, "sku": "BURG-CH" },
+        { "name": "Double Cheese Burger", "nameAr": "دبل تشيز برجر", "price": 28.00, "sku": "BURG-DCH" },
+        { "name": "Crispy Chicken Burger", "nameAr": "برجر دجاج كرسبي", "price": 18.00, "sku": "BURG-CR" },
+        { "name": "Chicken Shawarma", "nameAr": "شاورما دجاج", "price": 12.00, "sku": "SHAW-CH" },
+        { "name": "Beef Shawarma", "nameAr": "شاورما لحم", "price": 15.00, "sku": "SHAW-B" },
+        { "name": "Chicken Wrap", "nameAr": "راب دجاج", "price": 16.00, "sku": "WRAP-CH" },
+        { "name": "Falafel Sandwich", "nameAr": "ساندوتش فلافل", "price": 8.00, "sku": "FALAFEL-S" },
+        { "name": "Egg Sandwich", "nameAr": "ساندوتش بيض", "price": 7.00, "sku": "EGG-S" },
+        { "name": "Cheese Sandwich", "nameAr": "ساندوتش جبن", "price": 7.00, "sku": "CHEESE-S" },
+        { "name": "Tuna Sandwich", "nameAr": "ساندوتش تونة", "price": 10.00, "sku": "TUNA-S" },
+        { "name": "Club Sandwich", "nameAr": "كلوب ساندوتش", "price": 22.00, "sku": "CLUB-S" }
+      ]
+    },
+    {
+      "category": "بيتزا ومعكرونة",
+      "categoryEn": "Pizza & Pasta",
+      "icon": "🍕",
+      "items": [
+        { "name": "Margherita Pizza Medium", "nameAr": "بيتزا مارجريتا وسط", "price": 30.00, "sku": "PIZZA-M-M" },
+        { "name": "Margherita Pizza Large", "nameAr": "بيتزا مارجريتا كبير", "price": 45.00, "sku": "PIZZA-M-L" },
+        { "name": "Pepperoni Pizza Medium", "nameAr": "بيتزا بيبروني وسط", "price": 38.00, "sku": "PIZZA-P-M" },
+        { "name": "Chicken Pizza Medium", "nameAr": "بيتزا دجاج وسط", "price": 35.00, "sku": "PIZZA-C-M" },
+        { "name": "Veggie Pizza Medium", "nameAr": "بيتزا خضار وسط", "price": 32.00, "sku": "PIZZA-V-M" },
+        { "name": "Mixed Pizza Large", "nameAr": "بيتزا مشكلة كبير", "price": 55.00, "sku": "PIZZA-MX-L" },
+        { "name": "Pasta Alfredo", "nameAr": "باستا ألفريدو", "price": 32.00, "sku": "PASTA-A" },
+        { "name": "Spaghetti Bolognese", "nameAr": "سباغيتي بولونيز", "price": 35.00, "sku": "PASTA-B" },
+        { "name": "Penne Arrabiata", "nameAr": "بيني أرابياتا", "price": 30.00, "sku": "PASTA-AR" },
+        { "name": "Lasagna", "nameAr": "لازانيا", "price": 38.00, "sku": "LASAGNA" }
+      ]
+    },
+    {
+      "category": "مقبلات وسلطات",
+      "categoryEn": "Appetizers & Salads",
+      "icon": "🥗",
+      "items": [
+        { "name": "Hummus", "nameAr": "حمص", "price": 12.00, "sku": "HUMMUS" },
+        { "name": "Mutabbal", "nameAr": "متبل", "price": 14.00, "sku": "MUTAB" },
+        { "name": "Tabbouleh", "nameAr": "تبولة", "price": 15.00, "sku": "TABB" },
+        { "name": "Fattoush", "nameAr": "فتوش", "price": 16.00, "sku": "FATTOUSH" },
+        { "name": "Greek Salad", "nameAr": "سلطة يونانية", "price": 18.00, "sku": "GREEK" },
+        { "name": "Caesar Salad", "nameAr": "سلطة سيزر", "price": 22.00, "sku": "CAESAR" },
+        { "name": "Chicken Caesar Salad", "nameAr": "سلطة سيزر دجاج", "price": 28.00, "sku": "CAESAR-CH" },
+        { "name": "Garden Salad", "nameAr": "سلطة خضراء", "price": 12.00, "sku": "GARDEN" },
+        { "name": "Foul Medames", "nameAr": "فول مدمس", "price": 10.00, "sku": "FOUL" },
+        { "name": "Babaganoush", "nameAr": "بابا غنوج", "price": 14.00, "sku": "BABA" },
+        { "name": "Vine Leaves", "nameAr": "ورق عنب", "price": 18.00, "sku": "VINE" },
+        { "name": "Cheese Rolls 6pcs", "nameAr": "رقاقة جبن 6 قطع", "price": 12.00, "sku": "ROLLS-6" },
+        { "name": "French Fries", "nameAr": "بطاطس مقلية", "price": 10.00, "sku": "FRIES" },
+        { "name": "Spicy Fries", "nameAr": "بطاطس حارة", "price": 12.00, "sku": "FRIES-SP" },
+        { "name": "Cheese Fries", "nameAr": "بطاطس بالجبن", "price": 15.00, "sku": "FRIES-CH" }
+      ]
+    },
+    {
+      "category": "وجبات هندية وآسيوية",
+      "categoryEn": "Indian & Asian",
+      "icon": "🍜",
+      "items": [
+        { "name": "Chicken Biryani", "nameAr": "برياني دجاج", "price": 22.00, "sku": "BIR-CH" },
+        { "name": "Lamb Biryani", "nameAr": "برياني لحم", "price": 32.00, "sku": "BIR-LM" },
+        { "name": "Chicken Tikka Masala", "nameAr": "تكا ماسالا دجاج", "price": 32.00, "sku": "TIKKA-MS" },
+        { "name": "Chicken Karahi", "nameAr": "كاراهي دجاج", "price": 30.00, "sku": "KARAHI" },
+        { "name": "Dal Curry", "nameAr": "دال كاري", "price": 18.00, "sku": "DAL" },
+        { "name": "Naan Bread", "nameAr": "خبز نان", "price": 4.00, "sku": "NAAN" },
+        { "name": "Butter Naan", "nameAr": "نان بالزبدة", "price": 5.00, "sku": "NAAN-B" },
+        { "name": "Chicken Fried Rice", "nameAr": "أرز مقلي دجاج", "price": 22.00, "sku": "FR-CH" },
+        { "name": "Vegetable Fried Rice", "nameAr": "أرز مقلي خضار", "price": 18.00, "sku": "FR-V" },
+        { "name": "Chicken Noodles", "nameAr": "نودلز دجاج", "price": 22.00, "sku": "NOOD-CH" },
+        { "name": "Sushi Roll 8pcs", "nameAr": "سوشي رول 8 قطع", "price": 38.00, "sku": "SUSHI-8" }
+      ]
+    },
+    {
+      "category": "حلويات",
+      "categoryEn": "Desserts",
+      "icon": "🍰",
+      "items": [
+        { "name": "Kunafa", "nameAr": "كنافة", "price": 18.00, "sku": "KUNAFA" },
+        { "name": "Umm Ali", "nameAr": "أم علي", "price": 18.00, "sku": "UMM-ALI" },
+        { "name": "Mahalabia", "nameAr": "مهلبية", "price": 12.00, "sku": "MAHAL" },
+        { "name": "Rice Pudding", "nameAr": "أرز باللبن", "price": 12.00, "sku": "RICE-PUD" },
+        { "name": "Crème Brûlée", "nameAr": "كريم بروليه", "price": 22.00, "sku": "CREME-B" },
+        { "name": "Cheesecake", "nameAr": "تشيز كيك", "price": 22.00, "sku": "CHEESE-K" },
+        { "name": "Chocolate Cake Slice", "nameAr": "كيكة شوكولاتة قطعة", "price": 18.00, "sku": "CHOC-K" },
+        { "name": "Tiramisu", "nameAr": "تيراميسو", "price": 22.00, "sku": "TIRAM" },
+        { "name": "Baklava Plate", "nameAr": "بقلاوة طبق", "price": 25.00, "sku": "BAKLAVA" },
+        { "name": "Brownie with Ice Cream", "nameAr": "براوني مع آيس كريم", "price": 20.00, "sku": "BROWN-IC" }
+      ]
+    },
+    {
+      "category": "مشروبات ساخنة",
+      "categoryEn": "Hot Drinks",
+      "icon": "☕",
+      "items": [
+        { "name": "Arabic Coffee", "nameAr": "قهوة عربية", "price": 5.00, "sku": "AR-COF" },
+        { "name": "Turkish Coffee", "nameAr": "قهوة تركية", "price": 8.00, "sku": "TR-COF" },
+        { "name": "Espresso", "nameAr": "إسبريسو", "price": 10.00, "sku": "ESP" },
+        { "name": "Americano", "nameAr": "أمريكانو", "price": 12.00, "sku": "AMER" },
+        { "name": "Latte", "nameAr": "لاتيه", "price": 15.00, "sku": "LATTE" },
+        { "name": "Cappuccino", "nameAr": "كابتشينو", "price": 15.00, "sku": "CAPP" },
+        { "name": "Macchiato", "nameAr": "ماكياتو", "price": 16.00, "sku": "MACC" },
+        { "name": "Spanish Latte", "nameAr": "لاتيه إسباني", "price": 18.00, "sku": "SP-LATTE" },
+        { "name": "Mocha", "nameAr": "موكا", "price": 18.00, "sku": "MOCHA" },
+        { "name": "Hot Chocolate", "nameAr": "شوكولاتة ساخنة", "price": 15.00, "sku": "HOT-CH" },
+        { "name": "Karak Tea", "nameAr": "شاي كرك", "price": 7.00, "sku": "KARAK" },
+        { "name": "Mint Tea", "nameAr": "شاي بالنعناع", "price": 8.00, "sku": "MINT-T" },
+        { "name": "Green Tea", "nameAr": "شاي أخضر", "price": 8.00, "sku": "GREEN-T" },
+        { "name": "Saffron Tea", "nameAr": "شاي زعفران", "price": 12.00, "sku": "SAFF-T" }
+      ]
+    },
+    {
+      "category": "مشروبات باردة",
+      "categoryEn": "Cold Drinks",
+      "icon": "🧊",
+      "items": [
+        { "name": "Iced Latte", "nameAr": "آيس لاتيه", "price": 16.00, "sku": "ICE-LATTE" },
+        { "name": "Iced Spanish Latte", "nameAr": "آيس لاتيه إسباني", "price": 20.00, "sku": "ICE-SP" },
+        { "name": "Iced Mocha", "nameAr": "آيس موكا", "price": 18.00, "sku": "ICE-MOCHA" },
+        { "name": "Iced Americano", "nameAr": "آيس أمريكانو", "price": 14.00, "sku": "ICE-AMER" },
+        { "name": "Frappuccino", "nameAr": "فرابتشينو", "price": 22.00, "sku": "FRAPP" },
+        { "name": "Fresh Orange Juice", "nameAr": "عصير برتقال طازج", "price": 15.00, "sku": "FR-OJ" },
+        { "name": "Fresh Mango Juice", "nameAr": "عصير مانجو طازج", "price": 18.00, "sku": "FR-MAN" },
+        { "name": "Lemon Mint Juice", "nameAr": "عصير ليمون نعناع", "price": 14.00, "sku": "LEM-MINT" },
+        { "name": "Strawberry Smoothie", "nameAr": "سموذي فراولة", "price": 20.00, "sku": "SM-ST" },
+        { "name": "Mango Smoothie", "nameAr": "سموذي مانجو", "price": 22.00, "sku": "SM-MAN" },
+        { "name": "Avocado Juice", "nameAr": "عصير أفوكادو", "price": 22.00, "sku": "AVOC" },
+        { "name": "Pepsi Can", "nameAr": "بيبسي علبة", "price": 4.00, "sku": "PEPSI-R" },
+        { "name": "Water Bottle", "nameAr": "ماء", "price": 2.00, "sku": "WATER-R" }
+      ]
+    }
+  ],
+  "cafe": [
+    {
+      "category": "قهوة ساخنة",
+      "categoryEn": "Hot Coffee",
+      "icon": "☕",
+      "items": [
+        { "name": "Espresso Single", "nameAr": "إسبريسو سنجل", "price": 10.00, "sku": "ESP-S" },
+        { "name": "Espresso Double", "nameAr": "إسبريسو دبل", "price": 13.00, "sku": "ESP-D" },
+        { "name": "Americano", "nameAr": "أمريكانو", "price": 12.00, "sku": "AMER" },
+        { "name": "Long Black", "nameAr": "لونغ بلاك", "price": 13.00, "sku": "LB" },
+        { "name": "Flat White", "nameAr": "فلات وايت", "price": 16.00, "sku": "FW" },
+        { "name": "Latte", "nameAr": "لاتيه", "price": 15.00, "sku": "LATTE" },
+        { "name": "Cappuccino", "nameAr": "كابتشينو", "price": 15.00, "sku": "CAPP" },
+        { "name": "Macchiato", "nameAr": "ماكياتو", "price": 16.00, "sku": "MACC" },
+        { "name": "Cortado", "nameAr": "كورتادو", "price": 14.00, "sku": "CORT" },
+        { "name": "Mocha", "nameAr": "موكا", "price": 18.00, "sku": "MOCHA" },
+        { "name": "Vanilla Latte", "nameAr": "لاتيه فانيلا", "price": 17.00, "sku": "V-LATTE" },
+        { "name": "Caramel Latte", "nameAr": "لاتيه كراميل", "price": 18.00, "sku": "C-LATTE" },
+        { "name": "Spanish Latte", "nameAr": "لاتيه إسباني", "price": 18.00, "sku": "SP-LATTE" },
+        { "name": "Saffron Latte", "nameAr": "لاتيه زعفران", "price": 22.00, "sku": "SAFF-LATTE" },
+        { "name": "Honey Cinnamon Latte", "nameAr": "لاتيه عسل بالقرفة", "price": 20.00, "sku": "HC-LATTE" },
+        { "name": "Turkish Coffee", "nameAr": "قهوة تركية", "price": 8.00, "sku": "TR-COF" },
+        { "name": "Arabic Coffee", "nameAr": "قهوة عربية", "price": 5.00, "sku": "AR-COF" },
+        { "name": "V60 Pour Over", "nameAr": "في 60 بور أوفر", "price": 22.00, "sku": "V60" },
+        { "name": "French Press", "nameAr": "فرنش بريس", "price": 20.00, "sku": "FR-PR" }
+      ]
+    },
+    {
+      "category": "قهوة باردة",
+      "categoryEn": "Cold Coffee",
+      "icon": "🧊",
+      "items": [
+        { "name": "Iced Americano", "nameAr": "آيس أمريكانو", "price": 14.00, "sku": "ICE-AMER" },
+        { "name": "Iced Latte", "nameAr": "آيس لاتيه", "price": 16.00, "sku": "ICE-LATTE" },
+        { "name": "Iced Cappuccino", "nameAr": "آيس كابتشينو", "price": 16.00, "sku": "ICE-CAPP" },
+        { "name": "Iced Spanish Latte", "nameAr": "آيس لاتيه إسباني", "price": 20.00, "sku": "ICE-SP" },
+        { "name": "Iced Vanilla Latte", "nameAr": "آيس لاتيه فانيلا", "price": 19.00, "sku": "ICE-V" },
+        { "name": "Iced Caramel Latte", "nameAr": "آيس لاتيه كراميل", "price": 20.00, "sku": "ICE-C" },
+        { "name": "Iced Mocha", "nameAr": "آيس موكا", "price": 18.00, "sku": "ICE-MOCHA" },
+        { "name": "Cold Brew", "nameAr": "كولد برو", "price": 18.00, "sku": "CB" },
+        { "name": "Nitro Cold Brew", "nameAr": "نيترو كولد برو", "price": 22.00, "sku": "NITRO" },
+        { "name": "Iced V60", "nameAr": "آيس في 60", "price": 24.00, "sku": "ICE-V60" },
+        { "name": "Iced Saffron Latte", "nameAr": "آيس لاتيه زعفران", "price": 24.00, "sku": "ICE-SAFF" }
+      ]
+    },
+    {
+      "category": "فرابتشينو وميلك شيك",
+      "categoryEn": "Frappuccino & Shakes",
+      "icon": "🥤",
+      "items": [
+        { "name": "Coffee Frappuccino", "nameAr": "فرابتشينو قهوة", "price": 22.00, "sku": "FR-COF" },
+        { "name": "Caramel Frappuccino", "nameAr": "فرابتشينو كراميل", "price": 24.00, "sku": "FR-C" },
+        { "name": "Mocha Frappuccino", "nameAr": "فرابتشينو موكا", "price": 24.00, "sku": "FR-M" },
+        { "name": "Vanilla Frappuccino", "nameAr": "فرابتشينو فانيلا", "price": 23.00, "sku": "FR-V" },
+        { "name": "Strawberry Frappuccino", "nameAr": "فرابتشينو فراولة", "price": 24.00, "sku": "FR-S" },
+        { "name": "Chocolate Shake", "nameAr": "ميلك شيك شوكولاتة", "price": 22.00, "sku": "SH-CH" },
+        { "name": "Vanilla Shake", "nameAr": "ميلك شيك فانيلا", "price": 22.00, "sku": "SH-V" },
+        { "name": "Oreo Shake", "nameAr": "ميلك شيك أوريو", "price": 24.00, "sku": "SH-O" },
+        { "name": "Lotus Shake", "nameAr": "ميلك شيك لوتس", "price": 24.00, "sku": "SH-L" }
+      ]
+    },
+    {
+      "category": "شاي ومشروبات",
+      "categoryEn": "Tea & Drinks",
+      "icon": "🍵",
+      "items": [
+        { "name": "English Tea", "nameAr": "شاي إنجليزي", "price": 8.00, "sku": "ENG-T" },
+        { "name": "Green Tea", "nameAr": "شاي أخضر", "price": 9.00, "sku": "GR-T" },
+        { "name": "Mint Tea", "nameAr": "شاي نعناع", "price": 9.00, "sku": "MINT-T" },
+        { "name": "Saffron Tea", "nameAr": "شاي زعفران", "price": 12.00, "sku": "SAFF-T" },
+        { "name": "Karak Tea", "nameAr": "شاي كرك", "price": 7.00, "sku": "KARAK" },
+        { "name": "Chamomile Tea", "nameAr": "شاي بابونج", "price": 10.00, "sku": "CHAM" },
+        { "name": "Earl Grey", "nameAr": "إيرل جراي", "price": 10.00, "sku": "EG" },
+        { "name": "Hibiscus Tea", "nameAr": "شاي كركديه", "price": 9.00, "sku": "HIB" },
+        { "name": "Hot Chocolate", "nameAr": "شوكولاتة ساخنة", "price": 15.00, "sku": "HOT-CH" },
+        { "name": "Matcha Latte", "nameAr": "ماتشا لاتيه", "price": 20.00, "sku": "MATCHA" }
+      ]
+    },
+    {
+      "category": "حلويات ومخبوزات",
+      "categoryEn": "Pastries & Desserts",
+      "icon": "🥐",
+      "items": [
+        { "name": "Plain Croissant", "nameAr": "كرواسون سادة", "price": 8.00, "sku": "CR-P" },
+        { "name": "Chocolate Croissant", "nameAr": "كرواسون شوكولاتة", "price": 12.00, "sku": "CR-CH" },
+        { "name": "Almond Croissant", "nameAr": "كرواسون لوز", "price": 14.00, "sku": "CR-A" },
+        { "name": "Cheese Croissant", "nameAr": "كرواسون جبن", "price": 12.00, "sku": "CR-CHE" },
+        { "name": "Donut", "nameAr": "دونات", "price": 7.00, "sku": "DONUT" },
+        { "name": "Muffin Blueberry", "nameAr": "مافن توت", "price": 12.00, "sku": "MF-B" },
+        { "name": "Muffin Chocolate", "nameAr": "مافن شوكولاتة", "price": 12.00, "sku": "MF-CH" },
+        { "name": "Cinnamon Roll", "nameAr": "سينابون", "price": 14.00, "sku": "CINN" },
+        { "name": "Cheesecake Slice", "nameAr": "تشيز كيك قطعة", "price": 22.00, "sku": "CHK" },
+        { "name": "Tiramisu Cup", "nameAr": "تيراميسو كوب", "price": 20.00, "sku": "TIRAM" },
+        { "name": "Brownie", "nameAr": "براوني", "price": 14.00, "sku": "BROWN" },
+        { "name": "Carrot Cake Slice", "nameAr": "كيكة جزر قطعة", "price": 22.00, "sku": "CAR-K" },
+        { "name": "Red Velvet Slice", "nameAr": "ريد فلفت قطعة", "price": 22.00, "sku": "RV" },
+        { "name": "Cookies (2pcs)", "nameAr": "كوكيز قطعتين", "price": 10.00, "sku": "COOK-2" },
+        { "name": "Cake Pop", "nameAr": "كيك بوب", "price": 8.00, "sku": "CK-POP" },
+        { "name": "Cheesecake Lotus", "nameAr": "تشيز كيك لوتس", "price": 24.00, "sku": "CHK-L" }
+      ]
+    },
+    {
+      "category": "فطور وسناك",
+      "categoryEn": "Breakfast & Snacks",
+      "icon": "🍳",
+      "items": [
+        { "name": "Avocado Toast", "nameAr": "توست أفوكادو", "price": 26.00, "sku": "AV-T" },
+        { "name": "Eggs Benedict", "nameAr": "إيجز بنديكت", "price": 32.00, "sku": "EGB" },
+        { "name": "Pancakes Plate", "nameAr": "بان كيك طبق", "price": 28.00, "sku": "PNK" },
+        { "name": "Waffles Plate", "nameAr": "وافل طبق", "price": 28.00, "sku": "WAF" },
+        { "name": "French Toast", "nameAr": "فرنش توست", "price": 26.00, "sku": "FR-T" },
+        { "name": "Mini Quiche", "nameAr": "كيش صغير", "price": 18.00, "sku": "QU" },
+        { "name": "Cheese Manakish", "nameAr": "مناقيش جبن", "price": 12.00, "sku": "MN-CH" },
+        { "name": "Zaatar Manakish", "nameAr": "مناقيش زعتر", "price": 10.00, "sku": "MN-Z" },
+        { "name": "Egg & Cheese Sandwich", "nameAr": "ساندوتش بيض وجبن", "price": 16.00, "sku": "EC-S" },
+        { "name": "Smoked Salmon Bagel", "nameAr": "بيجل بسلمون مدخن", "price": 32.00, "sku": "BAG-SAL" }
+      ]
+    }
+  ],
+  "buffet": [
+    {
+      "category": "فطور سعودي",
+      "categoryEn": "Saudi Breakfast",
+      "icon": "🍳",
+      "items": [
+        { "name": "Foul with Olive Oil", "nameAr": "فول بزيت زيتون", "price": 8.00, "sku": "FOUL" },
+        { "name": "Hummus with Meat", "nameAr": "حمص باللحم", "price": 12.00, "sku": "HUM-M" },
+        { "name": "Shakshouka", "nameAr": "شكشوكة", "price": 14.00, "sku": "SHAK" },
+        { "name": "Halloumi Plate", "nameAr": "طبق حلومي", "price": 15.00, "sku": "HAL" },
+        { "name": "Fried Eggs (2)", "nameAr": "بيض مقلي قطعتين", "price": 6.00, "sku": "FE-2" },
+        { "name": "Omelette", "nameAr": "أومليت", "price": 10.00, "sku": "OML" },
+        { "name": "Cheese Omelette", "nameAr": "أومليت جبن", "price": 12.00, "sku": "OML-CH" },
+        { "name": "Saudi Breakfast Plate", "nameAr": "طبق فطور سعودي", "price": 25.00, "sku": "SAUDI-BR" },
+        { "name": "Cheese Saj", "nameAr": "صاج جبن", "price": 10.00, "sku": "SAJ-CH" },
+        { "name": "Zaatar Saj", "nameAr": "صاج زعتر", "price": 8.00, "sku": "SAJ-Z" },
+        { "name": "Cheese & Zaatar Saj", "nameAr": "صاج جبن وزعتر", "price": 11.00, "sku": "SAJ-CZ" }
+      ]
+    },
+    {
+      "category": "ساندوتشات وفطائر",
+      "categoryEn": "Sandwiches & Pies",
+      "icon": "🥪",
+      "items": [
+        { "name": "Egg Sandwich", "nameAr": "ساندوتش بيض", "price": 6.00, "sku": "S-EGG" },
+        { "name": "Cheese Sandwich", "nameAr": "ساندوتش جبن", "price": 6.00, "sku": "S-CH" },
+        { "name": "Hot Dog Sandwich", "nameAr": "ساندوتش هوت دوغ", "price": 10.00, "sku": "S-HD" },
+        { "name": "Tuna Sandwich", "nameAr": "ساندوتش تونة", "price": 9.00, "sku": "S-TUNA" },
+        { "name": "Chicken Mayo Sandwich", "nameAr": "ساندوتش دجاج مايو", "price": 12.00, "sku": "S-CM" },
+        { "name": "Halloumi Sandwich", "nameAr": "ساندوتش حلومي", "price": 12.00, "sku": "S-HAL" },
+        { "name": "Cheese Pie", "nameAr": "فطيرة جبن", "price": 8.00, "sku": "P-CH" },
+        { "name": "Meat Pie", "nameAr": "فطيرة لحم", "price": 10.00, "sku": "P-M" },
+        { "name": "Spinach Pie", "nameAr": "فطيرة سبانخ", "price": 8.00, "sku": "P-SP" },
+        { "name": "Zaatar Pie", "nameAr": "فطيرة زعتر", "price": 7.00, "sku": "P-Z" },
+        { "name": "Mini Pizza", "nameAr": "بيتزا صغيرة", "price": 12.00, "sku": "MP" },
+        { "name": "Mini Sambousa 6pcs", "nameAr": "سمبوسة صغيرة 6 قطع", "price": 12.00, "sku": "SM-6" }
+      ]
+    },
+    {
+      "category": "مشروبات ساخنة",
+      "categoryEn": "Hot Drinks",
+      "icon": "☕",
+      "items": [
+        { "name": "Karak Tea", "nameAr": "شاي كرك", "price": 5.00, "sku": "KAR" },
+        { "name": "Mint Tea", "nameAr": "شاي نعناع", "price": 5.00, "sku": "MT" },
+        { "name": "Saudi Tea", "nameAr": "شاي سعودي", "price": 4.00, "sku": "SAUDI-T" },
+        { "name": "Arabic Coffee Cup", "nameAr": "قهوة عربية كوب", "price": 5.00, "sku": "AR-CUP" },
+        { "name": "Turkish Coffee", "nameAr": "قهوة تركية", "price": 7.00, "sku": "TR-COF" },
+        { "name": "Americano", "nameAr": "أمريكانو", "price": 10.00, "sku": "AMER" },
+        { "name": "Latte", "nameAr": "لاتيه", "price": 12.00, "sku": "LATTE" },
+        { "name": "Cappuccino", "nameAr": "كابتشينو", "price": 12.00, "sku": "CAPP" },
+        { "name": "Hot Chocolate", "nameAr": "شوكولاتة ساخنة", "price": 12.00, "sku": "HOT-CH" }
+      ]
+    },
+    {
+      "category": "مشروبات باردة",
+      "categoryEn": "Cold Drinks",
+      "icon": "🧊",
+      "items": [
+        { "name": "Iced Latte", "nameAr": "آيس لاتيه", "price": 13.00, "sku": "IL" },
+        { "name": "Iced Mocha", "nameAr": "آيس موكا", "price": 14.00, "sku": "IM" },
+        { "name": "Lemon Mint", "nameAr": "ليمون نعناع", "price": 10.00, "sku": "LM" },
+        { "name": "Fresh Orange Juice", "nameAr": "عصير برتقال", "price": 12.00, "sku": "FOJ" },
+        { "name": "Mango Juice", "nameAr": "عصير مانجو", "price": 14.00, "sku": "FMJ" },
+        { "name": "Pepsi", "nameAr": "بيبسي", "price": 4.00, "sku": "PEP" },
+        { "name": "Water", "nameAr": "ماء", "price": 1.50, "sku": "W" }
+      ]
+    },
+    {
+      "category": "حلويات",
+      "categoryEn": "Sweets",
+      "icon": "🍩",
+      "items": [
+        { "name": "Donut Plain", "nameAr": "دونات سادة", "price": 5.00, "sku": "D-P" },
+        { "name": "Donut Chocolate", "nameAr": "دونات شوكولاتة", "price": 6.00, "sku": "D-CH" },
+        { "name": "Mini Croissant", "nameAr": "كرواسون صغير", "price": 6.00, "sku": "MC" },
+        { "name": "Chocolate Croissant", "nameAr": "كرواسون شوكولاتة", "price": 8.00, "sku": "CR-CH" },
+        { "name": "Cinnamon Roll", "nameAr": "سينابون", "price": 10.00, "sku": "CINN" },
+        { "name": "Cake Slice", "nameAr": "كيكة قطعة", "price": 12.00, "sku": "CK" },
+        { "name": "Brownie", "nameAr": "براوني", "price": 10.00, "sku": "BRW" },
+        { "name": "Kunafa Plate", "nameAr": "كنافة طبق", "price": 15.00, "sku": "KUN" }
+      ]
+    }
+  ],
+  "pharmacy": [
+    {
+      "category": "أدوية الصداع والألم",
+      "categoryEn": "Pain Relief",
+      "icon": "💊",
+      "items": [
+        { "name": "Panadol Extra 20", "nameAr": "بنادول إكسترا 20 قرص", "price": 18.00, "sku": "PAN-E-20" },
+        { "name": "Panadol Cold & Flu 24", "nameAr": "بنادول نزلة برد 24 قرص", "price": 25.00, "sku": "PAN-CF" },
+        { "name": "Panadol Night 10", "nameAr": "بنادول ليلي 10 قرص", "price": 22.00, "sku": "PAN-N" },
+        { "name": "Paracetamol 500mg", "nameAr": "باراسيتامول 500 ملج", "price": 5.00, "sku": "PARA-500" },
+        { "name": "Ibuprofen 400mg", "nameAr": "إيبوبروفين 400 ملج", "price": 10.00, "sku": "IBU-400" },
+        { "name": "Brufen 400mg", "nameAr": "بروفين 400 ملج", "price": 12.00, "sku": "BRUF" },
+        { "name": "Voltaren Gel 100g", "nameAr": "فولتارين جل 100 جرام", "price": 38.00, "sku": "VOLT-G" },
+        { "name": "Aspirin 100mg", "nameAr": "أسبرين 100 ملج", "price": 12.00, "sku": "ASP-100" }
+      ]
+    },
+    {
+      "category": "أدوية البرد والسعال",
+      "categoryEn": "Cold & Cough",
+      "icon": "🤧",
+      "items": [
+        { "name": "Cough Syrup 100ml", "nameAr": "شراب سعال 100 مل", "price": 22.00, "sku": "COUGH" },
+        { "name": "Strepsils Lozenges", "nameAr": "ستربسيلز", "price": 15.00, "sku": "STREP" },
+        { "name": "Fisherman Lozenges", "nameAr": "فيشرمان", "price": 8.00, "sku": "FISH" },
+        { "name": "Vicks VapoRub 50g", "nameAr": "فكس فابوراب 50 جرام", "price": 22.00, "sku": "VICKS" },
+        { "name": "Nasal Spray", "nameAr": "بخاخ أنف", "price": 18.00, "sku": "NASAL" },
+        { "name": "Honey & Lemon Syrup", "nameAr": "شراب عسل ليمون", "price": 20.00, "sku": "HL" }
+      ]
+    },
+    {
+      "category": "فيتامينات ومكملات",
+      "categoryEn": "Vitamins & Supplements",
+      "icon": "🌿",
+      "items": [
+        { "name": "Vitamin C 1000mg 30", "nameAr": "فيتامين سي 1000 ملج 30 قرص", "price": 35.00, "sku": "VC-1000" },
+        { "name": "Vitamin D3 1000IU 60", "nameAr": "فيتامين د3 1000 وحدة 60 قرص", "price": 45.00, "sku": "VD3" },
+        { "name": "Vitamin B Complex 30", "nameAr": "فيتامين ب المركب 30 قرص", "price": 38.00, "sku": "VB" },
+        { "name": "Centrum Multivitamin 30", "nameAr": "سنترم متعدد 30 قرص", "price": 65.00, "sku": "CENT" },
+        { "name": "Iron Supplement 30", "nameAr": "حديد 30 قرص", "price": 28.00, "sku": "IRON" },
+        { "name": "Calcium 600mg 60", "nameAr": "كالسيوم 600 ملج 60 قرص", "price": 38.00, "sku": "CAL" },
+        { "name": "Omega 3 Fish Oil 60", "nameAr": "أوميغا 3 زيت سمك 60 قرص", "price": 55.00, "sku": "OMEGA" },
+        { "name": "Zinc 50mg 60", "nameAr": "زنك 50 ملج 60 قرص", "price": 32.00, "sku": "ZINC" },
+        { "name": "Magnesium 250mg 60", "nameAr": "مغنيسيوم 250 ملج 60 قرص", "price": 35.00, "sku": "MAG" }
+      ]
+    },
+    {
+      "category": "العناية الشخصية",
+      "categoryEn": "Personal Care",
+      "icon": "🧴",
+      "items": [
+        { "name": "Colgate Toothpaste 100ml", "nameAr": "معجون كولجيت 100 مل", "price": 12.00, "sku": "COL-100" },
+        { "name": "Signal Toothpaste 100ml", "nameAr": "معجون سيجنال 100 مل", "price": 10.00, "sku": "SIG" },
+        { "name": "Sensodyne Toothpaste 75ml", "nameAr": "معجون سنسوداين 75 مل", "price": 22.00, "sku": "SENS" },
+        { "name": "Oral-B Toothbrush", "nameAr": "فرشاة أورال بي", "price": 14.00, "sku": "OB" },
+        { "name": "Listerine 500ml", "nameAr": "ليستيرين 500 مل", "price": 28.00, "sku": "LIST" },
+        { "name": "Dove Soap 100g", "nameAr": "صابون دوف 100 جرام", "price": 7.00, "sku": "DOVE" },
+        { "name": "Head & Shoulders 400ml", "nameAr": "هيد آند شولدرز 400 مل", "price": 28.00, "sku": "HS" },
+        { "name": "Pantene Shampoo 400ml", "nameAr": "بانتين شامبو 400 مل", "price": 32.00, "sku": "PAN-SH" },
+        { "name": "Nivea Body Lotion 400ml", "nameAr": "نيفيا لوشن 400 مل", "price": 28.00, "sku": "NIVEA" },
+        { "name": "Vaseline 100ml", "nameAr": "فازلين 100 مل", "price": 8.00, "sku": "VAS" },
+        { "name": "Hand Sanitizer 500ml", "nameAr": "معقم يدين 500 مل", "price": 18.00, "sku": "SAN" },
+        { "name": "Deodorant Spray", "nameAr": "مزيل عرق بخاخ", "price": 22.00, "sku": "DEO" },
+        { "name": "Razor Pack 5pcs", "nameAr": "شفرة حلاقة 5 قطع", "price": 15.00, "sku": "RAZ" },
+        { "name": "Shaving Cream", "nameAr": "كريم حلاقة", "price": 18.00, "sku": "SHAVE" }
+      ]
+    },
+    {
+      "category": "العناية بالطفل",
+      "categoryEn": "Baby Care",
+      "icon": "👶",
+      "items": [
+        { "name": "Pampers Diapers Size 4 (38)", "nameAr": "بامبرز حفائض 4 (38)", "price": 65.00, "sku": "PAM-4" },
+        { "name": "Pampers Diapers Size 5 (32)", "nameAr": "بامبرز حفائض 5 (32)", "price": 68.00, "sku": "PAM-5" },
+        { "name": "Huggies Diapers Size 4", "nameAr": "هاجيز حفائض 4", "price": 62.00, "sku": "HUG-4" },
+        { "name": "Baby Wipes 80pcs", "nameAr": "مناديل أطفال 80 قطعة", "price": 12.00, "sku": "WIPES" },
+        { "name": "Johnson Baby Shampoo", "nameAr": "شامبو جونسون", "price": 22.00, "sku": "JOH-SH" },
+        { "name": "Baby Lotion 400ml", "nameAr": "لوشن أطفال 400 مل", "price": 24.00, "sku": "BL" },
+        { "name": "Baby Powder 200g", "nameAr": "بودرة أطفال 200 جرام", "price": 18.00, "sku": "BP" },
+        { "name": "Nestle Cerelac 400g", "nameAr": "سيريلاك نستله 400 جرام", "price": 28.00, "sku": "CER" }
+      ]
+    },
+    {
+      "category": "الإسعافات الأولية",
+      "categoryEn": "First Aid",
+      "icon": "🩹",
+      "items": [
+        { "name": "Band-Aid 20pcs", "nameAr": "لاصق طبي 20 قطعة", "price": 12.00, "sku": "BA-20" },
+        { "name": "Medical Gauze", "nameAr": "شاش طبي", "price": 8.00, "sku": "GAUZE" },
+        { "name": "Medical Tape", "nameAr": "بلاستر طبي", "price": 7.00, "sku": "TAPE" },
+        { "name": "Antiseptic Cream", "nameAr": "كريم مطهر", "price": 15.00, "sku": "ANTI-CR" },
+        { "name": "Burn Cream", "nameAr": "كريم حروق", "price": 18.00, "sku": "BURN" },
+        { "name": "Thermometer Digital", "nameAr": "ميزان حرارة رقمي", "price": 28.00, "sku": "THERM" },
+        { "name": "Blood Pressure Monitor", "nameAr": "جهاز قياس ضغط", "price": 185.00, "sku": "BPM" }
+      ]
+    }
+  ],
+  "pet_store": [
+    {
+      "category": "طعام الكلاب",
+      "categoryEn": "Dog Food",
+      "icon": "🐕",
+      "items": [
+        { "name": "Pedigree Adult Dry 3kg", "nameAr": "بدجري بالغ ناشف 3 كيلو", "price": 38.00, "sku": "PED-3" },
+        { "name": "Pedigree Puppy Dry 3kg", "nameAr": "بدجري جرو ناشف 3 كيلو", "price": 42.00, "sku": "PED-P-3" },
+        { "name": "Pedigree Wet Food", "nameAr": "بدجري طعام رطب", "price": 8.00, "sku": "PED-W" },
+        { "name": "Royal Canin Adult 4kg", "nameAr": "رويال كانن بالغ 4 كيلو", "price": 165.00, "sku": "RC-4" },
+        { "name": "Purina Pro Plan 3kg", "nameAr": "بورينا برو بلان 3 كيلو", "price": 95.00, "sku": "PUR-3" },
+        { "name": "Dog Bones Treats", "nameAr": "عظام كلاب", "price": 22.00, "sku": "DB" }
+      ]
+    },
+    {
+      "category": "طعام القطط",
+      "categoryEn": "Cat Food",
+      "icon": "🐈",
+      "items": [
+        { "name": "Whiskas Dry Adult 1.4kg", "nameAr": "ويسكاس ناشف بالغ 1.4 كيلو", "price": 32.00, "sku": "WH-1.4" },
+        { "name": "Whiskas Wet Pouch", "nameAr": "ويسكاس كيس", "price": 4.00, "sku": "WH-W" },
+        { "name": "Friskies Dry 1.5kg", "nameAr": "فريسكيز ناشف 1.5 كيلو", "price": 28.00, "sku": "FR-1.5" },
+        { "name": "Royal Canin Cat 2kg", "nameAr": "رويال كانن قطط 2 كيلو", "price": 88.00, "sku": "RC-C-2" },
+        { "name": "Tuna Cat Treats", "nameAr": "تونة مكافأة قطط", "price": 18.00, "sku": "TUNA-CT" },
+        { "name": "Cat Milk", "nameAr": "حليب قطط", "price": 15.00, "sku": "CAT-M" }
+      ]
+    },
+    {
+      "category": "مستلزمات الحيوانات",
+      "categoryEn": "Pet Supplies",
+      "icon": "🦴",
+      "items": [
+        { "name": "Cat Litter 10L", "nameAr": "رمل قطط 10 لتر", "price": 32.00, "sku": "LITTER" },
+        { "name": "Dog Leash", "nameAr": "حزام كلب", "price": 38.00, "sku": "LEASH" },
+        { "name": "Dog Collar", "nameAr": "طوق كلب", "price": 32.00, "sku": "COLLAR" },
+        { "name": "Pet Bowl", "nameAr": "وعاء حيوانات", "price": 22.00, "sku": "BOWL" },
+        { "name": "Pet Shampoo", "nameAr": "شامبو حيوانات", "price": 28.00, "sku": "PET-SH" },
+        { "name": "Cat Scratching Post", "nameAr": "عمود خدش قطط", "price": 65.00, "sku": "SCR" },
+        { "name": "Pet Toy Ball", "nameAr": "كرة لعبة حيوانات", "price": 18.00, "sku": "BALL" }
+      ]
+    },
+    {
+      "category": "طعام الطيور والأسماك",
+      "categoryEn": "Birds & Fish",
+      "icon": "🦜",
+      "items": [
+        { "name": "Bird Seeds 1kg", "nameAr": "بذور طيور 1 كيلو", "price": 18.00, "sku": "BS-1" },
+        { "name": "Parrot Food 500g", "nameAr": "طعام ببغاء 500 جرام", "price": 22.00, "sku": "PAR" },
+        { "name": "Fish Flakes 50g", "nameAr": "طعام سمك ندفي 50 جرام", "price": 12.00, "sku": "FF-50" },
+        { "name": "Fish Tank Cleaner", "nameAr": "منظف حوض سمك", "price": 28.00, "sku": "FT-CL" }
+      ]
+    }
+  ],
+  "electronics": [
+    {
+      "category": "ملحقات الجوال",
+      "categoryEn": "Mobile Accessories",
+      "icon": "📱",
+      "items": [
+        { "name": "iPhone Lightning Cable 1m", "nameAr": "كيبل آيفون 1 متر", "price": 28.00, "sku": "LIGHT-1" },
+        { "name": "USB-C Cable 1m", "nameAr": "كيبل تايب سي 1 متر", "price": 22.00, "sku": "USBC-1" },
+        { "name": "Micro USB Cable", "nameAr": "كيبل مايكرو يو إس بي", "price": 15.00, "sku": "MICRO" },
+        { "name": "iPhone 20W Charger", "nameAr": "شاحن آيفون 20 واط", "price": 65.00, "sku": "CH-20" },
+        { "name": "Samsung Fast Charger", "nameAr": "شاحن سامسونج سريع", "price": 55.00, "sku": "SAM-CH" },
+        { "name": "Car Charger Dual USB", "nameAr": "شاحن سيارة دبل", "price": 32.00, "sku": "CAR-CH" },
+        { "name": "Wireless Charger", "nameAr": "شاحن لاسلكي", "price": 75.00, "sku": "WL-CH" },
+        { "name": "Power Bank 10000mAh", "nameAr": "باور بانك 10000", "price": 85.00, "sku": "PB-10" },
+        { "name": "Power Bank 20000mAh", "nameAr": "باور بانك 20000", "price": 145.00, "sku": "PB-20" },
+        { "name": "Phone Case iPhone", "nameAr": "كفر آيفون", "price": 35.00, "sku": "CASE-IP" },
+        { "name": "Phone Case Samsung", "nameAr": "كفر سامسونج", "price": 32.00, "sku": "CASE-SAM" },
+        { "name": "Screen Protector", "nameAr": "حماية شاشة", "price": 18.00, "sku": "SC-PROT" },
+        { "name": "Pop Socket", "nameAr": "بوب سوكت", "price": 12.00, "sku": "POP" }
+      ]
+    },
+    {
+      "category": "سماعات",
+      "categoryEn": "Headphones",
+      "icon": "🎧",
+      "items": [
+        { "name": "AirPods Pro 2", "nameAr": "إيربودز برو 2", "price": 985.00, "sku": "AP-P2" },
+        { "name": "AirPods 3", "nameAr": "إيربودز 3", "price": 685.00, "sku": "AP-3" },
+        { "name": "Wireless Earbuds", "nameAr": "سماعات لاسلكية", "price": 95.00, "sku": "WL-EB" },
+        { "name": "Wired Earphones", "nameAr": "سماعات سلكية", "price": 22.00, "sku": "W-EP" },
+        { "name": "Bluetooth Speaker", "nameAr": "سبيكر بلوتوث", "price": 145.00, "sku": "BT-SP" },
+        { "name": "JBL Bluetooth Speaker", "nameAr": "سبيكر JBL بلوتوث", "price": 285.00, "sku": "JBL" },
+        { "name": "Gaming Headset", "nameAr": "سماعة قيمنق", "price": 165.00, "sku": "GAME-H" }
+      ]
+    },
+    {
+      "category": "ملحقات الكمبيوتر",
+      "categoryEn": "Computer Accessories",
+      "icon": "💻",
+      "items": [
+        { "name": "USB Flash 32GB", "nameAr": "فلاش 32 جيجا", "price": 35.00, "sku": "USB-32" },
+        { "name": "USB Flash 64GB", "nameAr": "فلاش 64 جيجا", "price": 55.00, "sku": "USB-64" },
+        { "name": "USB Flash 128GB", "nameAr": "فلاش 128 جيجا", "price": 95.00, "sku": "USB-128" },
+        { "name": "Memory Card 64GB", "nameAr": "بطاقة ذاكرة 64 جيجا", "price": 65.00, "sku": "MC-64" },
+        { "name": "Wireless Mouse", "nameAr": "ماوس لاسلكي", "price": 65.00, "sku": "WL-MS" },
+        { "name": "Wired Mouse", "nameAr": "ماوس سلكي", "price": 28.00, "sku": "W-MS" },
+        { "name": "Wireless Keyboard", "nameAr": "كيبورد لاسلكي", "price": 145.00, "sku": "WL-KB" },
+        { "name": "Mouse Pad", "nameAr": "مفرش ماوس", "price": 18.00, "sku": "PAD" },
+        { "name": "USB Hub 4-Port", "nameAr": "يو إس بي هاب 4 منافذ", "price": 35.00, "sku": "HUB" }
+      ]
+    },
+    {
+      "category": "إكسسوارات أخرى",
+      "categoryEn": "Other Accessories",
+      "icon": "🔌",
+      "items": [
+        { "name": "Phone Holder Car", "nameAr": "حامل جوال سيارة", "price": 28.00, "sku": "PH-C" },
+        { "name": "Phone Stand", "nameAr": "حامل جوال", "price": 18.00, "sku": "PH-S" },
+        { "name": "Smartwatch", "nameAr": "ساعة ذكية", "price": 165.00, "sku": "SW" },
+        { "name": "Selfie Stick", "nameAr": "عصا سيلفي", "price": 35.00, "sku": "SS" },
+        { "name": "Tablet Stand", "nameAr": "حامل تابلت", "price": 35.00, "sku": "TS" },
+        { "name": "LED Light Strip 5m", "nameAr": "شريط ليد 5 متر", "price": 65.00, "sku": "LED-5" }
+      ]
+    }
+  ],
+  "stationery": [
+    {
+      "category": "أدوات الكتابة",
+      "categoryEn": "Writing",
+      "icon": "✏️",
+      "items": [
+        { "name": "Pen Pack 10pcs", "nameAr": "أقلام 10 قطع", "price": 12.00, "sku": "PEN-10" },
+        { "name": "Blue Pen", "nameAr": "قلم أزرق", "price": 2.00, "sku": "PEN-B" },
+        { "name": "Black Pen", "nameAr": "قلم أسود", "price": 2.00, "sku": "PEN-BK" },
+        { "name": "Red Pen", "nameAr": "قلم أحمر", "price": 2.00, "sku": "PEN-R" },
+        { "name": "Pencil Pack 12pcs", "nameAr": "أقلام رصاص 12 قطعة", "price": 8.00, "sku": "PNC-12" },
+        { "name": "Highlighter Pack 5", "nameAr": "أقلام تلوين 5", "price": 15.00, "sku": "HL-5" },
+        { "name": "Eraser", "nameAr": "ممحاة", "price": 1.50, "sku": "ER" },
+        { "name": "Sharpener", "nameAr": "براية", "price": 2.00, "sku": "SH" },
+        { "name": "Ruler 30cm", "nameAr": "مسطرة 30 سم", "price": 3.00, "sku": "RUL" },
+        { "name": "Math Set", "nameAr": "طقم هندسة", "price": 18.00, "sku": "MS" }
+      ]
+    },
+    {
+      "category": "دفاتر وأوراق",
+      "categoryEn": "Notebooks & Paper",
+      "icon": "📒",
+      "items": [
+        { "name": "Notebook A5 100 pages", "nameAr": "دفتر A5 100 صفحة", "price": 8.00, "sku": "NB-A5" },
+        { "name": "Notebook A4 200 pages", "nameAr": "دفتر A4 200 صفحة", "price": 15.00, "sku": "NB-A4" },
+        { "name": "Spiral Notebook", "nameAr": "دفتر سلك", "price": 12.00, "sku": "NB-SP" },
+        { "name": "Sticky Notes Pack", "nameAr": "ملاحظات لاصقة", "price": 8.00, "sku": "SN" },
+        { "name": "A4 Paper Pack 500", "nameAr": "ورق A4 500 ورقة", "price": 28.00, "sku": "A4-500" },
+        { "name": "Colored Paper Pack", "nameAr": "ورق ملون", "price": 12.00, "sku": "CP" }
+      ]
+    },
+    {
+      "category": "ملفات وحقائب",
+      "categoryEn": "Files & Bags",
+      "icon": "📁",
+      "items": [
+        { "name": "Plastic Folder", "nameAr": "ملف بلاستيك", "price": 5.00, "sku": "PF" },
+        { "name": "Document Bag", "nameAr": "حقيبة مستندات", "price": 22.00, "sku": "DB" },
+        { "name": "Ring Binder", "nameAr": "كلاسير", "price": 18.00, "sku": "RB" },
+        { "name": "Pencil Case", "nameAr": "مقلمة", "price": 15.00, "sku": "PC" },
+        { "name": "Backpack School", "nameAr": "حقيبة مدرسة", "price": 85.00, "sku": "BAG" }
+      ]
+    },
+    {
+      "category": "إكسسوارات مكتب",
+      "categoryEn": "Office Accessories",
+      "icon": "📎",
+      "items": [
+        { "name": "Stapler", "nameAr": "دباسة", "price": 18.00, "sku": "STAP" },
+        { "name": "Staples Box", "nameAr": "علبة دبابيس", "price": 5.00, "sku": "STP" },
+        { "name": "Paper Clips Box", "nameAr": "علبة مشابك ورق", "price": 4.00, "sku": "CLIP" },
+        { "name": "Scissors", "nameAr": "مقص", "price": 12.00, "sku": "SC" },
+        { "name": "Glue Stick", "nameAr": "غراء صمغ", "price": 5.00, "sku": "GLUE" },
+        { "name": "Tape Roll", "nameAr": "شريط لاصق", "price": 6.00, "sku": "TAPE-R" },
+        { "name": "Calculator", "nameAr": "آلة حاسبة", "price": 28.00, "sku": "CALC" },
+        { "name": "Whiteboard Marker Pack", "nameAr": "أقلام سبورة", "price": 18.00, "sku": "WBM" }
+      ]
+    }
+  ]
+}

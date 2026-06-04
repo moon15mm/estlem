@@ -46,6 +46,7 @@ export default function ProductsPage() {
   const [catalogCategory, setCatalogCategory] = useState('');
   const [importing, setImporting] = useState<Set<string>>(new Set());
   const [catalogLoading, setCatalogLoading] = useState(false);
+  const [storeCategory, setStoreCategory] = useState<string>('grocery');
 
   const load = async () => {
     if (!storeId || !staff?.tenantId) return;
@@ -62,10 +63,19 @@ export default function ProductsPage() {
 
   useEffect(() => { load(); }, [storeId, staff?.tenantId]);
 
+  // Load store category for catalog filtering
+  useEffect(() => {
+    if (!storeId) return;
+    api.get(`/stores/${storeId}`).then((data: any) => {
+      setStoreCategory(data?.category ?? 'grocery');
+    }).catch(() => { /* ignore */ });
+  }, [storeId]);
+
   const loadCatalog = async () => {
     setCatalogLoading(true);
     try {
       const q = new URLSearchParams();
+      q.set('storeCategory', storeCategory);
       if (catalogSearch) q.set('search', catalogSearch);
       if (catalogCategory) q.set('category', catalogCategory);
       const data = await api.get(`/catalog?${q}`) as CatalogCategory[];
@@ -493,14 +503,9 @@ export default function ProductsPage() {
                   className="h-12 rounded-xl border border-input bg-background px-3 text-sm min-w-[160px]"
                 >
                   <option value="">كل الأقسام</option>
-                  <option value="مياه">مياه</option>
-                  <option value="مشروبات غازية">مشروبات غازية</option>
-                  <option value="عصائر">عصائر</option>
-                  <option value="حليب وألبان">حليب وألبان</option>
-                  <option value="خبز ومعجنات">خبز ومعجنات</option>
-                  <option value="سناكات وشيبس">سناكات وشيبس</option>
-                  <option value="مشروبات طاقة وقهوة">مشروبات طاقة وقهوة</option>
-                  <option value="بقالة أساسية">بقالة أساسية</option>
+                  {catalog.map((c) => (
+                    <option key={c.category} value={c.category}>{c.icon} {c.category}</option>
+                  ))}
                 </select>
               </div>
 
