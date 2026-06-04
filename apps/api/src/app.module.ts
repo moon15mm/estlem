@@ -15,6 +15,7 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { PosModule } from './modules/pos/pos.module';
 import { RealtimeModule } from './modules/realtime/realtime.module';
 import { HealthModule } from './modules/health/health.module';
+import { CustomersModule } from './modules/customers/customers.module';
 import { databaseConfig } from './database/database.config';
 
 @Module({
@@ -38,6 +39,7 @@ import { databaseConfig } from './database/database.config';
     PosModule,
     RealtimeModule,
     HealthModule,
+    CustomersModule,
   ],
 })
 export class AppModule {}

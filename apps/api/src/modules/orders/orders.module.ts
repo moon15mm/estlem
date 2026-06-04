@@ -8,13 +8,14 @@ import { Customer } from '../../database/entities/customer.entity';
 import { CustomerVehicle } from '../../database/entities/customer-vehicle.entity';
 import { ParkingSpot } from '../../database/entities/parking-spot.entity';
 import { Product } from '../../database/entities/product.entity';
+import { BlockedCustomer } from '../../database/entities/blocked-customer.entity';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { RealtimeModule } from '../realtime/realtime.module';
 import { AiCartService } from './ai-cart.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Order, OrderItem, Customer, CustomerVehicle, ParkingSpot, Product]),
+    TypeOrmModule.forFeature([Order, OrderItem, Customer, CustomerVehicle, ParkingSpot, Product, BlockedCustomer]),
     NotificationsModule,
     RealtimeModule,
   ],

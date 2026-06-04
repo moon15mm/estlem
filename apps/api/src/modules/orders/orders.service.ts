@@ -11,6 +11,7 @@ import { Customer } from '../../database/entities/customer.entity';
 import { CustomerVehicle } from '../../database/entities/customer-vehicle.entity';
 import { ParkingSpot } from '../../database/entities/parking-spot.entity';
 import { Product } from '../../database/entities/product.entity';
+import { BlockedCustomer } from '../../database/entities/blocked-customer.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 import { OrdersGateway } from '../realtime/orders.gateway';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -28,6 +29,7 @@ export class OrdersService {
     @InjectRepository(CustomerVehicle) private vehicleRepo: Repository<CustomerVehicle>,
     @InjectRepository(ParkingSpot) private spotRepo: Repository<ParkingSpot>,
     @InjectRepository(Product) private productRepo: Repository<Product>,
+    @InjectRepository(BlockedCustomer) private blockedRepo: Repository<BlockedCustomer>,
     private notifications: NotificationsService,
     private gateway: OrdersGateway,
     private aiCart: AiCartService,
@@ -41,6 +43,14 @@ export class OrdersService {
         where: { mobile: dto.customer.mobile },
         relations: ['vehicles'],
       });
+
+      // Check if customer is blocked from this tenant
+      if (customer) {
+        const isBlocked = await this.blockedRepo.count({ where: { tenantId, customerId: customer.id } });
+        if (isBlocked > 0) {
+          throw new ForbiddenException('عذراً، لا يمكنك الطلب من هذا المتجر حالياً. يرجى التواصل مع إدارة المحل.');
+        }
+      }
       if (!customer) {
         customer = manager.create(Customer, {
           mobile: dto.customer.mobile,

@@ -1,10 +1,20 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+export interface CustomerVehicle {
+  id?: string;
+  make: string;
+  model: string;
+  color: string;
+  plateNumber: string;
+  isDefault?: boolean;
+}
+
 export interface CustomerProfile {
   id: string;
   mobile: string;
   fullName?: string;
+  vehicles?: CustomerVehicle[];
 }
 
 interface CustomerAuthStore {
@@ -13,6 +23,7 @@ interface CustomerAuthStore {
   refreshToken: string | null;
   login: (customer: CustomerProfile, token: string, refreshToken: string) => void;
   updateProfile: (data: Partial<CustomerProfile>) => void;
+  setVehicles: (vehicles: CustomerVehicle[]) => void;
   logout: () => void;
   isLoggedIn: () => boolean;
 }
@@ -31,6 +42,10 @@ export const useCustomerAuth = create<CustomerAuthStore>()(
       updateProfile: (data) =>
         set((state) => ({
           customer: state.customer ? { ...state.customer, ...data } : null,
+        })),
+      setVehicles: (vehicles) =>
+        set((state) => ({
+          customer: state.customer ? { ...state.customer, vehicles } : null,
         })),
       logout: () => {
         localStorage.removeItem('estlem_access_token');

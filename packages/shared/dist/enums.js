@@ -1,9 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.WsEvent = exports.BillingCycle = exports.SubscriptionStatus = exports.LoyaltyTransactionType = exports.MembershipTier = exports.InvoiceStatus = exports.CommissionStatus = exports.CommissionType = exports.SpotType = exports.ServiceMode = exports.PosProvider = exports.NotificationChannel = exports.StoreCategory = exports.Language = exports.SystemRole = exports.StaffRole = exports.TenantStatus = exports.TenantPlan = exports.OrderType = exports.PaymentStatus = exports.PaymentMethod = exports.OrderStatus = void 0;
+exports.WsEvent = exports.BillingCycle = exports.SubscriptionStatus = exports.LoyaltyTransactionType = exports.MembershipTier = exports.InvoiceStatus = exports.CommissionStatus = exports.CommissionType = exports.SpotType = exports.ServiceMode = exports.PosProvider = exports.NotificationChannel = exports.DINE_IN_CATEGORIES = exports.StoreCategory = exports.Language = exports.SystemRole = exports.StaffRole = exports.TenantStatus = exports.TenantPlan = exports.OrderType = exports.PaymentStatus = exports.PaymentMethod = exports.OrderStatus = void 0;
 var OrderStatus;
 (function (OrderStatus) {
     OrderStatus["NEW"] = "new";
+    OrderStatus["PENDING_QUOTE"] = "pending_quote";
+    OrderStatus["PENDING_APPROVAL"] = "pending_approval";
     OrderStatus["ACCEPTED"] = "accepted";
     OrderStatus["PREPARING"] = "preparing";
     OrderStatus["READY"] = "ready";
@@ -65,11 +67,18 @@ var StoreCategory;
     StoreCategory["PHARMACY"] = "pharmacy";
     StoreCategory["RESTAURANT"] = "restaurant";
     StoreCategory["CAFE"] = "cafe";
+    StoreCategory["BUFFET"] = "buffet";
     StoreCategory["PET_STORE"] = "pet_store";
     StoreCategory["ELECTRONICS"] = "electronics";
     StoreCategory["STATIONERY"] = "stationery";
     StoreCategory["OTHER"] = "other";
 })(StoreCategory || (exports.StoreCategory = StoreCategory = {}));
+/** Store categories that support dine-in (table ordering) */
+exports.DINE_IN_CATEGORIES = [
+    StoreCategory.RESTAURANT,
+    StoreCategory.CAFE,
+    StoreCategory.BUFFET,
+];
 var NotificationChannel;
 (function (NotificationChannel) {
     NotificationChannel["SMS"] = "sms";
@@ -150,6 +159,9 @@ var WsEvent;
     WsEvent["ORDER_CREATED"] = "order:created";
     WsEvent["ORDER_STATUS_UPDATED"] = "order:status_updated";
     WsEvent["ORDER_CANCELLED"] = "order:cancelled";
+    WsEvent["ORDER_QUOTE_READY"] = "order:quote_ready";
+    WsEvent["ORDER_QUOTE_APPROVED"] = "order:quote_approved";
+    WsEvent["ORDER_QUOTE_REJECTED"] = "order:quote_rejected";
     WsEvent["INVENTORY_LOW"] = "inventory:low_stock";
     WsEvent["STAFF_ASSIGNED"] = "staff:assigned";
 })(WsEvent || (exports.WsEvent = WsEvent = {}));

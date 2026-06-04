@@ -1,5 +1,7 @@
 export declare enum OrderStatus {
     NEW = "new",
+    PENDING_QUOTE = "pending_quote",// store needs to set prices for free items
+    PENDING_APPROVAL = "pending_approval",// customer needs to approve the quote
     ACCEPTED = "accepted",
     PREPARING = "preparing",
     READY = "ready",
@@ -52,11 +54,14 @@ export declare enum StoreCategory {
     PHARMACY = "pharmacy",
     RESTAURANT = "restaurant",
     CAFE = "cafe",
+    BUFFET = "buffet",
     PET_STORE = "pet_store",
     ELECTRONICS = "electronics",
     STATIONERY = "stationery",
     OTHER = "other"
 }
+/** Store categories that support dine-in (table ordering) */
+export declare const DINE_IN_CATEGORIES: StoreCategory[];
 export declare enum NotificationChannel {
     SMS = "sms",
     WHATSAPP = "whatsapp",
@@ -125,6 +130,9 @@ export declare enum WsEvent {
     ORDER_CREATED = "order:created",
     ORDER_STATUS_UPDATED = "order:status_updated",
     ORDER_CANCELLED = "order:cancelled",
+    ORDER_QUOTE_READY = "order:quote_ready",// store sent prices to customer
+    ORDER_QUOTE_APPROVED = "order:quote_approved",// customer approved
+    ORDER_QUOTE_REJECTED = "order:quote_rejected",// customer rejected
     INVENTORY_LOW = "inventory:low_stock",
     STAFF_ASSIGNED = "staff:assigned"
 }
