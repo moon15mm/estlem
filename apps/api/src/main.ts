@@ -27,6 +27,22 @@ async function cleanupOldColumns(ds: DataSource) {
       console.log('[DB] Converted orders.status from enum to varchar');
     }
 
+    // Ensure blocked_customers table exists
+    await qr.query(`
+      CREATE TABLE IF NOT EXISTS blocked_customers (
+        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+        "tenantId" uuid NOT NULL,
+        "customerId" uuid NOT NULL,
+        mobile varchar(20) NOT NULL,
+        reason varchar(255),
+        "blockedBy" uuid,
+        "createdAt" timestamp DEFAULT now(),
+        UNIQUE ("tenantId", "customerId")
+      )
+    `).catch((e) => console.warn('[DB] blocked_customers create:', e.message));
+    await qr.query(`CREATE INDEX IF NOT EXISTS idx_blocked_tenant ON blocked_customers("tenantId")`).catch(() => {});
+    await qr.query(`CREATE INDEX IF NOT EXISTS idx_blocked_customer ON blocked_customers("customerId")`).catch(() => {});
+
     await qr.release();
     console.log('[DB] Cleanup done');
   } catch (e) {
