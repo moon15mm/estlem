@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, BadRequestException } from '@nestjs/common';
 import * as catalogData from '../../data/saudi-catalog.json';
 
 interface CatalogItem {
@@ -15,13 +15,24 @@ interface CatalogCategory {
   items: CatalogItem[];
 }
 
-const CATALOG: CatalogCategory[] = catalogData as unknown as CatalogCategory[];
+type CatalogByStore = Record<string, CatalogCategory[]>;
+
+const CATALOG: CatalogByStore = catalogData as unknown as CatalogByStore;
+
+// Categories that are universally suitable (any store can use)
+const FALLBACK_KEY = 'grocery';
 
 @Controller('catalog')
 export class CatalogController {
   @Get()
-  getAll(@Query('search') search?: string, @Query('category') category?: string) {
-    let catalog = CATALOG;
+  getAll(
+    @Query('storeCategory') storeCategory?: string,
+    @Query('search') search?: string,
+    @Query('category') category?: string,
+  ) {
+    // Map store category to catalog key
+    const key = (storeCategory && CATALOG[storeCategory]) ? storeCategory : FALLBACK_KEY;
+    let catalog = CATALOG[key] ?? [];
 
     if (category) {
       catalog = catalog.filter(
@@ -48,11 +59,23 @@ export class CatalogController {
   }
 
   @Get('categories')
-  getCategories() {
-    return CATALOG.map((c) => ({
+  getCategories(@Query('storeCategory') storeCategory?: string) {
+    const key = (storeCategory && CATALOG[storeCategory]) ? storeCategory : FALLBACK_KEY;
+    const catalog = CATALOG[key] ?? [];
+    return catalog.map((c) => ({
       name: c.category,
       nameEn: c.categoryEn,
+      icon: c.icon,
       count: c.items.length,
+    }));
+  }
+
+  @Get('store-categories')
+  getStoreCategories() {
+    return Object.keys(CATALOG).map((key) => ({
+      key,
+      categoriesCount: CATALOG[key].length,
+      productsCount: CATALOG[key].reduce((s, c) => s + c.items.length, 0),
     }));
   }
 }
