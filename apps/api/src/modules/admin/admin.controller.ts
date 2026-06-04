@@ -1,14 +1,19 @@
-import { Controller, Get, Patch, Param, Query, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Patch, Delete, Param, Query, Body, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tenant } from '../../database/entities/tenant.entity';
 import { Subscription } from '../../database/entities/subscription.entity';
-import { TenantStatus } from '@estlem/shared';
+import { TenantStatus, TenantPlan, SystemRole } from '@estlem/shared';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 
 @ApiTags('Admin')
 @ApiBearerAuth()
 @Controller('admin')
+@UseGuards(AuthGuard('jwt'), RolesGuard)
+@Roles(SystemRole.SUPER_ADMIN)
 export class AdminController {
   constructor(
     @InjectRepository(Tenant)
@@ -55,6 +60,56 @@ export class AdminController {
   ) {
     await this.tenantRepo.update(id, { status: body.status });
     return this.tenantRepo.findOne({ where: { id } });
+  }
+
+  @Patch('tenants/:id')
+  @ApiOperation({ summary: 'Update tenant fields (admin)' })
+  async updateTenant(
+    @Param('id') id: string,
+    @Body() body: {
+      name?: string;
+      slug?: string;
+      plan?: TenantPlan;
+      status?: TenantStatus;
+      billingEmail?: string;
+      trialEndsAt?: string | Date | null;
+    },
+  ) {
+    const patch: Record<string, unknown> = {};
+    if (body.name !== undefined) patch.name = body.name;
+    if (body.slug !== undefined) patch.slug = body.slug;
+    if (body.plan !== undefined) patch.plan = body.plan;
+    if (body.status !== undefined) patch.status = body.status;
+    if (body.billingEmail !== undefined) patch.billingEmail = body.billingEmail;
+    if (body.trialEndsAt !== undefined) {
+      patch.trialEndsAt = body.trialEndsAt ? new Date(body.trialEndsAt) : null;
+    }
+    await this.tenantRepo.update(id, patch as any);
+    return this.tenantRepo.findOne({ where: { id }, relations: ['stores', 'staff'] });
+  }
+
+  @Patch('tenants/:id/extend-trial')
+  @ApiOperation({ summary: 'Extend trial by N days (admin)' })
+  async extendTrial(
+    @Param('id') id: string,
+    @Body() body: { days?: number },
+  ) {
+    const days = Number(body.days) > 0 ? Number(body.days) : 14;
+    const tenant = await this.tenantRepo.findOne({ where: { id } });
+    if (!tenant) return { ok: false, error: 'tenant_not_found' };
+    const base = tenant.trialEndsAt && new Date(tenant.trialEndsAt) > new Date()
+      ? new Date(tenant.trialEndsAt)
+      : new Date();
+    base.setDate(base.getDate() + days);
+    await this.tenantRepo.update(id, { trialEndsAt: base, status: TenantStatus.TRIAL });
+    return this.tenantRepo.findOne({ where: { id } });
+  }
+
+  @Delete('tenants/:id')
+  @ApiOperation({ summary: 'Delete tenant (admin) — cascades to stores/staff/orders' })
+  async deleteTenant(@Param('id') id: string) {
+    await this.tenantRepo.delete(id);
+    return { ok: true };
   }
 
   @Get('subscriptions')
