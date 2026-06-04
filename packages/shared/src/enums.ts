@@ -57,7 +57,20 @@ export enum SystemRole {
 export enum Language {
   AR = 'ar',
   EN = 'en',
+  HI = 'hi',
+  BN = 'bn',
+  TL = 'tl',
 }
+
+export const LANGUAGE_META: Record<Language, { name: string; native: string; flag: string; dir: 'ltr' | 'rtl' }> = {
+  [Language.AR]: { name: 'Arabic',   native: 'العربية',  flag: '🇸🇦', dir: 'rtl' },
+  [Language.EN]: { name: 'English',  native: 'English',  flag: '🇬🇧', dir: 'ltr' },
+  [Language.HI]: { name: 'Hindi',    native: 'हिन्दी',    flag: '🇮🇳', dir: 'ltr' },
+  [Language.BN]: { name: 'Bengali',  native: 'বাংলা',    flag: '🇧🇩', dir: 'ltr' },
+  [Language.TL]: { name: 'Filipino', native: 'Filipino', flag: '🇵🇭', dir: 'ltr' },
+};
+
+export const ALL_LANGUAGES = Object.values(Language);
 
 export enum StoreCategory {
   GROCERY = 'grocery',

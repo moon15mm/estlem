@@ -11,6 +11,7 @@ import {
 import { api } from '@/lib/api';
 import { useCustomerAuth } from '@/hooks/useCustomerAuth';
 import type { Store } from '@estlem/shared';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 type StoreWithDistance = Store & { distance?: number };
 
@@ -65,21 +66,24 @@ export default function HomePage() {
             <span className="text-lg font-extrabold text-white tracking-tight">استلم</span>
           </div>
 
-          {isLoggedIn() ? (
-            <div className="flex items-center gap-2">
-              <Link href="/orders" className="text-white/80 text-xs bg-white/10 backdrop-blur-sm px-3.5 py-2 rounded-xl border border-white/10 font-medium">
-                طلباتي
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher />
+            {isLoggedIn() ? (
+              <>
+                <Link href="/orders" className="text-white/80 text-xs bg-white/10 backdrop-blur-sm px-3.5 py-2 rounded-xl border border-white/10 font-medium">
+                  طلباتي
+                </Link>
+                <button onClick={() => { logout(); }} className="w-9 h-9 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/10">
+                  <LogOut className="h-4 w-4 text-white/60" />
+                </button>
+              </>
+            ) : (
+              <Link href="/login" className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm text-white text-sm font-semibold px-4 py-2.5 rounded-xl border border-white/10 active:scale-95 transition-transform">
+                <User className="h-4 w-4" />
+                دخول
               </Link>
-              <button onClick={() => { logout(); }} className="w-9 h-9 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/10">
-                <LogOut className="h-4 w-4 text-white/60" />
-              </button>
-            </div>
-          ) : (
-            <Link href="/login" className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm text-white text-sm font-semibold px-4 py-2.5 rounded-xl border border-white/10 active:scale-95 transition-transform">
-              <User className="h-4 w-4" />
-              دخول
-            </Link>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Greeting */}

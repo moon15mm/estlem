@@ -7,7 +7,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { Sidebar } from '@/components/Sidebar';
 import toast from 'react-hot-toast';
 import type { Store, ParkingSpot } from '@estlem/shared';
-import { DINE_IN_CATEGORIES, StoreCategory } from '@estlem/shared';
+import { DINE_IN_CATEGORIES, StoreCategory, Language } from '@estlem/shared';
+import { LanguageSettings } from '@/components/LanguageSettings';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -668,6 +669,15 @@ export default function SettingsPage() {
                 </div>
               </CardContent>
             </Card>}
+
+            {/* Languages */}
+            {store && (
+              <LanguageSettings
+                storeId={store.id}
+                initialDefault={(store as any).defaultLanguage as Language | undefined}
+                initialSupported={(store as any).supportedLanguages as Language[] | undefined}
+              />
+            )}
 
             {/* Account */}
             <Card>
