@@ -59,6 +59,17 @@ export function CartDrawer({ open, onClose, storeId, tenantId, allowedPayments }
   const catalogItems = items.filter((i) => !i.isFreeText);
   const freeItems = items.filter((i) => i.isFreeText);
 
+  // If there are free-text items WITHOUT a confirmed price, force cash payment
+  const hasUnpricedFreeItems = freeItems.some((i) => !i.priceSnapshot || i.priceSnapshot === 0);
+  const forceCashPayment = hasUnpricedFreeItems;
+
+  // Auto-switch to cash if forced
+  useEffect(() => {
+    if (forceCashPayment && form.paymentMethod !== PaymentMethod.CASH) {
+      setForm((prev) => ({ ...prev, paymentMethod: PaymentMethod.CASH }));
+    }
+  }, [forceCashPayment]);
+
   const submit = async () => {
     if (!form.fullName || !form.mobile) {
       toast.error('يرجى إدخال الاسم ورقم الجوال');
@@ -159,6 +170,14 @@ export function CartDrawer({ open, onClose, storeId, tenantId, allowedPayments }
                         ✍️ من القائمة الحرة
                       </p>
                     )}
+                    {hasUnpricedFreeItems && (
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-2.5 mb-3 flex gap-2 items-start">
+                        <span className="text-amber-500 text-sm leading-none mt-0.5">💵</span>
+                        <p className="text-[11px] text-amber-800 leading-relaxed font-medium">
+                          عناصر القائمة الحرة بسعر تقديري — سيُؤكَّد السعر النهائي عند التجهيز والدفع كاش عند الاستلام
+                        </p>
+                      </div>
+                    )}
                     <div className="space-y-3">
                       {freeItems.map((item) => {
                         const key = getItemKey(item);
@@ -242,25 +261,45 @@ export function CartDrawer({ open, onClose, storeId, tenantId, allowedPayments }
 
             <div>
               <h3 className="font-bold text-gray-700 mb-2">طريقة الدفع</h3>
+
+              {forceCashPayment && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-3 flex gap-2">
+                  <span className="text-amber-500 text-lg leading-none">⚠</span>
+                  <div className="flex-1">
+                    <p className="text-sm font-bold text-amber-900">الدفع عند الاستلام فقط</p>
+                    <p className="text-xs text-amber-700 mt-1 leading-relaxed">
+                      طلبك يحتوي على عناصر من القائمة الحرة لم يتم تحديد سعرها بعد. سيتم تأكيد السعر النهائي عند تجهيز الطلب وتدفع نقداً عند الاستلام لتجنب أي خلاف.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-2">
                 {[
                   { label: 'مدى', value: PaymentMethod.MADA, key: 'mada' },
                   { label: 'Apple Pay', value: PaymentMethod.APPLE_PAY, key: 'apple_pay' },
                   { label: 'بطاقة ائتمان', value: PaymentMethod.CARD, key: 'card' },
                   { label: 'كاش عند الاستلام', value: PaymentMethod.CASH, key: 'cash' },
-                ].filter((m) => !allowedPayments || allowedPayments[m.key as keyof PaymentSettings] !== false).map((m) => (
-                  <button
-                    key={m.value}
-                    onClick={() => setForm({ ...form, paymentMethod: m.value })}
-                    className={`p-3 rounded-xl border-2 text-sm font-medium transition-colors ${
-                      form.paymentMethod === m.value
-                        ? 'border-blue-900 bg-blue-50 text-blue-900'
-                        : 'border-gray-200 text-gray-600'
-                    }`}
-                  >
-                    {m.label}
-                  </button>
-                ))}
+                ]
+                  .filter((m) => !allowedPayments || allowedPayments[m.key as keyof PaymentSettings] !== false)
+                  .filter((m) => !forceCashPayment || m.value === PaymentMethod.CASH)
+                  .map((m) => (
+                    <button
+                      key={m.value}
+                      onClick={() => !forceCashPayment && setForm({ ...form, paymentMethod: m.value })}
+                      disabled={forceCashPayment && m.value !== PaymentMethod.CASH}
+                      className={`p-3 rounded-xl border-2 text-sm font-medium transition-colors ${
+                        form.paymentMethod === m.value
+                          ? 'border-blue-900 bg-blue-50 text-blue-900'
+                          : 'border-gray-200 text-gray-600'
+                      } ${forceCashPayment ? 'col-span-2' : ''}`}
+                    >
+                      {m.label}
+                      {forceCashPayment && m.value === PaymentMethod.CASH && (
+                        <span className="block text-[10px] text-amber-600 mt-1 font-normal">إجباري لعناصر القائمة الحرة</span>
+                      )}
+                    </button>
+                  ))}
               </div>
             </div>
 
