@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, Clock, Car as CarIcon, DollarSign, HourglassIcon, Ban } from 'lucide-react';
-import toast from 'react-hot-toast';
-import { api } from '@/lib/api';
+import { BlockCustomerModal } from '@/components/BlockCustomerModal';
 import { OrderStatus } from '@estlem/shared';
 import type { Customer, CustomerVehicle, Order, OrderItem, ParkingSpot } from '@estlem/shared';
 import { formatPrice, formatDate, cn } from '@/lib/utils';
@@ -54,6 +53,7 @@ export function OrderCard({ order, onUpdateStatus, onQuoteSubmitted }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [estimatedMins, setEstimatedMins] = useState(10);
   const [quoteOpen, setQuoteOpen] = useState(false);
+  const [blockOpen, setBlockOpen] = useState(false);
   const cfg = STATUS_CONFIG[order.status];
   const colorClass = VEHICLE_COLORS[order.vehicle?.color ?? ''] ?? 'bg-gray-200';
 
@@ -136,16 +136,8 @@ export function OrderCard({ order, onUpdateStatus, onQuoteSubmitted }: Props) {
           )}
           {order.customerId && (
             <button
-              onClick={async () => {
-                const reason = prompt('سبب الحظر (اختياري):') ?? undefined;
-                if (reason === null) return;
-                try {
-                  await api.post(`/customers/${order.customerId}/block`, { reason: reason || undefined });
-                  toast.success('تم حظر العميل من المتجر');
-                } catch (err: any) {
-                  toast.error(err?.response?.data?.message || 'فشل الحظر');
-                }
-              }}
+              type="button"
+              onClick={() => setBlockOpen(true)}
               className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg px-2 py-1.5 mt-2 flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <Ban className="h-3 w-3" />
@@ -211,6 +203,16 @@ export function OrderCard({ order, onUpdateStatus, onQuoteSubmitted }: Props) {
           order={order}
           onClose={() => setQuoteOpen(false)}
           onSubmitted={() => onQuoteSubmitted?.()}
+        />
+      )}
+
+      {/* Block customer modal */}
+      {blockOpen && order.customerId && (
+        <BlockCustomerModal
+          customerId={order.customerId}
+          customerName={order.customer?.fullName}
+          customerMobile={order.customer?.mobile}
+          onClose={() => setBlockOpen(false)}
         />
       )}
 
