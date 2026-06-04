@@ -12,6 +12,7 @@ import { api } from '@/lib/api';
 import { useCustomerAuth } from '@/hooks/useCustomerAuth';
 import type { Store } from '@estlem/shared';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { useTranslation } from '@/lib/i18n/I18nProvider';
 
 type StoreWithDistance = Store & { distance?: number };
 
@@ -23,6 +24,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 export default function HomePage() {
   const router = useRouter();
   const { customer, isLoggedIn, logout } = useCustomerAuth();
+  const { t, dir } = useTranslation();
   const [nearbyStores, setNearbyStores] = useState<StoreWithDistance[]>([]);
   const [loadingStores, setLoadingStores] = useState(false);
   const [locationStatus, setLocationStatus] = useState<'idle' | 'loading' | 'granted' | 'denied'>('idle');
@@ -50,7 +52,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]" dir="rtl">
+    <div className="min-h-screen bg-[#F8FAFC]" dir={dir}>
       {/* ── Hero ────────────────────────────────────── */}
       <header className="relative bg-gradient-to-bl from-[#0F3460] via-[#1B4F72] to-[#16537E] px-5 pt-14 pb-28 overflow-hidden">
         {/* Decorative circles */}
@@ -63,7 +65,7 @@ export default function HomePage() {
             <div className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/10 animate-float">
               <Car className="h-5 w-5 text-white" />
             </div>
-            <span className="text-lg font-extrabold text-white tracking-tight">استلم</span>
+            <span className="text-lg font-extrabold text-white tracking-tight">{t('app.name')}</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -71,7 +73,7 @@ export default function HomePage() {
             {isLoggedIn() ? (
               <>
                 <Link href="/orders" className="text-white/80 text-xs bg-white/10 backdrop-blur-sm px-3.5 py-2 rounded-xl border border-white/10 font-medium">
-                  طلباتي
+                  {t('home.myOrders')}
                 </Link>
                 <button onClick={() => { logout(); }} className="w-9 h-9 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/10">
                   <LogOut className="h-4 w-4 text-white/60" />
@@ -80,7 +82,7 @@ export default function HomePage() {
             ) : (
               <Link href="/login" className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm text-white text-sm font-semibold px-4 py-2.5 rounded-xl border border-white/10 active:scale-95 transition-transform">
                 <User className="h-4 w-4" />
-                دخول
+                {t('home.signIn')}
               </Link>
             )}
           </div>
@@ -89,18 +91,18 @@ export default function HomePage() {
         {/* Greeting */}
         <div className="relative z-10 mb-8 animate-fade-up">
           <h1 className="text-[1.75rem] font-black text-white leading-tight mb-2">
-            {isLoggedIn() && customer?.fullName ? `أهلاً ${customer.fullName}` : 'اطلب من سيارتك'}
+            {isLoggedIn() && customer?.fullName ? `${t('home.welcomeBack')} ${customer.fullName}` : t('app.tagline')}
           </h1>
           <p className="text-white/60 text-[0.9rem] leading-relaxed max-w-xs">
-            اختر متجراً قريباً واستلم طلبك دون أن تنزل من سيارتك
+            {t('home.heroSubtitle')}
           </p>
         </div>
 
         {/* Search bar — glass */}
         <Link href="/discover?tab=search" className="relative z-10 flex items-center gap-3 bg-white/10 backdrop-blur-xl rounded-2xl px-4 py-3.5 border border-white/15 active:scale-[0.98] transition-transform animate-fade-up delay-200">
           <Search className="h-5 w-5 text-white/50" />
-          <span className="text-white/40 text-sm flex-1">ابحث عن متجر أو منتج...</span>
-          <span className="text-[10px] text-white/30 bg-white/10 px-2 py-1 rounded-lg">بحث</span>
+          <span className="text-white/40 text-sm flex-1">{t('home.searchPlaceholder')}</span>
+          <span className="text-[10px] text-white/30 bg-white/10 px-2 py-1 rounded-lg">{t('common.search')}</span>
         </Link>
       </header>
 
@@ -108,9 +110,9 @@ export default function HomePage() {
       <section className="px-5 -mt-14 mb-8 relative z-20 animate-scale-in delay-300">
         <div className="grid grid-cols-3 gap-3">
           {[
-            { href: '/discover', icon: Compass, label: 'متاجر قريبة', color: 'text-[#1ABC9C]', bg: 'bg-[#1ABC9C]/10' },
-            { href: '/discover?tab=search', icon: Search, label: 'بحث', color: 'text-[#1B4F72]', bg: 'bg-[#1B4F72]/10' },
-            { href: '#qr', icon: QrCode, label: 'مسح QR', color: 'text-amber-600', bg: 'bg-amber-50' },
+            { href: '/discover', icon: Compass, label: t('home.nearbyShort'), color: 'text-[#1ABC9C]', bg: 'bg-[#1ABC9C]/10' },
+            { href: '/discover?tab=search', icon: Search, label: t('common.search'), color: 'text-[#1B4F72]', bg: 'bg-[#1B4F72]/10' },
+            { href: '#qr', icon: QrCode, label: t('home.scanQr'), color: 'text-amber-600', bg: 'bg-amber-50' },
           ].map((action) => (
             <Link
               key={action.label}
@@ -133,11 +135,11 @@ export default function HomePage() {
             <div className="w-7 h-7 bg-[#1ABC9C]/10 rounded-lg flex items-center justify-center">
               <Navigation className="h-3.5 w-3.5 text-[#1ABC9C]" />
             </div>
-            <h2 className="font-extrabold text-gray-900 text-[0.95rem]">متاجر قريبة منك</h2>
+            <h2 className="font-extrabold text-gray-900 text-[0.95rem]">{t('home.nearbyStores')}</h2>
           </div>
           {locationStatus === 'granted' && nearbyStores.length > 0 && (
             <Link href="/discover" className="text-[#1B4F72] text-xs font-bold flex items-center gap-0.5 cursor-pointer">
-              عرض الكل <ChevronLeft className="h-3.5 w-3.5" />
+              {t('home.viewAll')} <ChevronLeft className="h-3.5 w-3.5" />
             </Link>
           )}
         </div>
@@ -145,17 +147,17 @@ export default function HomePage() {
         {locationStatus === 'loading' || loadingStores ? (
           <div className="bg-white rounded-2xl p-10 shadow-[0_2px_20px_rgba(0,0,0,0.04)] text-center">
             <Loader2 className="h-7 w-7 animate-spin text-[#1B4F72] mx-auto mb-3" />
-            <p className="text-sm text-gray-400 font-medium">جاري تحديد موقعك...</p>
+            <p className="text-sm text-gray-400 font-medium">{t('home.locating')}</p>
           </div>
         ) : locationStatus === 'denied' ? (
           <div className="bg-white rounded-2xl p-8 shadow-[0_2px_20px_rgba(0,0,0,0.04)] text-center">
             <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <MapPin className="h-6 w-6 text-gray-400" />
             </div>
-            <p className="font-bold text-gray-700 mb-1 text-sm">فعّل خدمة الموقع</p>
-            <p className="text-xs text-gray-400 mb-5 leading-relaxed">اسمح بتحديد موقعك لنعرض المتاجر القريبة</p>
+            <p className="font-bold text-gray-700 mb-1 text-sm">{t('home.enableLocation')}</p>
+            <p className="text-xs text-gray-400 mb-5 leading-relaxed">{t('home.enableLocationDesc')}</p>
             <button onClick={loadNearby} className="bg-[#1B4F72] text-white px-6 py-2.5 rounded-xl text-sm font-bold cursor-pointer active:scale-95 transition-transform">
-              إعادة المحاولة
+              {t('common.retry')}
             </button>
           </div>
         ) : nearbyStores.length === 0 && locationStatus === 'granted' ? (
@@ -163,8 +165,8 @@ export default function HomePage() {
             <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <StoreIcon className="h-6 w-6 text-gray-400" />
             </div>
-            <p className="font-bold text-gray-700 text-sm">لا توجد متاجر قريبة</p>
-            <p className="text-xs text-gray-400 mt-1">جرّب البحث بالاسم</p>
+            <p className="font-bold text-gray-700 text-sm">{t('home.noStores')}</p>
+            <p className="text-xs text-gray-400 mt-1">{t('home.tryByName')}</p>
           </div>
         ) : (
           <div className="space-y-3">
