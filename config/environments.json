@@ -1,9 +1,7 @@
 {
   "$schema": "./environments.schema.json",
   "_comment": "Single source of truth for all environment URLs and infrastructure. Update via scripts/setup-wizard.sh — do not edit env files by hand.",
-
   "active": "production",
-
   "environments": {
     "production": {
       "label": "Production (Render + Vercel) — current setup",
@@ -18,12 +16,20 @@
         "connectionEnv": "DATABASE_URL"
       },
       "deployment": {
-        "api": { "platform": "render", "service": "estlem-api" },
-        "web": { "platform": "vercel", "project": "estlem-web" },
-        "dashboard": { "platform": "vercel", "project": "estlem-dashboard" }
+        "api": {
+          "platform": "render",
+          "service": "estlem-api"
+        },
+        "web": {
+          "platform": "vercel",
+          "project": "estlem-web"
+        },
+        "dashboard": {
+          "platform": "vercel",
+          "project": "estlem-dashboard"
+        }
       }
     },
-
     "vps": {
       "label": "Self-hosted VPS (Contabo)",
       "_note": "Fill in after VPS migration. See docs/VPS-MIGRATION.md",
@@ -40,12 +46,26 @@
         "connectionEnv": "DATABASE_URL"
       },
       "deployment": {
-        "api": { "platform": "vps", "host": "167.86.77.174", "pm2": "estlem-api", "port": 3001 },
-        "web": { "platform": "vps", "host": "167.86.77.174", "pm2": "estlem-web", "port": 3000 },
-        "dashboard": { "platform": "vps", "host": "167.86.77.174", "pm2": "estlem-dashboard", "port": 3002 }
+        "api": {
+          "platform": "vps",
+          "host": "167.86.77.174",
+          "pm2": "estlem-api",
+          "port": 3001
+        },
+        "web": {
+          "platform": "vps",
+          "host": "167.86.77.174",
+          "pm2": "estlem-web",
+          "port": 3000
+        },
+        "dashboard": {
+          "platform": "vps",
+          "host": "167.86.77.174",
+          "pm2": "estlem-dashboard",
+          "port": 3002
+        }
       }
     },
-
     "local": {
       "label": "Local development",
       "apiUrl": "http://localhost:3001",
@@ -61,14 +81,29 @@
         "connectionEnv": "DATABASE_URL"
       },
       "deployment": {
-        "api": { "platform": "local", "port": 3001 },
-        "web": { "platform": "local", "port": 3000 },
-        "dashboard": { "platform": "local", "port": 3002 }
+        "api": {
+          "platform": "local",
+          "port": 3001
+        },
+        "web": {
+          "platform": "local",
+          "port": 3000
+        },
+        "dashboard": {
+          "platform": "local",
+          "port": 3002
+        }
       }
     }
   },
-
   "checkpoints": [
+    {
+      "tag": "checkpoint-pre-vps-stable",
+      "createdAt": "2026-06-04",
+      "environment": "production",
+      "note": "Stable production on Vercel+Render before VPS migration consideration. All features working: dine-in, blocking, expanded catalog, Moyasar payment SDK.",
+      "rollback": "node scripts/checkpoint.js restore checkpoint-pre-vps-stable"
+    },
     {
       "tag": "checkpoint-pre-vps-2026-06-04",
       "createdAt": "2026-06-04",
