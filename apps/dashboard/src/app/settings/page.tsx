@@ -43,6 +43,10 @@ export default function SettingsPage() {
     apple_pay: false,
   });
   const [savingPayment, setSavingPayment] = useState(false);
+  const [moyasarPub, setMoyasarPub] = useState('');
+  const [moyasarSec, setMoyasarSec] = useState('');
+  const [savingGateway, setSavingGateway] = useState(false);
+  const [showSecret, setShowSecret] = useState(false);
   const [serviceMode, setServiceMode] = useState('drive_through');
   const [savingMode, setSavingMode] = useState(false);
   const [newTable, setNewTable] = useState('');
@@ -67,6 +71,9 @@ export default function SettingsPage() {
       if (storeSettings) {
         setPaymentMethods(storeSettings);
       }
+      const ps = (storeData as any).operatingHours?.paymentSettings ?? {};
+      setMoyasarPub(ps.moyasarPublishableKey ?? '');
+      setMoyasarSec(ps.moyasarSecretKey ?? '');
       // Only allow dine-in modes for restaurants/cafes/buffets
       const savedMode = (storeData as any).operatingHours?.serviceMode ?? 'drive_through';
       const canDineIn = DINE_IN_CATEGORIES.includes(storeData.category as StoreCategory);
@@ -174,6 +181,28 @@ export default function SettingsPage() {
       toast.error('فشل الحفظ');
     } finally {
       setSavingPayment(false);
+    }
+  };
+
+  const saveGatewaySettings = async () => {
+    setSavingGateway(true);
+    try {
+      await api.put(`/stores/${storeId}`, {
+        operatingHours: {
+          ...(store as any)?.operatingHours,
+          paymentSettings: {
+            provider: moyasarPub || moyasarSec ? 'moyasar' : 'test',
+            moyasarPublishableKey: moyasarPub.trim() || undefined,
+            moyasarSecretKey: moyasarSec.trim() || undefined,
+          },
+        },
+      });
+      toast.success('تم حفظ إعدادات بوابة الدفع');
+      load();
+    } catch {
+      toast.error('فشل الحفظ');
+    } finally {
+      setSavingGateway(false);
     }
   };
 
@@ -518,6 +547,85 @@ export default function SettingsPage() {
                   {savingPayment ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                   حفظ إعدادات الدفع
                 </Button>
+              </CardContent>
+            </Card>
+
+            {/* Payment Gateway — Moyasar */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CreditCard className="h-5 w-5 text-primary" /> بوابة الدفع (مياسر)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-900 leading-relaxed">
+                  استخدم مياسر (Moyasar) لتفعيل الدفع الإلكتروني الحقيقي (مدى، Apple Pay، بطاقات).
+                  احصل على المفاتيح من{' '}
+                  <a href="https://moyasar.com" target="_blank" rel="noreferrer" className="font-bold underline">
+                    moyasar.com
+                  </a>
+                  {' '}بعد التسجيل. إذا تركتها فارغة، الدفع يعمل في وضع تجريبي تلقائي.
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+                    Publishable Key (pk_...)
+                  </label>
+                  <Input
+                    value={moyasarPub}
+                    onChange={(e) => setMoyasarPub(e.target.value)}
+                    placeholder="pk_test_xxxxxxxxxxxx"
+                    dir="ltr"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+                    Secret Key (sk_...)
+                  </label>
+                  <div className="relative">
+                    <Input
+                      type={showSecret ? 'text' : 'password'}
+                      value={moyasarSec}
+                      onChange={(e) => setMoyasarSec(e.target.value)}
+                      placeholder="sk_test_xxxxxxxxxxxx"
+                      dir="ltr"
+                      className="pl-12"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowSecret((p) => !p)}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground px-2 py-1 cursor-pointer"
+                    >
+                      {showSecret ? 'إخفاء' : 'إظهار'}
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    🔒 يُخزّن مشفّراً على السيرفر — لا يظهر للعملاء أبداً.
+                  </p>
+                </div>
+
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 leading-relaxed">
+                  <strong>وضع الاختبار:</strong> استخدم مفاتيح <code className="bg-amber-100 px-1 rounded">pk_test_</code> و <code className="bg-amber-100 px-1 rounded">sk_test_</code> لاختبار الدفع بدون رسوم حقيقية.
+                  بطاقة الاختبار: <code className="bg-amber-100 px-1 rounded" dir="ltr">4111 1111 1111 1111</code>
+                </div>
+
+                <Button onClick={saveGatewaySettings} disabled={savingGateway} className="gap-2">
+                  {savingGateway ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                  حفظ مفاتيح البوابة
+                </Button>
+
+                {/* Status indicator */}
+                <div className={`flex items-center gap-2 text-xs font-medium px-3 py-2 rounded-lg ${
+                  moyasarSec
+                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                    : 'bg-amber-50 text-amber-700 border border-amber-200'
+                }`}>
+                  <span className={`w-2 h-2 rounded-full ${moyasarSec ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                  {moyasarSec
+                    ? 'الدفع الإلكتروني مُفعّل (مياسر)'
+                    : 'الدفع في وضع تجريبي — لن تُحصّل أي مبالغ حقيقية'}
+                </div>
               </CardContent>
             </Card>
 

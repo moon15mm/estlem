@@ -109,8 +109,41 @@ export function CartDrawer({ open, onClose, storeId, tenantId, allowedPayments }
           } : undefined,
         },
       };
-      const order = await api.post('/orders', payload) as { id: string };
+      const order = await api.post('/orders', payload) as { id: string; status: string };
       clearCart();
+
+      // If order needs quote first, go straight to tracker
+      if (order.status === 'pending_quote') {
+        router.push(`/order/${order.id}`);
+        return;
+      }
+
+      // Electronic payment → initiate Moyasar/test session
+      if (form.paymentMethod !== PaymentMethod.CASH) {
+        try {
+          const returnUrl = `${window.location.origin}/order/${order.id}`;
+          const session = await api.post('/payments/initiate', {
+            orderId: order.id,
+            method: form.paymentMethod,
+            returnUrl,
+          }) as { paymentUrl: string; testMode?: boolean; sessionId?: string };
+
+          if (session?.paymentUrl) {
+            // For test mode: confirm immediately then go to tracker
+            if (session.testMode && session.sessionId) {
+              await api.post(`/payments/test-confirm/${session.sessionId}`, {}).catch(() => {});
+              router.push(`/order/${order.id}?payment=test_success`);
+              return;
+            }
+            // Real gateway: redirect to hosted payment page
+            window.location.href = session.paymentUrl;
+            return;
+          }
+        } catch {
+          toast.error('فشل بدء الدفع، تم حفظ طلبك');
+        }
+      }
+
       router.push(`/order/${order.id}`);
     } catch {
       toast.error('فشل إرسال الطلب، حاول مجدداً');

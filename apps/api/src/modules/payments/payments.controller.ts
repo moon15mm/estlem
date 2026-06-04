@@ -29,13 +29,19 @@ export class PaymentsController {
     return this.service.initiatePayment(dto.orderId, dto.method, dto.returnUrl);
   }
 
+  @Post('test-confirm/:sessionId')
+  testConfirm(@Param('sessionId') sessionId: string) {
+    return this.service.confirmTestPayment(sessionId);
+  }
+
   @Post('webhook')
   webhook(
     @Body() payload: Record<string, unknown>,
     @Headers('authorization') signature: string,
   ) {
-    const secret = this.config.get<string>('CHECKOUT_WEBHOOK_SECRET');
-    if (secret && signature !== secret) {
+    // Moyasar webhooks: signature usually in 'authorization' header or 'X-Moyasar-Signature'
+    const secret = this.config.get<string>('MOYASAR_WEBHOOK_SECRET') || this.config.get<string>('CHECKOUT_WEBHOOK_SECRET');
+    if (secret && signature !== secret && signature !== `Bearer ${secret}`) {
       throw new ForbiddenException('Invalid webhook signature');
     }
     return this.service.handleWebhook(payload);
