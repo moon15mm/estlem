@@ -1,4 +1,4 @@
-name: Deploy Estlem
+name: Build & Lint
 
 on:
   push:
@@ -7,7 +7,8 @@ on:
     branches: [main]
 
 jobs:
-  # ── Build & Test ─────────────────────────────────────────────────────────────
+  # Build & Lint only — Vercel and Render handle their own deploys
+  # automatically from GitHub via their Git integrations.
   build:
     name: Build & Lint
     runs-on: ubuntu-latest
@@ -40,75 +41,3 @@ jobs:
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
           NEXT_PUBLIC_WS_URL: ${{ secrets.NEXT_PUBLIC_WS_URL }}
-
-  # ── Deploy API to Railway ─────────────────────────────────────────────────────
-  deploy-api:
-    name: Deploy API → Railway
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
-
-      - name: Deploy to Railway
-        run: railway up --service estlem-api
-        working-directory: apps/api
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-
-  # ── Deploy Web to Vercel ──────────────────────────────────────────────────────
-  deploy-web:
-    name: Deploy Web → Vercel
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 9.15.4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install Vercel CLI
-        run: npm install -g vercel
-
-      - name: Deploy Web PWA
-        run: vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
-        working-directory: apps/web
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
-
-  # ── Deploy Dashboard to Vercel ────────────────────────────────────────────────
-  deploy-dashboard:
-    name: Deploy Dashboard → Vercel
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 9.15.4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install Vercel CLI
-        run: npm install -g vercel
-
-      - name: Deploy Dashboard
-        run: vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
-        working-directory: apps/dashboard
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_DASHBOARD_PROJECT_ID }}
