@@ -63,7 +63,7 @@ export class StoresService {
       const spot = this.spotRepo.create(spotData);
       spots.push(spot);
     }
-    await this.spotRepo.save(spots);
+    await this.spotRepo.save(spots as any);
     return spots;
   }
 
