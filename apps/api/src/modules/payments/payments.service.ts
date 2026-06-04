@@ -4,8 +4,11 @@ import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { Payment } from '../../database/entities/payment.entity';
 import { Order } from '../../database/entities/order.entity';
+import { Customer } from '../../database/entities/customer.entity';
 import { Store } from '../../database/entities/store.entity';
-import { PaymentStatus, PaymentMethod } from '@estlem/shared';
+import { PaymentStatus, PaymentMethod, OrderStatus, WsEvent } from '@estlem/shared';
+import { OrdersGateway } from '../realtime/orders.gateway';
+import { NotificationsService } from '../notifications/notifications.service';
 
 const MOYASAR_API_BASE = 'https://api.moyasar.com/v1';
 
@@ -24,9 +27,38 @@ export class PaymentsService {
   constructor(
     @InjectRepository(Payment) private paymentRepo: Repository<Payment>,
     @InjectRepository(Order) private orderRepo: Repository<Order>,
+    @InjectRepository(Customer) private customerRepo: Repository<Customer>,
     @InjectRepository(Store) private storeRepo: Repository<Store>,
+    private gateway: OrdersGateway,
+    private notifications: NotificationsService,
     private config: ConfigService,
   ) {}
+
+  /**
+   * After a successful payment, transition PENDING_PAYMENT order to NEW
+   * and notify the store.
+   */
+  private async finalizeOrderAfterPayment(orderId: string) {
+    const order = await this.orderRepo.findOne({
+      where: { id: orderId },
+      relations: ['items', 'customer', 'vehicle', 'parkingSpot'],
+    });
+    if (!order) return;
+
+    // Only promote if it was waiting for payment
+    if (order.status === OrderStatus.PENDING_PAYMENT) {
+      order.status = OrderStatus.NEW;
+      await this.orderRepo.save(order);
+
+      // Notify the store now that payment is confirmed
+      this.gateway.emitToStore(order.storeId, WsEvent.ORDER_CREATED, order);
+
+      // Notify customer of status change
+      if (order.customer) {
+        await this.notifications.sendOrderStatus(order, order.customer);
+      }
+    }
+  }
 
   private mapMethodToMoyasar(method: PaymentMethod): string[] {
     switch (method) {
@@ -167,6 +199,7 @@ export class PaymentsService {
     payment.capturedAt = new Date();
     await this.paymentRepo.save(payment);
     await this.orderRepo.update(payment.orderId, { paymentStatus: PaymentStatus.PAID });
+    await this.finalizeOrderAfterPayment(payment.orderId);
     return payment;
   }
 
@@ -189,6 +222,7 @@ export class PaymentsService {
       payment.capturedAt = new Date();
       await this.paymentRepo.save(payment);
       await this.orderRepo.update(payment.orderId, { paymentStatus: PaymentStatus.PAID });
+      await this.finalizeOrderAfterPayment(payment.orderId);
     } else if (status === 'failed' || status === 'declined' || status === 'voided') {
       payment.status = PaymentStatus.FAILED;
       await this.paymentRepo.save(payment);

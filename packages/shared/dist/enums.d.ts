@@ -1,5 +1,6 @@
 export declare enum OrderStatus {
     NEW = "new",
+    PENDING_PAYMENT = "pending_payment",// waiting for electronic payment
     PENDING_QUOTE = "pending_quote",// store needs to set prices for free items
     PENDING_APPROVAL = "pending_approval",// customer needs to approve the quote
     ACCEPTED = "accepted",

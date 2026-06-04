@@ -28,6 +28,7 @@ const STATUS_CONFIG: Record<
   OrderStatus,
   { label: string; badge: BadgeProps['variant']; next?: OrderStatus; nextLabel?: string }
 > = {
+  [OrderStatus.PENDING_PAYMENT]:  { label: 'بانتظار الدفع', badge: 'warning' },
   [OrderStatus.PENDING_QUOTE]:    { label: 'بانتظار التسعير', badge: 'warning' },
   [OrderStatus.PENDING_APPROVAL]: { label: 'بانتظار موافقة العميل', badge: 'warning' },
   [OrderStatus.NEW]:       { label: 'جديد',        badge: 'default',     next: OrderStatus.ACCEPTED,  nextLabel: 'قبول الطلب' },
