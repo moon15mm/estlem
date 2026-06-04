@@ -178,19 +178,26 @@ export default function SettingsPage() {
   };
 
   const saveServiceMode = async (mode: string) => {
+    const previousMode = serviceMode;
     setServiceMode(mode);
     setSavingMode(true);
     try {
-      await api.put(`/stores/${storeId}`, {
-        operatingHours: {
-          ...(store as any)?.operatingHours,
-          serviceMode: mode,
-        },
+      const newOperatingHours = {
+        ...((store as any)?.operatingHours || {}),
+        serviceMode: mode,
+      };
+      const result = await api.put(`/stores/${storeId}`, {
+        operatingHours: newOperatingHours,
       });
+      // Update local store state directly with returned data
+      if (result) {
+        setStore(result as unknown as Store);
+      }
       toast.success('تم تحديث وضع الخدمة');
-      load();
-    } catch {
-      toast.error('فشل الحفظ');
+    } catch (err: any) {
+      console.error('Save service mode error:', err);
+      setServiceMode(previousMode);
+      toast.error(err?.response?.data?.message || 'فشل الحفظ');
     } finally {
       setSavingMode(false);
     }
