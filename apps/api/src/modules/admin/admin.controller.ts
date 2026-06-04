@@ -1,8 +1,8 @@
 import { Controller, Get, Patch, Delete, Param, Query, Body, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Tenant } from '../../database/entities/tenant.entity';
 import { Subscription } from '../../database/entities/subscription.entity';
 import { TenantStatus, TenantPlan, SystemRole } from '@estlem/shared';
@@ -20,6 +20,8 @@ export class AdminController {
     private tenantRepo: Repository<Tenant>,
     @InjectRepository(Subscription)
     private subRepo: Repository<Subscription>,
+    @InjectDataSource()
+    private dataSource: DataSource,
   ) {}
 
   @Get('tenants')
@@ -108,7 +110,56 @@ export class AdminController {
   @Delete('tenants/:id')
   @ApiOperation({ summary: 'Delete tenant (admin) — cascades to stores/staff/orders' })
   async deleteTenant(@Param('id') id: string) {
-    await this.tenantRepo.delete(id);
+    // Manual cascade: not every related table has FK ON DELETE CASCADE.
+    // Run everything in a transaction so a failure leaves nothing partially deleted.
+    await this.dataSource.transaction(async (m) => {
+      const r = (sql: string, params: unknown[] = []) => m.query(sql, params);
+
+      // Find this tenant's stores first (for store-scoped tables that don't carry tenantId).
+      const storeRows: Array<{ id: string }> = await r(
+        `SELECT id FROM stores WHERE "tenantId" = $1`,
+        [id],
+      );
+      const storeIds = storeRows.map((s) => s.id);
+
+      // Find this tenant's orders (for order_items)
+      const orderRows: Array<{ id: string }> = await r(
+        `SELECT id FROM orders WHERE "tenantId" = $1`,
+        [id],
+      );
+      const orderIds = orderRows.map((o) => o.id);
+
+      // Children first
+      if (orderIds.length) {
+        await r(`DELETE FROM order_items WHERE "orderId" = ANY($1::uuid[])`, [orderIds]);
+      }
+      if (storeIds.length) {
+        await r(`DELETE FROM parking_spots WHERE "storeId" = ANY($1::uuid[])`, [storeIds]);
+      }
+
+      // Tenant-scoped tables (no FK / no cascade)
+      const tenantScoped = [
+        'invoices',
+        'commission_transactions',
+        'commission_rules',
+        'loyalty_transactions',
+        'loyalty_accounts',
+        'blocked_customers',
+        'pos_integrations',
+        'products',
+        'product_categories',
+        'orders',
+        'subscriptions',
+        'staff',
+        'stores',
+      ];
+      for (const t of tenantScoped) {
+        await r(`DELETE FROM "${t}" WHERE "tenantId" = $1`, [id]);
+      }
+
+      // Finally the tenant itself
+      await r(`DELETE FROM tenants WHERE id = $1`, [id]);
+    });
     return { ok: true };
   }
 
