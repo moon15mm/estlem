@@ -16,6 +16,7 @@ import { PosModule } from './modules/pos/pos.module';
 import { RealtimeModule } from './modules/realtime/realtime.module';
 import { HealthModule } from './modules/health/health.module';
 import { CustomersModule } from './modules/customers/customers.module';
+import { AdminModule } from './modules/admin/admin.module';
 import { databaseConfig } from './database/database.config';
 
 @Module({
@@ -40,6 +41,7 @@ import { databaseConfig } from './database/database.config';
     RealtimeModule,
     HealthModule,
     CustomersModule,
+    AdminModule,
   ],
 })
 export class AppModule {}
