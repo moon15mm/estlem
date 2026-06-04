@@ -56,7 +56,7 @@ export class Order {
   @Column({ type: 'enum', enum: OrderType, default: OrderType.CATALOG })
   type: OrderType;
 
-  @Column({ type: 'enum', enum: OrderStatus, default: OrderStatus.NEW })
+  @Column({ type: 'varchar', length: 30, default: OrderStatus.NEW })
   status: OrderStatus;
 
   @Column({ type: 'enum', enum: PaymentMethod })
