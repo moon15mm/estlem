@@ -61,6 +61,9 @@ ok "  dashboard: $DASH_DOMAIN"
 ok "  api:       $API_DOMAIN"
 
 # ─── 1. Clone or update repo ─────────────────────────────────────────────────
+# Add /opt/estlem as a safe directory (provision script chowns it to 'estlem' user)
+git config --global --add safe.directory "$APP_DIR" 2>/dev/null || true
+
 if [[ -d "$APP_DIR/.git" ]]; then
   log "Updating existing repo"
   cd "$APP_DIR"
@@ -71,6 +74,7 @@ else
   log "Cloning repo"
   rm -rf "$APP_DIR"
   git clone "$REPO_URL" "$APP_DIR"
+  chown -R estlem:estlem "$APP_DIR" 2>/dev/null || true
   ok "cloned to $APP_DIR"
 fi
 
