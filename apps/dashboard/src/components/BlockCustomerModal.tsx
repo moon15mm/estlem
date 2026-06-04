@@ -27,12 +27,22 @@ export function BlockCustomerModal({ customerId, customerName, customerMobile, o
       onBlocked?.();
       onClose();
     } catch (err: any) {
-      const msg = err?.response?.data?.message;
-      if (err?.response?.status === 409) {
+      const status = err?.response?.status;
+      const rawMsg = err?.response?.data?.message;
+      const msg = Array.isArray(rawMsg) ? rawMsg.join(', ') : rawMsg;
+      console.error('Block error:', { status, msg, error: err });
+
+      if (status === 409) {
         toast.error('العميل محظور مسبقاً');
         onClose();
+      } else if (status === 401 || status === 403) {
+        toast.error('ليس لديك صلاحية الحظر (Owner/Manager فقط)');
+      } else if (status === 404) {
+        toast.error('endpoint غير موجود — الـ API لم يُحدّث بعد');
+      } else if (status === 500) {
+        toast.error(`خطأ في السيرفر: ${msg ?? 'unknown'}`);
       } else {
-        toast.error(typeof msg === 'string' ? msg : 'فشل الحظر');
+        toast.error(typeof msg === 'string' ? msg : `فشل الحظر (${status ?? 'no response'})`);
       }
     } finally {
       setSubmitting(false);
