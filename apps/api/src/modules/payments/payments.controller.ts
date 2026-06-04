@@ -1,7 +1,8 @@
 import {
-  Controller, Post, Body, Param, UseGuards, Headers,
-  ForbiddenException, Request,
+  Controller, Post, Get, Body, Param, UseGuards, Headers, Query,
+  ForbiddenException, Request, Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { PaymentsService } from './payments.service';
@@ -32,6 +33,29 @@ export class PaymentsController {
   @Post('test-confirm/:sessionId')
   testConfirm(@Param('sessionId') sessionId: string) {
     return this.service.confirmTestPayment(sessionId);
+  }
+
+  // Get publishable key + amount for inline Moyasar form
+  @Get('checkout-info/:orderId')
+  checkoutInfo(@Param('orderId') orderId: string) {
+    return this.service.getCheckoutInfo(orderId);
+  }
+
+  // Moyasar redirects here after payment with ?id=...&status=...&token=orderId
+  @Get('moyasar/callback')
+  async moyasarCallback(
+    @Query('id') paymentId: string,
+    @Query('status') status: string,
+    @Query('token') orderId: string,
+    @Res() res: Response,
+  ) {
+    const result = await this.service.handleMoyasarCallback(orderId, paymentId, status);
+    const baseUrl = process.env.FRONTEND_URL || 'https://estlem.store';
+    if (result.success) {
+      res.redirect(`${baseUrl}/order/${orderId}?payment=success`);
+    } else {
+      res.redirect(`${baseUrl}/order/${orderId}?payment=failed&reason=${encodeURIComponent(result.reason || '')}`);
+    }
   }
 
   @Post('webhook')
