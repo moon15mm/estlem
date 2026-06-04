@@ -2,7 +2,7 @@ import {
   Entity, PrimaryGeneratedColumn, Column, CreateDateColumn,
   UpdateDateColumn, ManyToOne, OneToMany, JoinColumn, Index,
 } from 'typeorm';
-import { StoreCategory, ServiceMode } from '@estlem/shared';
+import { StoreCategory, ServiceMode, Language } from '@estlem/shared';
 import { Tenant } from './tenant.entity';
 import { ParkingSpot } from './parking-spot.entity';
 import { Product } from './product.entity';
@@ -57,6 +57,13 @@ export class Store {
 
   @Column({ nullable: true })
   phoneNumber: string;
+
+  // ── Languages ───────────────────────────────────────────────
+  @Column({ type: 'enum', enum: Language, default: Language.AR })
+  defaultLanguage: Language;
+
+  @Column({ type: 'simple-array', default: 'ar,en' })
+  supportedLanguages: Language[];
 
   @OneToMany(() => ParkingSpot, (spot) => spot.store, { cascade: true })
   parkingSpots: ParkingSpot[];

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Toaster } from 'react-hot-toast';
 import { GeofenceProvider } from '@/components/GeofenceProvider';
+import { I18nProvider } from '@/lib/i18n/I18nProvider';
 import './globals.css';
 import 'moyasar-payment-form/dist/moyasar.css';
 
@@ -29,10 +30,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Next.js auto-generates favicon from app/icon.svg and app/apple-icon.svg */}
       </head>
       <body className="bg-background antialiased">
-        {children}
-        <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
-        {/* @ts-expect-error Async Server Component */}
-        <GeofenceProviderWrapper />
+        <I18nProvider>
+          {children}
+          <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
+          {/* @ts-expect-error Async Server Component */}
+          <GeofenceProviderWrapper />
+        </I18nProvider>
       </body>
     </html>
   );

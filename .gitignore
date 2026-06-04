@@ -7,6 +7,15 @@ dist/
 .next/
 out/
 
+# Android build artifacts
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+android/captures/
+*.apk
+*.aab
+
 # Environment files
 .env
 .env.local

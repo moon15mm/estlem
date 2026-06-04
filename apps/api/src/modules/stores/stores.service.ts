@@ -48,6 +48,18 @@ export class StoresService {
     return this.storeRepo.save(store);
   }
 
+  async updateLanguages(
+    id: string,
+    dto: { defaultLanguage?: string; supportedLanguages?: string[] },
+    tenantId: string,
+  ): Promise<Store> {
+    const store = await this.storeRepo.findOne({ where: { id, tenantId } });
+    if (!store) throw new NotFoundException('Store not found');
+    if (dto.defaultLanguage) store.defaultLanguage = dto.defaultLanguage as any;
+    if (dto.supportedLanguages?.length) store.supportedLanguages = dto.supportedLanguages as any;
+    return this.storeRepo.save(store);
+  }
+
   async createParkingSpots(storeId: string, dto: CreateParkingSpotsDto, tenantId: string) {
     const store = await this.storeRepo.findOne({ where: { id: storeId, tenantId } });
     if (!store) throw new NotFoundException('Store not found');

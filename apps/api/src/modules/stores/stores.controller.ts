@@ -1,5 +1,5 @@
 import {
-  Controller, Get, Post, Put, Body, Param, Query, UseGuards, Request,
+  Controller, Get, Post, Put, Patch, Body, Param, Query, UseGuards, Request,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Throttle } from '@nestjs/throttler';
@@ -73,6 +73,17 @@ export class StoresController {
     @Request() req: { user: { tenantId: string } },
   ) {
     return this.service.update(id, dto, req.user.tenantId);
+  }
+
+  @Patch(':id/languages')
+  @UseGuards(AuthGuard('jwt'), TenantGuard, RolesGuard)
+  @Roles(StaffRole.OWNER, StaffRole.MANAGER)
+  updateLanguages(
+    @Param('id') id: string,
+    @Body() dto: { defaultLanguage?: string; supportedLanguages?: string[] },
+    @Request() req: { user: { tenantId: string } },
+  ) {
+    return this.service.updateLanguages(id, dto, req.user.tenantId);
   }
 
   @Post(':id/parking-spots')
