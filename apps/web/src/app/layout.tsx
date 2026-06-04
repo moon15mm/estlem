@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Toaster } from 'react-hot-toast';
 import { GeofenceProvider } from '@/components/GeofenceProvider';
 import './globals.css';
+import 'moyasar-payment-form/dist/moyasar.css';
 
 function GeofenceProviderWrapper() {
   return <GeofenceProvider />;

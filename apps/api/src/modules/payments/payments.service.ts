@@ -229,6 +229,64 @@ export class PaymentsService {
     }
   }
 
+  /**
+   * Get the publishable key + order info needed to render the
+   * inline Moyasar payment form.
+   */
+  async getCheckoutInfo(orderId: string) {
+    const order = await this.orderRepo.findOne({ where: { id: orderId } });
+    if (!order) throw new NotFoundException('Order not found');
+
+    const store = await this.storeRepo.findOne({ where: { id: order.storeId } });
+    const settings = (store?.operatingHours ?? {}) as StoreSettings;
+    const publishableKey =
+      settings.paymentSettings?.moyasarPublishableKey ||
+      this.config.get<string>('MOYASAR_PUBLISHABLE_KEY') ||
+      '';
+
+    return {
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      amount: Math.round(Number(order.total) * 100), // halalas
+      currency: 'SAR',
+      description: `Order #${order.orderNumber}`,
+      publishableKey,
+      hasGateway: !!publishableKey,
+      paymentStatus: order.paymentStatus,
+    };
+  }
+
+  /**
+   * Handle Moyasar's redirect callback after payment.
+   * Moyasar appends ?id=...&status=paid|failed&token=orderId
+   */
+  async handleMoyasarCallback(orderId: string, paymentId: string, status: string) {
+    const order = await this.orderRepo.findOne({ where: { id: orderId } });
+    if (!order) return { success: false, reason: 'Order not found' };
+
+    const SUCCESS_STATUSES = ['paid', 'authorized', 'verified'];
+
+    if (SUCCESS_STATUSES.includes(status)) {
+      // Create payment record
+      const payment = this.paymentRepo.create({
+        orderId,
+        gatewayRef: paymentId,
+        amount: order.total,
+        currency: 'SAR',
+        method: order.paymentMethod,
+        status: PaymentStatus.PAID,
+        capturedAt: new Date(),
+        metadata: { mode: 'live', moyasarStatus: status },
+      });
+      await this.paymentRepo.save(payment);
+      await this.orderRepo.update(orderId, { paymentStatus: PaymentStatus.PAID });
+      await this.finalizeOrderAfterPayment(orderId);
+      return { success: true };
+    }
+
+    return { success: false, reason: `Payment status: ${status}` };
+  }
+
   async refund(paymentId: string) {
     const payment = await this.paymentRepo.findOne({ where: { id: paymentId } });
     if (!payment) throw new NotFoundException('Payment not found');

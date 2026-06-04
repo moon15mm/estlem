@@ -350,6 +350,9 @@ importers:
       lucide-react:
         specifier: ^0.378.0
         version: 0.378.0(react@18.3.1)
+      moyasar-payment-form:
+        specifier: ^2.0.18
+        version: 2.2.9
       next:
         specifier: 14.2.3
         version: 14.2.3(@babel/core@7.29.7)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -5109,6 +5112,9 @@ packages:
 
   module-alias@2.3.4:
     resolution: {integrity: sha512-bOclZt8hkpuGgSSoG07PKmvzTizROilUTvLNyrMqvlC9snhs7y7GzjNWAVbISIOlhCP1T14rH1PDAV9iNyBq/w==}
+
+  moyasar-payment-form@2.2.9:
+    resolution: {integrity: sha512-ww5AVk2jr9wMtSe57WYbZ8gbKl2d89XmvxOuySQGI7pcOjhP3js6NxUvu5tf7Mx6qZdLKuQJeTu6t59OeaBUhQ==}
 
   ms@2.0.0:
     resolution: {integrity: sha512-Tpp60P6IUJDTuOq/5Z8cdskzJujfwqfOTkrwIwj7IRISpnkJnT6SyJ4PCPnGMoFjC9ddhal5KVIYtAt97ix05A==}
@@ -13090,6 +13096,8 @@ snapshots:
   mkdirp@1.0.4: {}
 
   module-alias@2.3.4: {}
+
+  moyasar-payment-form@2.2.9: {}
 
   ms@2.0.0: {}
 
