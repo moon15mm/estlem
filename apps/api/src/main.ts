@@ -7,28 +7,18 @@ import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 
-async function ensureColumns(ds: DataSource) {
+async function cleanupOldColumns(ds: DataSource) {
   try {
     const qr = ds.createQueryRunner();
-    const cols = await qr.query(`SELECT column_name FROM information_schema.columns WHERE table_name = 'stores'`);
-    const colNames = cols.map((c: any) => c.column_name);
-    if (!colNames.includes('service_mode')) {
-      await qr.query(`ALTER TABLE stores ADD COLUMN service_mode varchar(20) DEFAULT 'drive_through'`);
-      console.log('[DB] Added stores.service_mode column');
-    }
-    // Drop old camelCase column if exists
-    if (colNames.includes('serviceMode')) {
-      await qr.query(`ALTER TABLE stores DROP COLUMN "serviceMode"`).catch(() => {});
-    }
-    const spotCols = await qr.query(`SELECT column_name FROM information_schema.columns WHERE table_name = 'parking_spots'`);
-    const spotColNames = spotCols.map((c: any) => c.column_name);
-    if (!spotColNames.includes('spot_type')) {
-      await qr.query(`ALTER TABLE parking_spots ADD COLUMN spot_type varchar(20) DEFAULT 'parking'`);
-      console.log('[DB] Added parking_spots.spot_type column');
-    }
+    // Drop any leftover columns from previous failed migrations
+    await qr.query(`ALTER TABLE stores DROP COLUMN IF EXISTS "serviceMode"`).catch(() => {});
+    await qr.query(`ALTER TABLE stores DROP COLUMN IF EXISTS service_mode`).catch(() => {});
+    await qr.query(`ALTER TABLE parking_spots DROP COLUMN IF EXISTS "type"`).catch(() => {});
+    await qr.query(`ALTER TABLE parking_spots DROP COLUMN IF EXISTS spot_type`).catch(() => {});
     await qr.release();
+    console.log('[DB] Cleaned up old columns');
   } catch (e) {
-    console.warn('[DB] Column migration skipped:', (e as Error).message);
+    console.warn('[DB] Cleanup skipped:', (e as Error).message);
   }
 }
 
@@ -73,9 +63,9 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalInterceptors(new TransformInterceptor());
 
-  // Auto-add missing DB columns on startup
+  // Clean up old broken columns
   const ds = app.get(DataSource);
-  await ensureColumns(ds);
+  await cleanupOldColumns(ds);
 
   const port = configService.get<number>('PORT', 3001);
   await app.listen(port);

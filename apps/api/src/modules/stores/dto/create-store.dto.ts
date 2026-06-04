@@ -1,5 +1,5 @@
 import { IsString, IsOptional, IsEnum, IsNumber, IsBoolean, IsObject } from 'class-validator';
-import { StoreCategory, ServiceMode } from '@estlem/shared';
+import { StoreCategory } from '@estlem/shared';
 
 export class CreateStoreDto {
   @IsString() name: string;
@@ -12,7 +12,6 @@ export class CreateStoreDto {
   @IsOptional() @IsString() logoUrl?: string;
   @IsOptional() @IsString() coverUrl?: string;
   @IsOptional() @IsObject() operatingHours?: Record<string, unknown>;
-  @IsOptional() @IsEnum(ServiceMode) serviceMode?: ServiceMode;
   @IsOptional() @IsString() phoneNumber?: string;
   @IsOptional() @IsBoolean() isActive?: boolean;
 }
