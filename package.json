@@ -28,7 +28,8 @@
     "checkpoint": "node scripts/checkpoint.js",
     "checkpoint:create": "node scripts/checkpoint.js create",
     "checkpoint:list": "node scripts/checkpoint.js list",
-    "checkpoint:restore": "node scripts/checkpoint.js restore"
+    "checkpoint:restore": "node scripts/checkpoint.js restore",
+    "vps:add": "node scripts/vps-add.js"
   },
   "devDependencies": {
     "typescript": "^5.4.0"
