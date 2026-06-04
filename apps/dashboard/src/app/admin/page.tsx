@@ -11,9 +11,11 @@ import {
   ChevronLeft,
   CreditCard,
   Clock3,
+  Eye,
   Mail,
   MoreHorizontal,
   PauseCircle,
+  Pencil,
   Phone,
   Plus,
   RefreshCw,
@@ -22,7 +24,9 @@ import {
   ShoppingBag,
   Sparkles,
   Store,
+  Timer,
   TrendingUp,
+  Trash2,
   User,
   X,
 } from 'lucide-react';
@@ -223,6 +227,19 @@ export default function SuperAdminDashboard() {
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | TenantStatus>('all');
   const [form, setForm] = useState(INITIAL_FORM);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [editing, setEditing] = useState<TenantItem | null>(null);
+  const [extending, setExtending] = useState<TenantItem | null>(null);
+  const [deleting, setDeleting] = useState<TenantItem | null>(null);
+  const [viewing, setViewing] = useState<TenantItem | null>(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    if (!openMenuId) return;
+    const handler = () => setOpenMenuId(null);
+    document.addEventListener('click', handler);
+    return () => document.removeEventListener('click', handler);
+  }, [openMenuId]);
 
   const loadData = async (quiet = false) => {
     if (quiet) setRefreshing(true);
@@ -382,6 +399,48 @@ export default function SuperAdminDashboard() {
       setStats((statsInfo as unknown as StatsData) ?? EMPTY_STATS);
     } catch {
       toast.error('تعذر تحديث بيانات المنشأة');
+    }
+  };
+
+  const handleEditTenant = async (patch: {
+    name?: string;
+    slug?: string;
+    billingEmail?: string;
+    plan?: TenantPlan;
+    status?: TenantStatus;
+  }) => {
+    if (!editing) return;
+    try {
+      await adminApi.patch(`/admin/tenants/${editing.id}`, patch);
+      toast.success('تم حفظ التغييرات');
+      setEditing(null);
+      await loadData(true);
+    } catch {
+      toast.error('فشل حفظ التغييرات');
+    }
+  };
+
+  const handleExtendTrial = async (days: number) => {
+    if (!extending) return;
+    try {
+      await adminApi.patch(`/admin/tenants/${extending.id}/extend-trial`, { days });
+      toast.success(`تم تمديد التجربة ${days} يوم`);
+      setExtending(null);
+      await loadData(true);
+    } catch {
+      toast.error('فشل تمديد التجربة');
+    }
+  };
+
+  const handleDeleteTenant = async () => {
+    if (!deleting) return;
+    try {
+      await adminApi.delete(`/admin/tenants/${deleting.id}`);
+      toast.success('تم حذف المنشأة');
+      setDeleting(null);
+      await loadData(true);
+    } catch {
+      toast.error('فشل الحذف — تأكد أن المنشأة لا تحوي بيانات مرتبطة');
     }
   };
 
@@ -803,9 +862,39 @@ export default function SuperAdminDashboard() {
                                     تعليق
                                   </Button>
                                 )}
-                                <Button size="icon" variant="ghost" aria-label="المزيد">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
+                                <div className="relative">
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    aria-label="المزيد"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setOpenMenuId(openMenuId === tenant.id ? null : tenant.id);
+                                    }}
+                                  >
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                  {openMenuId === tenant.id && (
+                                    <div
+                                      className="absolute left-0 top-full z-30 mt-1 w-56 overflow-hidden rounded-xl border bg-white py-1 shadow-xl"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <MenuItem icon={Pencil} onClick={() => { setEditing(tenant); setOpenMenuId(null); }}>
+                                        تعديل البيانات
+                                      </MenuItem>
+                                      <MenuItem icon={Timer} onClick={() => { setExtending(tenant); setOpenMenuId(null); }}>
+                                        تمديد التجربة
+                                      </MenuItem>
+                                      <MenuItem icon={Eye} onClick={() => { setViewing(tenant); setOpenMenuId(null); }}>
+                                        عرض التفاصيل
+                                      </MenuItem>
+                                      <div className="my-1 border-t" />
+                                      <MenuItem icon={Trash2} danger onClick={() => { setDeleting(tenant); setOpenMenuId(null); }}>
+                                        حذف المنشأة
+                                      </MenuItem>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </td>
                           </tr>
@@ -833,6 +922,72 @@ export default function SuperAdminDashboard() {
           </>
         )}
       </main>
+
+      {/* Edit Tenant Modal */}
+      {editing && (
+        <EditTenantModal tenant={editing} onClose={() => setEditing(null)} onSave={handleEditTenant} />
+      )}
+
+      {/* Extend Trial Modal */}
+      {extending && (
+        <SimpleModal onClose={() => setExtending(null)} title={`تمديد التجربة — ${extending.name}`}>
+          <p className="mb-4 text-sm text-muted-foreground">
+            اختر عدد الأيام للتمديد. يبدأ التمديد من تاريخ الانتهاء الحالي.
+          </p>
+          <div className="grid grid-cols-3 gap-2">
+            {[7, 14, 30].map((d) => (
+              <Button key={d} className="gap-2" onClick={() => handleExtendTrial(d)}>
+                <Timer className="h-4 w-4" />
+                + {d} يوم
+              </Button>
+            ))}
+          </div>
+        </SimpleModal>
+      )}
+
+      {/* Delete confirmation */}
+      {deleting && (
+        <SimpleModal onClose={() => setDeleting(null)} title="تأكيد الحذف">
+          <p className="text-sm">
+            هل أنت متأكد من حذف <b>{deleting.name}</b>؟
+          </p>
+          <p className="mt-2 text-xs text-red-600">
+            سيتم حذف كل البيانات المرتبطة (فروع، موظفين، طلبات). لا يمكن التراجع.
+          </p>
+          <div className="mt-5 flex gap-2">
+            <Button variant="outline" className="flex-1" onClick={() => setDeleting(null)}>إلغاء</Button>
+            <Button className="flex-1 bg-red-600 text-white hover:bg-red-700" onClick={handleDeleteTenant}>
+              <Trash2 className="ml-1 h-4 w-4" />
+              نعم، احذف
+            </Button>
+          </div>
+        </SimpleModal>
+      )}
+
+      {/* View details */}
+      {viewing && (
+        <SimpleModal onClose={() => setViewing(null)} title={viewing.name}>
+          <div className="space-y-2 text-sm">
+            <DetailRow label="Slug" value={viewing.slug} />
+            <DetailRow label="الباقة" value={PLAN_AR_LABELS[viewing.plan]} />
+            <DetailRow label="الحالة" value={STATUS_LABELS[viewing.status]} />
+            <DetailRow label="البريد" value={viewing.billingEmail || '—'} />
+            <DetailRow label="تاريخ التسجيل" value={formatDate(viewing.createdAt)} />
+            {viewing.stores && viewing.stores.length > 0 && (
+              <div className="mt-3">
+                <p className="mb-1 font-bold">الفروع ({viewing.stores.length}):</p>
+                <ul className="list-disc list-inside">{viewing.stores.map(s => <li key={s.id}>{s.nameAr || s.name}</li>)}</ul>
+              </div>
+            )}
+            {viewing.staff && viewing.staff.length > 0 && (
+              <div className="mt-3">
+                <p className="mb-1 font-bold">الموظفون ({viewing.staff.length}):</p>
+                <ul className="list-disc list-inside">{viewing.staff.map(s => <li key={s.id}>{s.name} — {s.role}{s.mobile ? ` · ${s.mobile}` : ''}</li>)}</ul>
+              </div>
+            )}
+          </div>
+        </SimpleModal>
+      )}
 
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm">
@@ -1187,5 +1342,144 @@ function Select({
         </option>
       ))}
     </select>
+  );
+}
+
+function MenuItem({
+  icon: Icon,
+  children,
+  onClick,
+  danger,
+}: {
+  icon: typeof Building2;
+  children: React.ReactNode;
+  onClick: () => void;
+  danger?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        'flex w-full items-center gap-3 px-4 py-2.5 text-right text-sm transition-colors hover:bg-muted',
+        danger && 'text-red-600 hover:bg-red-50',
+      )}
+    >
+      <Icon className="h-4 w-4" />
+      {children}
+    </button>
+  );
+}
+
+function SimpleModal({
+  onClose,
+  title,
+  children,
+}: {
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm"
+      onClick={onClose}
+      dir="rtl"
+    >
+      <Card className="max-h-[85vh] w-full max-w-lg overflow-hidden" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-start justify-between border-b p-5">
+          <h2 className="text-lg font-black">{title}</h2>
+          <button
+            onClick={onClose}
+            className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            aria-label="إغلاق"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <CardContent className="max-h-[65vh] overflow-y-auto p-5">{children}</CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-3 border-b py-2 last:border-b-0">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-medium">{value}</span>
+    </div>
+  );
+}
+
+function EditTenantModal({
+  tenant,
+  onClose,
+  onSave,
+}: {
+  tenant: TenantItem;
+  onClose: () => void;
+  onSave: (patch: {
+    name?: string;
+    slug?: string;
+    billingEmail?: string;
+    plan?: TenantPlan;
+    status?: TenantStatus;
+  }) => void;
+}) {
+  const [name, setName] = useState(tenant.name);
+  const [slug, setSlug] = useState(tenant.slug);
+  const [billingEmail, setBillingEmail] = useState(tenant.billingEmail || '');
+  const [plan, setPlan] = useState<TenantPlan>(tenant.plan);
+  const [status, setStatus] = useState<TenantStatus>(tenant.status);
+
+  return (
+    <SimpleModal onClose={onClose} title={`تعديل — ${tenant.name}`}>
+      <div className="grid gap-4">
+        <Field label="اسم المنشأة" icon={Building2}>
+          <Input value={name} onChange={(e) => setName(e.target.value)} />
+        </Field>
+        <Field label="الرابط المختصر">
+          <Input
+            value={slug}
+            onChange={(e) =>
+              setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/--+/g, '-'))
+            }
+            dir="ltr"
+          />
+        </Field>
+        <Field label="بريد الفواتير" icon={Mail}>
+          <Input type="email" value={billingEmail} onChange={(e) => setBillingEmail(e.target.value.trim())} dir="ltr" />
+        </Field>
+        <div className="grid gap-4 md:grid-cols-2">
+          <Field label="الباقة">
+            <Select
+              value={plan}
+              onChange={(v) => setPlan(v as TenantPlan)}
+              options={Object.values(TenantPlan).map((p) => ({
+                value: p,
+                label: PLAN_AR_LABELS[p],
+              }))}
+            />
+          </Field>
+          <Field label="الحالة">
+            <Select
+              value={status}
+              onChange={(v) => setStatus(v as TenantStatus)}
+              options={Object.values(TenantStatus).map((s) => ({
+                value: s,
+                label: STATUS_LABELS[s],
+              }))}
+            />
+          </Field>
+        </div>
+      </div>
+      <div className="mt-5 flex gap-2">
+        <Button variant="outline" className="flex-1" onClick={onClose}>إلغاء</Button>
+        <Button className="flex-1" onClick={() => onSave({ name, slug, billingEmail, plan, status })}>
+          <CheckCircle2 className="ml-1 h-4 w-4" />
+          حفظ التغييرات
+        </Button>
+      </div>
+    </SimpleModal>
   );
 }

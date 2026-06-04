@@ -1,8 +1,8 @@
 import { Controller, Get, Patch, Delete, Param, Query, Body, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Tenant } from '../../database/entities/tenant.entity';
 import { Subscription } from '../../database/entities/subscription.entity';
 import { TenantStatus, TenantPlan, SystemRole } from '@estlem/shared';
@@ -20,6 +20,8 @@ export class AdminController {
     private tenantRepo: Repository<Tenant>,
     @InjectRepository(Subscription)
     private subRepo: Repository<Subscription>,
+    @InjectDataSource()
+    private dataSource: DataSource,
   ) {}
 
   @Get('tenants')
@@ -108,7 +110,67 @@ export class AdminController {
   @Delete('tenants/:id')
   @ApiOperation({ summary: 'Delete tenant (admin) — cascades to stores/staff/orders' })
   async deleteTenant(@Param('id') id: string) {
-    await this.tenantRepo.delete(id);
+    // Manual cascade: not every related table has FK ON DELETE CASCADE.
+    // Some tables use camelCase ("tenantId"), others snake_case (tenant_id) — detect per table.
+    await this.dataSource.transaction(async (m) => {
+      const r = (sql: string, params: unknown[] = []) => m.query(sql, params);
+
+      // Look up the actual tenant column name for each table (camelCase vs snake_case).
+      const cols: Array<{ table_name: string; column_name: string }> = await r(
+        `SELECT table_name, column_name
+           FROM information_schema.columns
+          WHERE table_schema = 'public'
+            AND column_name IN ('tenantId', 'tenant_id')`,
+      );
+      const tenantCol = new Map<string, string>();
+      for (const c of cols) tenantCol.set(c.table_name, c.column_name);
+
+      const tenantTable = (name: string): string | null => tenantCol.get(name) ?? null;
+
+      // Children-of-children first: order_items (FK to orders), parking_spots (FK to stores)
+      const storeIds: string[] = (
+        await r(`SELECT id FROM stores WHERE "tenantId" = $1`, [id])
+      ).map((s: { id: string }) => s.id);
+
+      const orderIds: string[] = (
+        await r(`SELECT id FROM orders WHERE "tenantId" = $1`, [id])
+      ).map((o: { id: string }) => o.id);
+
+      if (orderIds.length) {
+        await r(`DELETE FROM order_items WHERE "orderId" = ANY($1::uuid[])`, [orderIds]);
+      }
+
+      // orders MUST be deleted before parking_spots (orders.parkingSpotId → parking_spots.id)
+      const col = tenantTable('orders');
+      if (col) await r(`DELETE FROM orders WHERE "${col}" = $1`, [id]);
+
+      if (storeIds.length) {
+        await r(`DELETE FROM parking_spots WHERE "storeId" = ANY($1::uuid[])`, [storeIds]);
+      }
+
+      // Remaining tenant-scoped tables, in dependency order
+      const tables = [
+        'invoices',
+        'commission_transactions',
+        'commission_rules',
+        'loyalty_transactions',
+        'loyalty_accounts',
+        'blocked_customers',
+        'pos_integrations',
+        'products',
+        'product_categories',
+        'subscriptions',
+        'staff',
+        'stores',
+      ];
+      for (const t of tables) {
+        const c = tenantTable(t);
+        if (!c) continue; // table doesn't exist on this DB
+        await r(`DELETE FROM "${t}" WHERE "${c}" = $1`, [id]);
+      }
+
+      await r(`DELETE FROM tenants WHERE id = $1`, [id]);
+    });
     return { ok: true };
   }
 

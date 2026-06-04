@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
 
@@ -44,10 +45,8 @@ export default function AdminTenantsPage() {
   const [deleting, setDeleting] = useState<Tenant | null>(null);
   const [extending, setExtending] = useState<Tenant | null>(null);
 
-  const getToken = () => {
-    try { return JSON.parse(localStorage.getItem('admin-auth') || '{}').state?.token; } catch { return null; }
-  };
-  const headers = () => ({ Authorization: `Bearer ${getToken()}`, 'Content-Type': 'application/json' });
+  const token = useAdminAuth((s) => s.token);
+  const headers = () => ({ Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' });
 
   const loadTenants = async () => {
     setLoading(true);
@@ -64,7 +63,7 @@ export default function AdminTenantsPage() {
     setLoading(false);
   };
 
-  useEffect(() => { loadTenants(); }, [page, filterStatus]);
+  useEffect(() => { if (token) loadTenants(); }, [page, filterStatus, token]);
 
   // close menu on outside click
   useEffect(() => {
