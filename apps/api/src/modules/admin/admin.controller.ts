@@ -111,34 +111,45 @@ export class AdminController {
   @ApiOperation({ summary: 'Delete tenant (admin) — cascades to stores/staff/orders' })
   async deleteTenant(@Param('id') id: string) {
     // Manual cascade: not every related table has FK ON DELETE CASCADE.
-    // Run everything in a transaction so a failure leaves nothing partially deleted.
+    // Some tables use camelCase ("tenantId"), others snake_case (tenant_id) — detect per table.
     await this.dataSource.transaction(async (m) => {
       const r = (sql: string, params: unknown[] = []) => m.query(sql, params);
 
-      // Find this tenant's stores first (for store-scoped tables that don't carry tenantId).
-      const storeRows: Array<{ id: string }> = await r(
-        `SELECT id FROM stores WHERE "tenantId" = $1`,
-        [id],
+      // Look up the actual tenant column name for each table (camelCase vs snake_case).
+      const cols: Array<{ table_name: string; column_name: string }> = await r(
+        `SELECT table_name, column_name
+           FROM information_schema.columns
+          WHERE table_schema = 'public'
+            AND column_name IN ('tenantId', 'tenant_id')`,
       );
-      const storeIds = storeRows.map((s) => s.id);
+      const tenantCol = new Map<string, string>();
+      for (const c of cols) tenantCol.set(c.table_name, c.column_name);
 
-      // Find this tenant's orders (for order_items)
-      const orderRows: Array<{ id: string }> = await r(
-        `SELECT id FROM orders WHERE "tenantId" = $1`,
-        [id],
-      );
-      const orderIds = orderRows.map((o) => o.id);
+      const tenantTable = (name: string): string | null => tenantCol.get(name) ?? null;
 
-      // Children first
+      // Children-of-children first: order_items (FK to orders), parking_spots (FK to stores)
+      const storeIds: string[] = (
+        await r(`SELECT id FROM stores WHERE "tenantId" = $1`, [id])
+      ).map((s: { id: string }) => s.id);
+
+      const orderIds: string[] = (
+        await r(`SELECT id FROM orders WHERE "tenantId" = $1`, [id])
+      ).map((o: { id: string }) => o.id);
+
       if (orderIds.length) {
         await r(`DELETE FROM order_items WHERE "orderId" = ANY($1::uuid[])`, [orderIds]);
       }
+
+      // orders MUST be deleted before parking_spots (orders.parkingSpotId → parking_spots.id)
+      const col = tenantTable('orders');
+      if (col) await r(`DELETE FROM orders WHERE "${col}" = $1`, [id]);
+
       if (storeIds.length) {
         await r(`DELETE FROM parking_spots WHERE "storeId" = ANY($1::uuid[])`, [storeIds]);
       }
 
-      // Tenant-scoped tables (no FK / no cascade)
-      const tenantScoped = [
+      // Remaining tenant-scoped tables, in dependency order
+      const tables = [
         'invoices',
         'commission_transactions',
         'commission_rules',
@@ -148,16 +159,16 @@ export class AdminController {
         'pos_integrations',
         'products',
         'product_categories',
-        'orders',
         'subscriptions',
         'staff',
         'stores',
       ];
-      for (const t of tenantScoped) {
-        await r(`DELETE FROM "${t}" WHERE "tenantId" = $1`, [id]);
+      for (const t of tables) {
+        const c = tenantTable(t);
+        if (!c) continue; // table doesn't exist on this DB
+        await r(`DELETE FROM "${t}" WHERE "${c}" = $1`, [id]);
       }
 
-      // Finally the tenant itself
       await r(`DELETE FROM tenants WHERE id = $1`, [id]);
     });
     return { ok: true };
