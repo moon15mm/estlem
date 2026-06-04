@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#1B4F72',
+  themeColor: '#14B8A6',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -26,7 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ar" dir="rtl">
       <head>
-        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        {/* Next.js auto-generates favicon from app/icon.svg and app/apple-icon.svg */}
       </head>
       <body className="bg-background antialiased">
         {children}
