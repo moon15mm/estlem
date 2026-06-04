@@ -6,6 +6,10 @@ import { SmsProvider } from './providers/sms.provider';
 import { WhatsappProvider } from './providers/whatsapp.provider';
 
 const TEMPLATES: Record<OrderStatus, { ar: string; en: string }> = {
+  [OrderStatus.PENDING_PAYMENT]: {
+    ar: 'تم استلام طلبك {{orderNumber}}. الرجاء إتمام الدفع لإرساله للمحل.',
+    en: 'Order {{orderNumber}} received. Please complete payment to send it to the store.',
+  },
   [OrderStatus.PENDING_QUOTE]: {
     ar: 'تم استلام طلبك {{orderNumber}}. سيقوم المحل بتسعير العناصر وإرسالها لك للمراجعة.',
     en: 'Order {{orderNumber}} received. Store is pricing the items and will send for your approval.',

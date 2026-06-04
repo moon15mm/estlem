@@ -4,6 +4,7 @@ exports.WsEvent = exports.BillingCycle = exports.SubscriptionStatus = exports.Lo
 var OrderStatus;
 (function (OrderStatus) {
     OrderStatus["NEW"] = "new";
+    OrderStatus["PENDING_PAYMENT"] = "pending_payment";
     OrderStatus["PENDING_QUOTE"] = "pending_quote";
     OrderStatus["PENDING_APPROVAL"] = "pending_approval";
     OrderStatus["ACCEPTED"] = "accepted";

@@ -20,6 +20,7 @@ const STEPS = [
 ];
 
 const STATUS_COLORS: Record<OrderStatus, string> = {
+  [OrderStatus.PENDING_PAYMENT]: 'bg-amber-100 text-amber-800',
   [OrderStatus.PENDING_QUOTE]: 'bg-amber-100 text-amber-800',
   [OrderStatus.PENDING_APPROVAL]: 'bg-blue-100 text-blue-800',
   [OrderStatus.NEW]: 'bg-blue-100 text-blue-800',
@@ -123,6 +124,49 @@ export default function OrderTrackerPage({ params }: Props) {
         <h1 className="text-2xl font-black">{order.orderNumber}</h1>
         <p className="text-blue-200 text-xs mt-1">{formatDate(order.createdAt)}</p>
       </div>
+
+      {/* PENDING_PAYMENT — customer must pay first */}
+      {order.status === OrderStatus.PENDING_PAYMENT && (
+        <div className="px-4 py-6">
+          <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-5 text-center animate-slide-up-bounce">
+            <div className="w-14 h-14 bg-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-3">
+              <span className="text-2xl">💳</span>
+            </div>
+            <h2 className="text-base font-black text-amber-900 mb-1">بانتظار إتمام الدفع</h2>
+            <p className="text-xs text-amber-700 leading-relaxed mb-4">
+              لم يتم إرسال طلبك للمحل بعد. الرجاء إتمام الدفع لتأكيد الطلب وبدء التحضير.
+            </p>
+            <button
+              onClick={async () => {
+                try {
+                  const returnUrl = `${window.location.origin}/order/${params.id}`;
+                  const session = await api.post('/payments/initiate', {
+                    orderId: params.id,
+                    method: order.paymentMethod,
+                    returnUrl,
+                  }) as { paymentUrl?: string; testMode?: boolean; sessionId?: string };
+
+                  if (session?.testMode && session.sessionId) {
+                    await api.post(`/payments/test-confirm/${session.sessionId}`, {}).catch(() => {});
+                    const refreshed = await api.get(`/orders/${params.id}`) as Order;
+                    setOrder(refreshed);
+                    toast.success('تم تأكيد الدفع — طلبك في طريقه للمحل', { icon: '✓' });
+                  } else if (session?.paymentUrl) {
+                    window.location.href = session.paymentUrl;
+                  } else {
+                    toast.error('فشل بدء الدفع');
+                  }
+                } catch (err: any) {
+                  toast.error('فشل بدء الدفع');
+                }
+              }}
+              className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-xl font-bold text-sm w-full"
+            >
+              💳 ادفع الآن
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* PENDING_QUOTE — store needs to set prices */}
       {order.status === OrderStatus.PENDING_QUOTE && (

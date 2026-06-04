@@ -111,58 +111,8 @@ export function CartDrawer({ open, onClose, storeId, tenantId, allowedPayments }
       };
       const order = await api.post('/orders', payload) as { id: string; status: string };
       clearCart();
-
-      // If order needs quote first, go straight to tracker
-      if (order.status === 'pending_quote') {
-        router.push(`/order/${order.id}`);
-        return;
-      }
-
-      // Electronic payment → initiate Moyasar/test session
-      if (form.paymentMethod !== PaymentMethod.CASH) {
-        try {
-          const returnUrl = `${window.location.origin}/order/${order.id}`;
-          const session = await api.post('/payments/initiate', {
-            orderId: order.id,
-            method: form.paymentMethod,
-            returnUrl,
-          }) as { paymentUrl: string; testMode?: boolean; sessionId?: string };
-
-          if (session?.paymentUrl) {
-            if (session.testMode && session.sessionId) {
-              await api.post(`/payments/test-confirm/${session.sessionId}`, {}).catch(() => {});
-              router.push(`/order/${order.id}?payment=test_success`);
-              return;
-            }
-            window.location.href = session.paymentUrl;
-            return;
-          }
-        } catch (err: any) {
-          const status = err?.response?.status;
-          const rawMsg = err?.response?.data?.message;
-          const msg =
-            typeof rawMsg === 'string' ? rawMsg :
-            Array.isArray(rawMsg) ? rawMsg.join(', ') :
-            rawMsg ? JSON.stringify(rawMsg) : null;
-          console.error('[Payment Initiate Error]', { status, msg, err });
-
-          if (status === 401) {
-            toast.error('انتهت جلستك — سجّل دخول مرة أخرى');
-          } else if (status === 404) {
-            // Fallback: API doesn't have payment endpoint — go directly to tracker
-            router.push(`/order/${order.id}`);
-            return;
-          } else if (msg) {
-            toast.error(`فشل الدفع: ${msg}`);
-            // Still navigate to tracker so customer sees the order
-            router.push(`/order/${order.id}`);
-            return;
-          } else {
-            toast.error('فشل بدء الدفع، تم حفظ طلبك');
-          }
-        }
-      }
-
+      // Always navigate to order tracker — payment is handled there
+      // (PENDING_PAYMENT shows pay button, NEW shows tracking, etc.)
       router.push(`/order/${order.id}`);
     } catch {
       toast.error('فشل إرسال الطلب، حاول مجدداً');

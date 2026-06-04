@@ -126,9 +126,20 @@ export class OrdersService {
       const tax = parseFloat((subtotal * TAX_RATE).toFixed(2));
       const total = parseFloat((subtotal + tax).toFixed(2));
 
-      // If any item has price=0 (free-text without match), needs quote first
+      // Determine initial status:
+      // 1. Free-text items without price → quote first
+      // 2. Electronic payment → wait for payment confirmation
+      // 3. Cash → straight to NEW (notify store immediately)
       const hasUnpricedItems = items.some((i) => !i.priceSnapshot || i.priceSnapshot === 0);
-      const initialStatus = hasUnpricedItems ? OrderStatus.PENDING_QUOTE : OrderStatus.NEW;
+      const isElectronic = dto.paymentMethod !== 'cash';
+      let initialStatus: OrderStatus;
+      if (hasUnpricedItems) {
+        initialStatus = OrderStatus.PENDING_QUOTE;
+      } else if (isElectronic) {
+        initialStatus = OrderStatus.PENDING_PAYMENT;
+      } else {
+        initialStatus = OrderStatus.NEW;
+      }
 
       const order = manager.create(Order, {
         tenantId,
@@ -159,10 +170,14 @@ export class OrdersService {
         relations: ['items', 'customer', 'vehicle', 'parkingSpot'],
       });
 
-      // Emit to staff room
-      this.gateway.emitToStore(storeId, WsEvent.ORDER_CREATED, fullOrder);
+      // Only notify the store if order is ready to be processed.
+      // PENDING_PAYMENT and PENDING_QUOTE wait — the store is notified
+      // after payment confirmation or quote approval.
+      if (initialStatus === OrderStatus.NEW) {
+        this.gateway.emitToStore(storeId, WsEvent.ORDER_CREATED, fullOrder);
+      }
 
-      // Notify customer
+      // Notify customer about their order status
       await this.notifications.sendOrderStatus(fullOrder!, customer);
 
       return fullOrder!;
@@ -245,6 +260,7 @@ export class OrdersService {
 
   private validateStatusTransition(current: OrderStatus, next: OrderStatus) {
     const allowed: Record<OrderStatus, OrderStatus[]> = {
+      [OrderStatus.PENDING_PAYMENT]: [OrderStatus.NEW, OrderStatus.CANCELLED],
       [OrderStatus.PENDING_QUOTE]: [OrderStatus.PENDING_APPROVAL, OrderStatus.CANCELLED],
       [OrderStatus.PENDING_APPROVAL]: [OrderStatus.NEW, OrderStatus.CANCELLED, OrderStatus.PENDING_QUOTE],
       [OrderStatus.NEW]: [OrderStatus.ACCEPTED, OrderStatus.CANCELLED],
