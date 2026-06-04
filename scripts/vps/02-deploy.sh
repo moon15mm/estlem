@@ -55,6 +55,12 @@ WEB_DOMAIN="$DOMAIN"
 DASH_DOMAIN="${3:-dashboard.$DOMAIN}"
 API_DOMAIN="${4:-api.$DOMAIN}"
 
+# If web domain is a root (e.g. estlem.store), also serve www
+WEB_SERVER_NAMES="$WEB_DOMAIN"
+if [[ "$WEB_DOMAIN" =~ ^[^.]+\.[^.]+$ ]]; then
+  WEB_SERVER_NAMES="$WEB_DOMAIN www.$WEB_DOMAIN"
+fi
+
 log "Domains:"
 ok "  web:       $WEB_DOMAIN"
 ok "  dashboard: $DASH_DOMAIN"
@@ -173,7 +179,7 @@ cat > /etc/nginx/sites-available/estlem <<EOF
 # Web — main customer site
 server {
   listen 80;
-  server_name ${WEB_DOMAIN};
+  server_name ${WEB_SERVER_NAMES};
   location / {
     proxy_pass http://127.0.0.1:3000;
     proxy_http_version 1.1;
