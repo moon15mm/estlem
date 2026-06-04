@@ -40,3 +40,10 @@ export function onNewOrder(cb: (data: unknown) => void): VoidFunction {
     getSocket().off(WsEvent.ORDER_CREATED, cb);
   };
 }
+
+export function onQuoteReady(cb: (data: any) => void): VoidFunction {
+  getSocket().on(WsEvent.ORDER_QUOTE_READY, cb);
+  return function cleanupQuoteReady(): void {
+    getSocket().off(WsEvent.ORDER_QUOTE_READY, cb);
+  };
+}

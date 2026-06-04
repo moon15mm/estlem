@@ -19,6 +19,8 @@ type Filter = 'active' | 'all' | OrderStatus;
 const FILTERS: { label: string; value: Filter }[] = [
   { label: 'النشطة', value: 'active' },
   { label: 'الكل', value: 'all' },
+  { label: 'يحتاج تسعير', value: OrderStatus.PENDING_QUOTE },
+  { label: 'ينتظر العميل', value: OrderStatus.PENDING_APPROVAL },
   { label: 'جديد', value: OrderStatus.NEW },
   { label: 'مقبول', value: OrderStatus.ACCEPTED },
   { label: 'تحضير', value: OrderStatus.PREPARING },
@@ -204,8 +206,9 @@ export default function OrdersPage() {
             {orders.map((order) => (
               <OrderCard
                 key={order.id}
-                order={order}
+                order={order as any}
                 onUpdateStatus={updateStatus}
+                onQuoteSubmitted={load}
               />
             ))}
           </div>

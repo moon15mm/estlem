@@ -116,6 +116,10 @@ export class OrdersService {
       const tax = parseFloat((subtotal * TAX_RATE).toFixed(2));
       const total = parseFloat((subtotal + tax).toFixed(2));
 
+      // If any item has price=0 (free-text without match), needs quote first
+      const hasUnpricedItems = items.some((i) => !i.priceSnapshot || i.priceSnapshot === 0);
+      const initialStatus = hasUnpricedItems ? OrderStatus.PENDING_QUOTE : OrderStatus.NEW;
+
       const order = manager.create(Order, {
         tenantId,
         storeId,
@@ -124,7 +128,7 @@ export class OrdersService {
         parkingSpotId: spot?.id ?? null,
         orderNumber: this.generateOrderNumber(),
         type: dto.type,
-        status: OrderStatus.NEW,
+        status: initialStatus,
         paymentMethod: dto.paymentMethod,
         notes: dto.notes,
         rawRequest: dto.rawRequest,
@@ -231,6 +235,8 @@ export class OrdersService {
 
   private validateStatusTransition(current: OrderStatus, next: OrderStatus) {
     const allowed: Record<OrderStatus, OrderStatus[]> = {
+      [OrderStatus.PENDING_QUOTE]: [OrderStatus.PENDING_APPROVAL, OrderStatus.CANCELLED],
+      [OrderStatus.PENDING_APPROVAL]: [OrderStatus.NEW, OrderStatus.CANCELLED, OrderStatus.PENDING_QUOTE],
       [OrderStatus.NEW]: [OrderStatus.ACCEPTED, OrderStatus.CANCELLED],
       [OrderStatus.ACCEPTED]: [OrderStatus.PREPARING, OrderStatus.CANCELLED],
       [OrderStatus.PREPARING]: [OrderStatus.READY],
@@ -241,6 +247,101 @@ export class OrdersService {
     if (!allowed[current].includes(next)) {
       throw new BadRequestException(`Cannot transition from ${current} to ${next}`);
     }
+  }
+
+  /**
+   * Store sends quote (prices for free-text items) to customer
+   */
+  async submitQuote(orderId: string, tenantId: string, itemPrices: Array<{ itemId: string; price: number }>) {
+    const order = await this.orderRepo.findOne({
+      where: { id: orderId, tenantId },
+      relations: ['items', 'customer'],
+    });
+    if (!order) throw new NotFoundException('Order not found');
+    if (order.status !== OrderStatus.PENDING_QUOTE && order.status !== OrderStatus.PENDING_APPROVAL) {
+      throw new BadRequestException('Order is not pending a quote');
+    }
+
+    // Update item prices
+    for (const update of itemPrices) {
+      const item = order.items.find((i) => i.id === update.itemId);
+      if (item) {
+        item.priceSnapshot = update.price;
+        await this.dataSource.getRepository(OrderItem).save(item);
+      }
+    }
+
+    // Recalculate totals
+    const updatedItems = await this.dataSource.getRepository(OrderItem).find({ where: { orderId } });
+    const subtotal = updatedItems.reduce((s, i) => s + Number(i.priceSnapshot) * i.quantity, 0);
+    const tax = parseFloat((subtotal * TAX_RATE).toFixed(2));
+    const total = parseFloat((subtotal + tax).toFixed(2));
+
+    order.subtotal = subtotal;
+    order.tax = tax;
+    order.total = total;
+    order.status = OrderStatus.PENDING_APPROVAL;
+    await this.orderRepo.save(order);
+
+    const fullOrder = await this.orderRepo.findOne({
+      where: { id: orderId },
+      relations: ['items', 'customer', 'vehicle', 'parkingSpot'],
+    });
+
+    // Notify customer
+    this.gateway.emitToCustomer(order.customerId, WsEvent.ORDER_QUOTE_READY, fullOrder);
+    await this.notifications.sendOrderStatus(fullOrder!, order.customer);
+
+    return fullOrder;
+  }
+
+  /**
+   * Customer approves the quote (and optionally changes payment method)
+   */
+  async approveQuote(orderId: string, paymentMethod?: string) {
+    const order = await this.orderRepo.findOne({
+      where: { id: orderId },
+      relations: ['items', 'customer'],
+    });
+    if (!order) throw new NotFoundException('Order not found');
+    if (order.status !== OrderStatus.PENDING_APPROVAL) {
+      throw new BadRequestException('Order is not awaiting approval');
+    }
+
+    if (paymentMethod) {
+      order.paymentMethod = paymentMethod as any;
+    }
+    order.status = OrderStatus.NEW;
+    await this.orderRepo.save(order);
+
+    const fullOrder = await this.orderRepo.findOne({
+      where: { id: orderId },
+      relations: ['items', 'customer', 'vehicle', 'parkingSpot'],
+    });
+
+    // Notify store of approved order
+    this.gateway.emitToStore(order.storeId, WsEvent.ORDER_QUOTE_APPROVED, fullOrder);
+    this.gateway.emitToStore(order.storeId, WsEvent.ORDER_CREATED, fullOrder);
+
+    return fullOrder;
+  }
+
+  /**
+   * Customer rejects the quote (order is cancelled)
+   */
+  async rejectQuote(orderId: string, reason?: string) {
+    const order = await this.orderRepo.findOne({
+      where: { id: orderId },
+      relations: ['customer'],
+    });
+    if (!order) throw new NotFoundException('Order not found');
+
+    order.status = OrderStatus.CANCELLED;
+    if (reason) order.notes = (order.notes ? order.notes + '\n' : '') + `سبب الإلغاء: ${reason}`;
+    await this.orderRepo.save(order);
+
+    this.gateway.emitToStore(order.storeId, WsEvent.ORDER_QUOTE_REJECTED, { orderId, reason });
+    return order;
   }
 
   async verifyStoreOwnership(storeId: string, tenantId: string): Promise<boolean> {

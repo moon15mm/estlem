@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
-import { onOrderStatusUpdate, joinCustomerRoom } from '@/lib/socket';
+import { onOrderStatusUpdate, joinCustomerRoom, onQuoteReady } from '@/lib/socket';
+import toast from 'react-hot-toast';
 import { formatPrice, formatDate } from '@/lib/utils';
 import { OrderStatus } from '@estlem/shared';
 import type { Order } from '@estlem/shared';
+import { QuoteApprovalCard } from '@/components/QuoteApprovalCard';
 
 interface Props { params: { id: string } }
 
@@ -18,6 +20,8 @@ const STEPS = [
 ];
 
 const STATUS_COLORS: Record<OrderStatus, string> = {
+  [OrderStatus.PENDING_QUOTE]: 'bg-amber-100 text-amber-800',
+  [OrderStatus.PENDING_APPROVAL]: 'bg-blue-100 text-blue-800',
   [OrderStatus.NEW]: 'bg-blue-100 text-blue-800',
   [OrderStatus.ACCEPTED]: 'bg-indigo-100 text-indigo-800',
   [OrderStatus.PREPARING]: 'bg-amber-100 text-amber-800',
@@ -52,6 +56,26 @@ export default function OrderTrackerPage({ params }: Props) {
           status: update.status as OrderStatus,
           estimatedMins: update.estimatedMins ?? prev.estimatedMins,
         } : prev);
+      }
+    });
+    return cleanup;
+  }, [params.id]);
+
+  // Listen for quote ready event (store sent prices)
+  useEffect(() => {
+    const cleanup = onQuoteReady((data: any) => {
+      if (data?.id === params.id) {
+        setOrder(data as Order);
+        toast.success('وصل السعر النهائي — راجع وأكد الطلب', { duration: 6000, icon: '💰' });
+        try {
+          // Optional: play a sound
+          const ctx = new AudioContext();
+          const osc = ctx.createOscillator();
+          osc.connect(ctx.destination);
+          osc.frequency.value = 880;
+          osc.start();
+          osc.stop(ctx.currentTime + 0.3);
+        } catch { /* ignore */ }
       }
     });
     return cleanup;
@@ -100,11 +124,35 @@ export default function OrderTrackerPage({ params }: Props) {
         <p className="text-blue-200 text-xs mt-1">{formatDate(order.createdAt)}</p>
       </div>
 
+      {/* PENDING_QUOTE — store needs to set prices */}
+      {order.status === OrderStatus.PENDING_QUOTE && (
+        <div className="px-4 py-6">
+          <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-5 text-center animate-slide-up-bounce">
+            <div className="w-14 h-14 bg-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-3 animate-float">
+              <span className="text-2xl">⏳</span>
+            </div>
+            <h2 className="text-base font-black text-amber-900 mb-1">المحل يحضّر السعر لك</h2>
+            <p className="text-xs text-amber-700 leading-relaxed">
+              قائمتك تحتوي على عناصر تحتاج تسعير. سيقوم المحل بإدخال الأسعار وإرسالها لك خلال دقائق للموافقة.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* PENDING_APPROVAL — customer must approve */}
+      {order.status === OrderStatus.PENDING_APPROVAL && (
+        <QuoteApprovalCard
+          order={order}
+          onApproved={() => api.get(`/orders/${params.id}`).then((d) => setOrder(d as unknown as Order))}
+          onRejected={() => api.get(`/orders/${params.id}`).then((d) => setOrder(d as unknown as Order))}
+        />
+      )}
+
       <div className="p-4 space-y-4">
         {/* Status badge */}
         <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm ${STATUS_COLORS[order.status]}`}>
           {STEPS.find((s) => s.status === order.status)?.icon}
-          {STEPS.find((s) => s.status === order.status)?.label}
+          {STEPS.find((s) => s.status === order.status)?.label ?? order.status}
         </div>
 
         {/* ETA */}

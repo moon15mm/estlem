@@ -6,6 +6,14 @@ import { SmsProvider } from './providers/sms.provider';
 import { WhatsappProvider } from './providers/whatsapp.provider';
 
 const TEMPLATES: Record<OrderStatus, { ar: string; en: string }> = {
+  [OrderStatus.PENDING_QUOTE]: {
+    ar: 'تم استلام طلبك {{orderNumber}}. سيقوم المحل بتسعير العناصر وإرسالها لك للمراجعة.',
+    en: 'Order {{orderNumber}} received. Store is pricing the items and will send for your approval.',
+  },
+  [OrderStatus.PENDING_APPROVAL]: {
+    ar: 'تم تسعير طلبك {{orderNumber}}. الرجاء مراجعة السعر والموافقة عليه عبر الرابط.',
+    en: 'Your order {{orderNumber}} has been priced. Please review and approve.',
+  },
   [OrderStatus.NEW]: {
     ar: 'تم استلام طلبك رقم {{orderNumber}} بنجاح. سنبدأ التحضير قريباً.',
     en: 'Order {{orderNumber}} received. We will start preparing it shortly.',
