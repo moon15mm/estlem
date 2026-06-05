@@ -58,8 +58,9 @@ export function QuoteModal({ order, onClose, onSubmitted }: Props) {
       const p = parseFloat(prices[i.id] || '0');
       return s + p * i.quantity;
     }, 0);
-  const tax = newSubtotal * 0.15;
-  const total = newSubtotal + tax;
+  // VAT disabled — merchants enter final prices (VAT-inclusive)
+  const tax = 0;
+  const total = newSubtotal;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-4" dir="rtl">
@@ -139,10 +140,7 @@ export function QuoteModal({ order, onClose, onSubmitted }: Props) {
               <span>المجموع</span>
               <span>{formatPrice(newSubtotal)}</span>
             </div>
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>ضريبة 15%</span>
-              <span>{formatPrice(tax)}</span>
-            </div>
+            {/* VAT disabled — prices are entered VAT-inclusive */}
             <div className="flex justify-between font-black text-base pt-1.5 border-t">
               <span>الإجمالي للعميل</span>
               <span className="text-primary">{formatPrice(total)}</span>

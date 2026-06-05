@@ -84,10 +84,7 @@ export function QuoteApprovalCard({ order, onApproved, onRejected, allowedPaymen
             <span>المجموع</span>
             <span>{formatPrice(Number(order.subtotal))}</span>
           </div>
-          <div className="flex justify-between text-sm text-gray-500">
-            <span>الضريبة 15%</span>
-            <span>{formatPrice(Number(order.tax))}</span>
-          </div>
+          {/* VAT disabled — prices are entered VAT-inclusive */}
           <div className="flex justify-between font-black text-lg pt-2 border-t border-gray-100">
             <span className="text-gray-900">الإجمالي</span>
             <span className="text-blue-700">{formatPrice(Number(order.total))}</span>

@@ -263,9 +263,7 @@ export default function OrderTrackerPage({ params }: Props) {
             <div className="flex justify-between text-gray-500">
               <span>{t('orderDetail.subtotal')}</span><span>{formatPrice(order.subtotal)}</span>
             </div>
-            <div className="flex justify-between text-gray-500">
-              <span>{t('orderDetail.vat')}</span><span>{formatPrice(order.tax)}</span>
-            </div>
+            {/* VAT disabled — prices are entered VAT-inclusive */}
             <div className="flex justify-between font-black text-base pt-1">
               <span>{t('orderDetail.total')}</span>
               <span className="text-blue-900">{formatPrice(order.total)}</span>

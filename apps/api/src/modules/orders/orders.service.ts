@@ -18,7 +18,8 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { AiCartService } from './ai-cart.service';
 
-const TAX_RATE = 0.15; // 15% VAT
+// VAT disabled — merchants enter final prices (VAT-inclusive)
+const TAX_RATE = 0;
 
 @Injectable()
 export class OrdersService {

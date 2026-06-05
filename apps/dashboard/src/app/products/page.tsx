@@ -435,7 +435,7 @@ export default function ProductsPage() {
                   </div>
                   <div>
                     <label className="text-xs font-medium text-muted-foreground mb-1.5 block">السعر (ر.س) *</label>
-                    <Input type="number" value={editing.price ?? ''} onChange={(e) => setEditing({ ...editing, price: parseFloat(e.target.value) })} placeholder="0.00" />
+                    <Input type="number" step="0.01" min="0" inputMode="decimal" value={editing.price ?? ''} onChange={(e) => setEditing({ ...editing, price: parseFloat(e.target.value) })} placeholder="0.00" />
                   </div>
                   <div>
                     <label className="text-xs font-medium text-muted-foreground mb-1.5 block">الكمية</label>
@@ -443,7 +443,7 @@ export default function ProductsPage() {
                   </div>
                   <div>
                     <label className="text-xs font-medium text-muted-foreground mb-1.5 block">سعر الخصم</label>
-                    <Input type="number" value={editing.salePrice ?? ''} onChange={(e) => setEditing({ ...editing, salePrice: parseFloat(e.target.value) || undefined })} placeholder="اختياري" />
+                    <Input type="number" step="0.01" min="0" inputMode="decimal" value={editing.salePrice ?? ''} onChange={(e) => setEditing({ ...editing, salePrice: parseFloat(e.target.value) || undefined })} placeholder="اختياري" />
                   </div>
                   <div>
                     <label className="text-xs font-medium text-muted-foreground mb-1.5 block">SKU</label>

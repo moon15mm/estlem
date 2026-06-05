@@ -60,10 +60,10 @@ export function CartDrawer({ open, onClose, storeId, tenantId, allowedPayments }
 
   const savedVehicles = customer?.vehicles ?? [];
 
-  const TAX = 0.15;
+  // VAT disabled — merchants enter final prices (VAT-inclusive)
   const subtotal = total();
-  const tax = subtotal * TAX;
-  const grandTotal = subtotal + tax;
+  const tax = 0;
+  const grandTotal = subtotal;
 
   const catalogItems = items.filter((i) => !i.isFreeText);
   const freeItems = items.filter((i) => i.isFreeText);
@@ -223,9 +223,7 @@ export function CartDrawer({ open, onClose, storeId, tenantId, allowedPayments }
                   <div className="flex justify-between text-gray-500">
                     <span>{t('cart.subtotal')}</span><span>{formatPrice(subtotal)}</span>
                   </div>
-                  <div className="flex justify-between text-gray-500">
-                    <span>{t('cart.vat')}</span><span>{formatPrice(tax)}</span>
-                  </div>
+                  {/* VAT disabled — prices are entered VAT-inclusive */}
                   <div className="flex justify-between font-bold text-base border-t pt-2">
                     <span>{t('cart.grandTotal')}</span><span className="text-blue-900">{formatPrice(grandTotal)}</span>
                   </div>
