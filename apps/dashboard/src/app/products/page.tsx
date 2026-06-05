@@ -435,7 +435,7 @@ export default function ProductsPage() {
                   </div>
                   <div>
                     <label className="text-xs font-medium text-muted-foreground mb-1.5 block">السعر (ر.س) *</label>
-                    <Input type="number" step="0.01" min="0" inputMode="decimal" value={editing.price ?? ''} onChange={(e) => setEditing({ ...editing, price: parseFloat(e.target.value) })} placeholder="0.00" />
+                    <Input type="text" inputMode="decimal" pattern="[0-9]*\.?[0-9]*" value={editing.price ?? ''} onChange={(e) => { const v = e.target.value; if (v === '' || /^\d*\.?\d*$/.test(v)) setEditing({ ...editing, price: v === '' ? 0 : v.endsWith('.') ? v as any : parseFloat(v) }); }} placeholder="0.00" dir="ltr" />
                   </div>
                   <div>
                     <label className="text-xs font-medium text-muted-foreground mb-1.5 block">الكمية</label>
@@ -443,7 +443,7 @@ export default function ProductsPage() {
                   </div>
                   <div>
                     <label className="text-xs font-medium text-muted-foreground mb-1.5 block">سعر الخصم</label>
-                    <Input type="number" step="0.01" min="0" inputMode="decimal" value={editing.salePrice ?? ''} onChange={(e) => setEditing({ ...editing, salePrice: parseFloat(e.target.value) || undefined })} placeholder="اختياري" />
+                    <Input type="text" inputMode="decimal" pattern="[0-9]*\.?[0-9]*" value={editing.salePrice ?? ''} onChange={(e) => { const v = e.target.value; if (v === '' || /^\d*\.?\d*$/.test(v)) setEditing({ ...editing, salePrice: v === '' ? undefined : v.endsWith('.') ? v as any : (parseFloat(v) || undefined) }); }} placeholder="اختياري" dir="ltr" />
                   </div>
                   <div>
                     <label className="text-xs font-medium text-muted-foreground mb-1.5 block">SKU</label>
