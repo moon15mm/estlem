@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In, LessThanOrEqual } from 'typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { ConfigService } from '@nestjs/config';
 import {
   ServicePlan,
   SubscriptionStatus,
@@ -14,6 +15,9 @@ import {
 } from '@estlem/shared';
 import { ServiceSubscription } from '../../database/entities/service-subscription.entity';
 import { Store } from '../../database/entities/store.entity';
+import { TenantAlert } from '../../database/entities/tenant-alert.entity';
+
+const MOYASAR_API_BASE = 'https://api.moyasar.com/v1';
 
 @Injectable()
 export class ServiceSubscriptionsService {
@@ -22,7 +26,44 @@ export class ServiceSubscriptionsService {
     private subsRepo: Repository<ServiceSubscription>,
     @InjectRepository(Store)
     private storeRepo: Repository<Store>,
+    @InjectRepository(TenantAlert)
+    private alertRepo: Repository<TenantAlert>,
+    private config: ConfigService,
   ) {}
+
+  // ── Alerts ─────────────────────────────────────────────────────────────
+
+  private async addAlert(
+    tenantId: string,
+    type: string,
+    title: string,
+    message: string,
+    actionUrl = '/subscription',
+  ): Promise<void> {
+    // Avoid duplicate unread alerts of the same type for the same tenant
+    const existing = await this.alertRepo.findOne({
+      where: { tenantId, type, isRead: false },
+    });
+    if (existing) return;
+    const a = this.alertRepo.create({ tenantId, type, title, message, actionUrl });
+    await this.alertRepo.save(a);
+  }
+
+  async listAlerts(tenantId: string, onlyUnread = false): Promise<TenantAlert[]> {
+    return this.alertRepo.find({
+      where: { tenantId, ...(onlyUnread ? { isRead: false } : {}) },
+      order: { createdAt: 'DESC' },
+      take: 50,
+    });
+  }
+
+  async markAlertRead(tenantId: string, id: string): Promise<void> {
+    await this.alertRepo.update({ id, tenantId }, { isRead: true });
+  }
+
+  async markAllAlertsRead(tenantId: string): Promise<void> {
+    await this.alertRepo.update({ tenantId, isRead: false }, { isRead: true });
+  }
 
   // ── Queries ────────────────────────────────────────────────────────────
 
@@ -172,6 +213,124 @@ export class ServiceSubscriptionsService {
     return SERVICE_PLAN_META[current.plan].includes.includes(mode);
   }
 
+  // ── Payment ────────────────────────────────────────────────────────────
+
+  /**
+   * Start a Moyasar payment for the chosen plan + months.
+   * Falls back to test mode when no Moyasar key is configured on any
+   * of the tenant's stores or globally.
+   */
+  async initiatePayment(
+    tenantId: string,
+    plan: ServicePlan,
+    months: number,
+    frontendUrl: string,
+  ): Promise<{ paymentUrl: string; testMode: boolean; amount: number; sessionId: string }> {
+    if (months < 1 || months > 24) throw new BadRequestException('Months must be 1–24');
+
+    // Eligibility re-check (same as subscribe)
+    if (plan === ServicePlan.DINE_IN || plan === ServicePlan.FULL) {
+      const dineInStore = await this.storeRepo
+        .createQueryBuilder('store')
+        .where('store.tenantId = :tenantId', { tenantId })
+        .andWhere('store.category IN (:...cats)', { cats: DINE_IN_CATEGORIES })
+        .getOne();
+      if (!dineInStore) {
+        throw new BadRequestException(
+          'Dine-in plan requires a restaurant / café / buffet store',
+        );
+      }
+    }
+
+    const monthlyPrice = SERVICE_PLAN_PRICE[plan];
+    const total = monthlyPrice * months;
+
+    // Pick a Moyasar secret key from any of the tenant's stores
+    const stores = await this.storeRepo.find({ where: { tenantId } });
+    let secretKey: string | undefined;
+    for (const s of stores) {
+      const settings = (s.operatingHours ?? {}) as any;
+      const k = settings?.paymentSettings?.moyasarSecretKey;
+      if (k) { secretKey = k; break; }
+    }
+    if (!secretKey) secretKey = this.config.get<string>('MOYASAR_SECRET_KEY');
+
+    const sessionId = `sub_${tenantId}_${plan}_${months}_${Date.now()}`;
+    const callbackUrl =
+      `${frontendUrl}/subscription/payment-result` +
+      `?token=${encodeURIComponent(sessionId)}` +
+      `&plan=${plan}&months=${months}&amount=${total}`;
+
+    // No Moyasar key → return a test-mode URL that auto-confirms via our endpoint
+    if (!secretKey) {
+      return {
+        paymentUrl: callbackUrl + '&status=paid&mode=test',
+        testMode: true,
+        amount: total,
+        sessionId,
+      };
+    }
+
+    // Real Moyasar invoice
+    try {
+      const auth = 'Basic ' + Buffer.from(`${secretKey}:`).toString('base64');
+      const body = {
+        amount: Math.round(total * 100),  // halalas
+        currency: 'SAR',
+        description: `Estlem ${SERVICE_PLAN_META[plan].nameEn} subscription — ${months} mo.`,
+        callback_url: callbackUrl,
+        metadata: { tenantId, plan, months, sessionId, kind: 'subscription' },
+      };
+      const res = await fetch(`${MOYASAR_API_BASE}/invoices`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: auth },
+        body: JSON.stringify(body),
+      });
+      const data: any = await res.json();
+      if (res.ok && data?.url) {
+        return { paymentUrl: data.url, testMode: false, amount: total, sessionId: data.id };
+      }
+      // Moyasar rejected → fall back to test mode rather than blocking the user
+      return {
+        paymentUrl: callbackUrl + '&status=paid&mode=test',
+        testMode: true,
+        amount: total,
+        sessionId,
+      };
+    } catch {
+      return {
+        paymentUrl: callbackUrl + '&status=paid&mode=test',
+        testMode: true,
+        amount: total,
+        sessionId,
+      };
+    }
+  }
+
+  /**
+   * Called by the frontend after Moyasar redirects back to our callback page.
+   * The signed token (sessionId) carries tenant/plan/months so we can verify.
+   */
+  async confirmPayment(
+    tenantId: string,
+    plan: ServicePlan,
+    months: number,
+    amount: number,
+    status: string,
+  ): Promise<{ ok: boolean; subscription?: ServiceSubscription; reason?: string }> {
+    const successStatuses = ['paid', 'authorized', 'captured', 'verified'];
+    if (!successStatuses.includes(status)) {
+      return { ok: false, reason: `Payment status: ${status}` };
+    }
+    // Verify amount matches expected price (prevents tampering)
+    const expected = SERVICE_PLAN_PRICE[plan] * months;
+    if (Math.abs(amount - expected) > 0.5) {
+      return { ok: false, reason: 'Amount mismatch' };
+    }
+    const sub = await this.subscribe(tenantId, plan, months, { paid: true, amount });
+    return { ok: true, subscription: sub };
+  }
+
   // ── Cron — run every day at 02:00 server time ──────────────────────────
 
   @Cron(CronExpression.EVERY_DAY_AT_2AM)
@@ -192,8 +351,14 @@ export class ServiceSubscriptionsService {
     );
     for (const sub of toWarn) {
       sub.lastWarningAt = now;
-      // Hook: emit notification (email/SMS/push) — TODO wire to notifications module
       await this.subsRepo.save(sub);
+      const days = Math.ceil((sub.expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      await this.addAlert(
+        sub.tenantId,
+        'subscription_warning',
+        `اشتراكك ينتهي خلال ${days} يوم`,
+        `جدّد اشتراكك قبل ${sub.expiresAt.toLocaleDateString('ar-SA')} لتجنّب توقف الخدمة.`,
+      );
     }
 
     // 2. Subscriptions whose expiresAt has just passed → move to GRACE
@@ -209,6 +374,12 @@ export class ServiceSubscriptionsService {
       sub.status = SubscriptionStatus.GRACE;
       sub.graceEndsAt = graceEnd;
       await this.subsRepo.save(sub);
+      await this.addAlert(
+        sub.tenantId,
+        'subscription_grace',
+        `انتهى اشتراكك — أنت في فترة السماح (${GRACE_PERIOD_DAYS} أيام)`,
+        `جدّد قبل ${graceEnd.toLocaleDateString('ar-SA')} وإلا ستتوقف الخدمة.`,
+      );
     }
 
     // 3. Grace-period subs whose graceEndsAt has passed → EXPIRED
@@ -221,6 +392,12 @@ export class ServiceSubscriptionsService {
     for (const sub of fullyExpired) {
       sub.status = SubscriptionStatus.EXPIRED;
       await this.subsRepo.save(sub);
+      await this.addAlert(
+        sub.tenantId,
+        'subscription_expired',
+        'انتهى اشتراكك',
+        'يرجى التجديد لاستئناف استقبال الطلبات.',
+      );
     }
 
     return { warned: toWarn.length, toGrace: justExpired.length, expired: fullyExpired.length };

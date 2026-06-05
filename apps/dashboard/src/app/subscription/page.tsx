@@ -111,20 +111,28 @@ export default function SubscriptionPage() {
     }
   }, [hasDineIn]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  /** Pay via Moyasar (or auto test-mode if no key configured) */
   const subscribe = async () => {
     setSubscribing(true);
     try {
-      await api.post('/service-subscriptions/me/subscribe', { plan: selectedPlan, months });
-      toast.success('تم تفعيل الاشتراك');
-      await load();
+      const r = (await api.post('/service-subscriptions/me/initiate-payment', {
+        plan: selectedPlan,
+        months,
+        frontendUrl: window.location.origin,
+      })) as unknown as { paymentUrl: string; testMode: boolean; amount: number };
+
+      if (r.testMode) {
+        toast(`وضع تجريبي — لن تُحصّل أي مبالغ (${r.amount} ر.س)`, { icon: '🧪' });
+      }
+      // Redirect to Moyasar (or to the auto-confirm test URL)
+      window.location.href = r.paymentUrl;
     } catch (e: any) {
       const msg = e?.response?.data?.message;
       if (typeof msg === 'string' && msg.includes('Dine-in')) {
         toast.error('الباقة تتطلب وجود مطعم / كافيه / بوفيه — أنشئ متجراً من النوع المناسب');
       } else {
-        toast.error(msg ?? 'فشل تفعيل الاشتراك');
+        toast.error(msg ?? 'فشل بدء الدفع');
       }
-    } finally {
       setSubscribing(false);
     }
   };
@@ -330,8 +338,8 @@ export default function SubscriptionPage() {
                 </p>
               </div>
               <Button onClick={subscribe} disabled={subscribing} size="lg" className="gap-2">
-                {subscribing ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                {sub ? 'تجديد / تغيير' : 'تفعيل'}
+                {subscribing ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
+                {subscribing ? 'جارٍ التحويل...' : (sub ? 'ادفع وجدّد' : 'ادفع وفعّل')}
               </Button>
             </div>
 

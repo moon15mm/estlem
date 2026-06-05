@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from '@/lib/i18n/I18nProvider';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { SubscriptionBanner } from '@/components/SubscriptionBanner';
+import { NotificationBell } from '@/components/NotificationBell';
 import { cn } from '@/lib/utils';
 
 export function Sidebar() {
@@ -46,9 +47,10 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* Language Switcher */}
-      <div className="mb-4 px-1">
+      {/* Language Switcher + Bell */}
+      <div className="mb-4 px-1 flex items-center gap-2">
         <LanguageSwitcher compact />
+        <NotificationBell />
       </div>
 
       {/* Subscription banner */}
