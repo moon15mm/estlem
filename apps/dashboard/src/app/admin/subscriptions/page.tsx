@@ -6,7 +6,10 @@ import {
   Activity, CheckCircle2, Clock3, CreditCard, RefreshCw, Search,
   ShieldCheck, X, Calendar, Loader2, AlertTriangle, Crown,
 } from 'lucide-react';
-import { ServicePlan, SERVICE_PLAN_META, SERVICE_PLAN_PRICE, SubscriptionStatus } from '@estlem/shared';
+import {
+  ServicePlan, SERVICE_PLAN_META, SERVICE_PLAN_PRICE,
+  SubscriptionStatus, DINE_IN_CATEGORIES, StoreCategory,
+} from '@estlem/shared';
 import { adminApi } from '@/lib/adminApi';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { cn } from '@/lib/utils';
@@ -31,7 +34,19 @@ interface SubscriptionRow {
   updatedAt: string;
 }
 
-interface TenantRef { id: string; name: string; slug?: string }
+interface TenantRef {
+  id: string;
+  name: string;
+  slug?: string;
+  /** True if the tenant has at least one restaurant/café/buffet store */
+  hasDineIn: boolean;
+}
+
+/** Plans available for a given tenant based on its store types */
+function plansForTenant(hasDineIn: boolean): ServicePlan[] {
+  if (hasDineIn) return [ServicePlan.PARKING, ServicePlan.DINE_IN, ServicePlan.FULL];
+  return [ServicePlan.PARKING];
+}
 
 const STATUS_LABEL: Record<string, string> = {
   active: 'نشط',
@@ -97,7 +112,13 @@ export default function AdminSubscriptionsPage() {
       ]);
       setSubs(subsData as unknown as SubscriptionRow[]);
       const map: Record<string, TenantRef> = {};
-      (tenantsData as any[]).forEach((tnt) => { map[tnt.id] = { id: tnt.id, name: tnt.name, slug: tnt.slug }; });
+      (tenantsData as any[]).forEach((tnt) => {
+        const stores: Array<{ category?: string }> = tnt.stores ?? [];
+        const hasDineIn = stores.some(
+          (s) => s.category && DINE_IN_CATEGORIES.includes(s.category as StoreCategory),
+        );
+        map[tnt.id] = { id: tnt.id, name: tnt.name, slug: tnt.slug, hasDineIn };
+      });
       setTenants(map);
     } catch {
       toast.error('تعذّر تحميل الاشتراكات');
@@ -363,6 +384,7 @@ export default function AdminSubscriptionsPage() {
         <EditModal
           row={editing}
           tenantName={tenants[editing.tenantId]?.name ?? '—'}
+          hasDineIn={tenants[editing.tenantId]?.hasDineIn ?? false}
           onClose={() => setEditing(null)}
           onSubmit={(plan, months) => setPlan(editing.tenantId, plan, months)}
         />
@@ -430,6 +452,18 @@ function NewSubForm({ tenants, onSubmit }: {
   const [plan, setPlan] = useState<ServicePlan>(ServicePlan.PARKING);
   const [months, setMonths] = useState(1);
 
+  const selectedTenant = tenants.find((t) => t.id === tenantId);
+  const availablePlans = selectedTenant
+    ? plansForTenant(selectedTenant.hasDineIn)
+    : [ServicePlan.PARKING, ServicePlan.DINE_IN, ServicePlan.FULL];
+
+  // Auto-correct the selected plan when changing tenant
+  useEffect(() => {
+    if (selectedTenant && !availablePlans.includes(plan)) {
+      setPlan(availablePlans[0]);
+    }
+  }, [tenantId]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const submit = () => {
     if (!tenantId) { toast.error('اختر منشأة'); return; }
     onSubmit(tenantId, plan, months);
@@ -463,8 +497,13 @@ function NewSubForm({ tenants, onSubmit }: {
 
       <div>
         <label className="text-xs font-bold mb-2 block">الباقة</label>
-        <div className="grid gap-3 sm:grid-cols-3">
-          {Object.values(ServicePlan).map((p) => (
+        {selectedTenant && !selectedTenant.hasDineIn && (
+          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-2">
+            هذه المنشأة لا تحتوي على متاجر دين-إن (مطعم/كافيه/بوفيه)، لذلك تظهر باقة "السيارة" فقط.
+          </p>
+        )}
+        <div className={cn('grid gap-3', availablePlans.length === 1 ? 'sm:grid-cols-1 max-w-xs' : 'sm:grid-cols-3')}>
+          {availablePlans.map((p) => (
             <PlanCard key={p} plan={p} selected={plan === p} onClick={() => setPlan(p)} />
           ))}
         </div>
@@ -483,12 +522,19 @@ function NewSubForm({ tenants, onSubmit }: {
   );
 }
 
-function EditModal({ row, tenantName, onClose, onSubmit }: {
-  row: SubscriptionRow; tenantName: string; onClose: () => void;
+function EditModal({ row, tenantName, hasDineIn, onClose, onSubmit }: {
+  row: SubscriptionRow; tenantName: string; hasDineIn: boolean; onClose: () => void;
   onSubmit: (plan: ServicePlan, months: number) => void;
 }) {
   const [plan, setPlan] = useState<ServicePlan>(row.plan);
   const [months, setMonths] = useState(1);
+
+  const availablePlans = plansForTenant(hasDineIn);
+
+  // If current plan isn't allowed for this tenant anymore, fall back to PARKING
+  useEffect(() => {
+    if (!availablePlans.includes(plan)) setPlan(availablePlans[0]);
+  }, [hasDineIn]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div
@@ -513,8 +559,13 @@ function EditModal({ row, tenantName, onClose, onSubmit }: {
 
           <div>
             <label className="text-xs font-bold mb-2 block">الباقة</label>
-            <div className="grid gap-3 sm:grid-cols-3">
-              {Object.values(ServicePlan).map((p) => (
+            {!hasDineIn && (
+              <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-2">
+                لا تتوفر باقات الطاولة لهذه المنشأة (ليس لديها مطعم/كافيه/بوفيه).
+              </p>
+            )}
+            <div className={cn('grid gap-3', availablePlans.length === 1 ? 'sm:grid-cols-1' : 'sm:grid-cols-3')}>
+              {availablePlans.map((p) => (
                 <PlanCard key={p} plan={p} selected={plan === p} onClick={() => setPlan(p)} />
               ))}
             </div>

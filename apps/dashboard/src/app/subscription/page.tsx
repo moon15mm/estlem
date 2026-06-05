@@ -10,7 +10,10 @@ import {
 import { Sidebar } from '@/components/Sidebar';
 import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
-import { ServicePlan, SERVICE_PLAN_META, SERVICE_PLAN_PRICE, SubscriptionStatus, GRACE_PERIOD_DAYS } from '@estlem/shared';
+import {
+  ServicePlan, SERVICE_PLAN_META, SERVICE_PLAN_PRICE, SubscriptionStatus,
+  GRACE_PERIOD_DAYS, DINE_IN_CATEGORIES, StoreCategory,
+} from '@estlem/shared';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -60,6 +63,11 @@ export default function SubscriptionPage() {
   const [selectedPlan, setSelectedPlan] = useState<ServicePlan>(ServicePlan.PARKING);
   const [months, setMonths] = useState(1);
   const [subscribing, setSubscribing] = useState(false);
+  const [hasDineIn, setHasDineIn] = useState(false);
+
+  const availablePlans = hasDineIn
+    ? [ServicePlan.PARKING, ServicePlan.DINE_IN, ServicePlan.FULL]
+    : [ServicePlan.PARKING];
 
   useEffect(() => {
     if (!useAuth.getState().token) { router.replace('/login'); return; }
@@ -69,16 +77,39 @@ export default function SubscriptionPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const r = (await api.get('/service-subscriptions/me')) as unknown as SubResp;
-      setSub(r?.subscription ?? null);
-      if (r?.subscription?.plan) setSelectedPlan(r.subscription.plan);
+      const [r, storesData] = await Promise.all([
+        api.get('/service-subscriptions/me'),
+        api.get('/stores').catch(() => []),
+      ]);
+      const resp = r as unknown as SubResp;
+      setSub(resp?.subscription ?? null);
+
+      // Detect whether this tenant has any dine-in capable store
+      const stores: Array<{ category?: string }> = (storesData as any[]) ?? [];
+      const dineIn = stores.some(
+        (s) => s.category && DINE_IN_CATEGORIES.includes(s.category as StoreCategory),
+      );
+      setHasDineIn(dineIn);
+
+      // Pick a sensible default plan
+      if (resp?.subscription?.plan) {
+        setSelectedPlan(resp.subscription.plan);
+      } else {
+        setSelectedPlan(dineIn ? ServicePlan.FULL : ServicePlan.PARKING);
+      }
     } catch {
-      // okay — first-time stores have no subscription yet
       setSub(null);
     } finally {
       setLoading(false);
     }
   };
+
+  // Make sure the currently selected plan is still allowed after stores load
+  useEffect(() => {
+    if (!availablePlans.includes(selectedPlan)) {
+      setSelectedPlan(availablePlans[0]);
+    }
+  }, [hasDineIn]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const subscribe = async () => {
     setSubscribing(true);
@@ -220,8 +251,18 @@ export default function SubscriptionPage() {
             </p>
           </CardHeader>
           <CardContent className="space-y-5">
-            <div className="grid gap-3 sm:grid-cols-3">
-              {Object.values(ServicePlan).map((p) => {
+            {!hasDineIn && (
+              <div className="rounded-xl bg-blue-50 border border-blue-200 p-3 text-xs text-blue-900 flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold">باقات الطاولة غير متاحة لمتجرك</p>
+                  <p className="mt-1">باقات "الطاولة" و"الشاملة" تتطلب أن يكون متجرك من نوع مطعم / كافيه / بوفيه.
+                  إذا غيّرت تصنيف المتجر من الإعدادات ستظهر تلقائياً.</p>
+                </div>
+              </div>
+            )}
+            <div className={cn('grid gap-3', availablePlans.length === 1 ? 'sm:grid-cols-1 max-w-md mx-auto' : 'sm:grid-cols-3')}>
+              {availablePlans.map((p) => {
                 const meta = SERVICE_PLAN_META[p];
                 const price = SERVICE_PLAN_PRICE[p];
                 const isSelected = selectedPlan === p;
