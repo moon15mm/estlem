@@ -42,7 +42,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { OrderStatus, StoreCategory, TenantPlan, TenantStatus } from '@estlem/shared';
+import { OrderStatus, ServicePlan, SERVICE_PLAN_META, StoreCategory, TenantPlan, TenantStatus } from '@estlem/shared';
 import { adminApi } from '@/lib/adminApi';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { cn } from '@/lib/utils';
@@ -129,6 +129,18 @@ const PLAN_COLORS: Record<TenantPlan, string> = {
   [TenantPlan.GROWTH]: '#16A34A',
   [TenantPlan.BUSINESS]: '#7C3AED',
   [TenantPlan.ENTERPRISE]: '#D97706',
+};
+
+// New service-plan labels + colors (parking / dine_in / full)
+const SERVICE_PLAN_AR: Record<ServicePlan, string> = {
+  [ServicePlan.PARKING]: SERVICE_PLAN_META.parking.nameAr,
+  [ServicePlan.DINE_IN]: SERVICE_PLAN_META.dine_in.nameAr,
+  [ServicePlan.FULL]:    SERVICE_PLAN_META.full.nameAr,
+};
+const SERVICE_PLAN_COLORS: Record<ServicePlan, string> = {
+  [ServicePlan.PARKING]: '#1B4F72',
+  [ServicePlan.DINE_IN]: '#16A34A',
+  [ServicePlan.FULL]:    '#D97706',
 };
 
 const STATUS_LABELS: Record<TenantStatus, string> = {
@@ -219,6 +231,11 @@ export default function SuperAdminDashboard() {
 
   const [tenants, setTenants] = useState<TenantItem[]>([]);
   const [stats, setStats] = useState<StatsData>(EMPTY_STATS);
+  const [servicePlanDist, setServicePlanDist] = useState<Record<ServicePlan, number>>({
+    [ServicePlan.PARKING]: 0,
+    [ServicePlan.DINE_IN]: 0,
+    [ServicePlan.FULL]: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -246,12 +263,28 @@ export default function SuperAdminDashboard() {
     else setLoading(true);
 
     try {
-      const [tenantList, statsInfo] = await Promise.all([
+      const [tenantList, statsInfo, serviceSubs] = await Promise.all([
         adminApi.get('/tenants/admin/list'),
         adminApi.get('/tenants/admin/stats'),
+        adminApi.get('/service-subscriptions/admin/list').catch(() => []),
       ]);
       setTenants((tenantList as unknown as TenantItem[]) ?? []);
       setStats((statsInfo as unknown as StatsData) ?? EMPTY_STATS);
+
+      // Build the ServicePlan distribution from the active/grace/trial subs only
+      const subs = (serviceSubs as any[]) ?? [];
+      const dist: Record<ServicePlan, number> = {
+        [ServicePlan.PARKING]: 0,
+        [ServicePlan.DINE_IN]: 0,
+        [ServicePlan.FULL]: 0,
+      };
+      for (const s of subs) {
+        const status = String(s.status);
+        if (status === 'active' || status === 'grace' || status === 'trial') {
+          if (s.plan && (s.plan in dist)) dist[s.plan as ServicePlan]++;
+        }
+      }
+      setServicePlanDist(dist);
     } catch {
       toast.error('تعذر تحميل بيانات لوحة الأدمن');
     } finally {
@@ -283,12 +316,14 @@ export default function SuperAdminDashboard() {
 
   const planChartData = useMemo(
     () =>
-      Object.entries(stats.planDistribution).map(([plan, value]) => ({
-        name: PLAN_AR_LABELS[plan as TenantPlan] ?? plan,
-        value,
-        color: PLAN_COLORS[plan as TenantPlan] ?? '#64748B',
-      })),
-    [stats.planDistribution],
+      Object.entries(servicePlanDist)
+        .filter(([, v]) => v > 0)
+        .map(([plan, value]) => ({
+          name: SERVICE_PLAN_AR[plan as ServicePlan] ?? plan,
+          value,
+          color: SERVICE_PLAN_COLORS[plan as ServicePlan] ?? '#64748B',
+        })),
+    [servicePlanDist],
   );
 
   const statusChartData = useMemo(
@@ -702,8 +737,11 @@ export default function SuperAdminDashboard() {
               <Card>
                 <CardHeader className="flex-row items-center justify-between space-y-0">
                   <div>
-                    <CardTitle>الباقات</CardTitle>
-                    <p className="mt-1 text-sm text-muted-foreground">توزيع الاشتراكات الحالية.</p>
+                    <CardTitle>باقات الخدمة</CardTitle>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      توزيع الاشتراكات الفعّالة (السيارة / الطاولة / الشاملة).{' '}
+                      <a href="/admin/subscriptions" className="text-primary font-bold underline">إدارة</a>
+                    </p>
                   </div>
                   <Sparkles className="h-5 w-5 text-accent" />
                 </CardHeader>
@@ -725,14 +763,14 @@ export default function SuperAdminDashboard() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
-                    {Object.values(TenantPlan).map((plan) => (
+                  <div className="grid grid-cols-1 gap-2">
+                    {Object.values(ServicePlan).map((plan) => (
                       <div key={plan} className="flex items-center justify-between rounded-lg bg-muted px-3 py-2 text-sm">
                         <span className="flex items-center gap-2">
-                          <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: PLAN_COLORS[plan] }} />
-                          {PLAN_AR_LABELS[plan]}
+                          <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: SERVICE_PLAN_COLORS[plan] }} />
+                          {SERVICE_PLAN_AR[plan]}
                         </span>
-                        <b>{stats.planDistribution[plan] ?? 0}</b>
+                        <b>{servicePlanDist[plan] ?? 0}</b>
                       </div>
                     ))}
                   </div>
