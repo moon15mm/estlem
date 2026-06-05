@@ -2,6 +2,7 @@
 
 import type { ProductCategory } from '@estlem/shared';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/lib/i18n/I18nProvider';
 
 interface Props {
   categories: ProductCategory[];
@@ -10,7 +11,11 @@ interface Props {
 }
 
 export function CategoryTabs({ categories, active, onChange }: Props) {
-  const all = [{ id: 'all', nameAr: 'الكل', name: 'All' }, ...categories];
+  const { t, lang } = useTranslation();
+  const all = [
+    { id: 'all', nameAr: t('category.all'), name: t('category.all') },
+    ...categories,
+  ];
 
   return (
     <div className="flex gap-2 px-4 py-3 overflow-x-auto no-scrollbar bg-white border-b border-gray-100">
@@ -26,7 +31,8 @@ export function CategoryTabs({ categories, active, onChange }: Props) {
           )}
           style={{ animationDelay: `${idx * 50}ms` }}
         >
-          {cat.nameAr}
+          {/* Use English name when interface is non-Arabic and an English name exists */}
+          {lang === 'ar' ? cat.nameAr : (cat.name || cat.nameAr)}
         </button>
       ))}
     </div>

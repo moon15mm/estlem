@@ -7,6 +7,7 @@ import { ALL_LANGUAGES, Language, LANGUAGE_META } from '@estlem/shared';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useTranslation } from '@/lib/i18n/I18nProvider';
 
 interface Props {
   storeId: string;
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export function LanguageSettings({ storeId, initialDefault, initialSupported }: Props) {
+  const { t } = useTranslation();
   const [defaultLang, setDefaultLang] = useState<Language>(initialDefault || Language.AR);
   const [supported, setSupported] = useState<Language[]>(
     initialSupported && initialSupported.length ? initialSupported : [Language.AR, Language.EN],
@@ -45,9 +47,9 @@ export function LanguageSettings({ storeId, initialDefault, initialSupported }: 
         defaultLanguage: defaultLang,
         supportedLanguages: Array.from(new Set([defaultLang, ...supported])),
       });
-      toast.success('تم حفظ إعدادات اللغة');
+      toast.success(t('settings.saved'));
     } catch {
-      toast.error('فشل حفظ إعدادات اللغة');
+      toast.error(t('settings.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -60,15 +62,15 @@ export function LanguageSettings({ storeId, initialDefault, initialSupported }: 
           <Languages className="h-5 w-5" />
         </div>
         <div>
-          <CardTitle>لغات المتجر</CardTitle>
+          <CardTitle>{t('settings.languages')}</CardTitle>
           <p className="mt-1 text-xs text-gray-500">
-            اختر اللغات التي يستطيع العميل اختيارها واللغة الافتراضية للمتجر.
+            {t('settings.languagesDesc')}
           </p>
         </div>
       </CardHeader>
       <CardContent className="space-y-5">
         <div>
-          <label className="mb-2 block text-sm font-bold">اللغة الافتراضية</label>
+          <label className="mb-2 block text-sm font-bold">{t('settings.defaultLanguage')}</label>
           <select
             value={defaultLang}
             onChange={(e) => {
@@ -87,9 +89,9 @@ export function LanguageSettings({ storeId, initialDefault, initialSupported }: 
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-bold">اللغات المدعومة</label>
+          <label className="mb-2 block text-sm font-bold">{t('settings.supportedLanguages')}</label>
           <p className="mb-3 text-xs text-gray-500">
-            العميل سيرى زر تبديل اللغة بهذه اللغات فقط.
+            {t('settings.languagesDesc')}
           </p>
           <div className="grid gap-2 sm:grid-cols-2">
             {ALL_LANGUAGES.map((l) => {
@@ -118,7 +120,7 @@ export function LanguageSettings({ storeId, initialDefault, initialSupported }: 
                   <div className="flex items-center gap-2">
                     {isDefault && (
                       <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700">
-                        افتراضي
+                        {t('settings.defaultLanguage')}
                       </span>
                     )}
                     {checked && <Check className="h-5 w-5 text-emerald-600" />}
@@ -131,7 +133,7 @@ export function LanguageSettings({ storeId, initialDefault, initialSupported }: 
 
         <Button onClick={save} disabled={saving} className="w-full">
           {saving ? <Loader2 className="ml-2 h-4 w-4 animate-spin" /> : null}
-          حفظ الإعدادات
+          {t('common.save')}
         </Button>
       </CardContent>
     </Card>

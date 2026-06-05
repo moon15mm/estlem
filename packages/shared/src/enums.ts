@@ -156,9 +156,51 @@ export enum SubscriptionStatus {
   TRIAL = 'trial',
   ACTIVE = 'active',
   PAST_DUE = 'past_due',
+  GRACE = 'grace',           // grace period after expiry (3 days)
   CANCELLED = 'cancelled',
   EXPIRED = 'expired',
 }
+
+// ── Estlem service-plan model ─────────────────────────────────────────────
+// Stores subscribe to one of three plans. Pricing is per month in SAR.
+//   - PARKING  → drive-through only (car ordering via parking-spot QR)
+//   - DINE_IN  → table ordering only (restaurants / cafés / buffets)
+//   - FULL     → both modes combined (cheaper than buying the two)
+export enum ServicePlan {
+  PARKING = 'parking',
+  DINE_IN = 'dine_in',
+  FULL = 'full',
+}
+
+export const SERVICE_PLAN_PRICE: Record<ServicePlan, number> = {
+  [ServicePlan.PARKING]: 99,
+  [ServicePlan.DINE_IN]: 99,
+  [ServicePlan.FULL]: 198,
+};
+
+export const SERVICE_PLAN_META: Record<
+  ServicePlan,
+  { nameAr: string; nameEn: string; includes: ('drive_through' | 'dine_in')[] }
+> = {
+  [ServicePlan.PARKING]: {
+    nameAr: 'الطلب من السيارة',
+    nameEn: 'Drive-through',
+    includes: ['drive_through'],
+  },
+  [ServicePlan.DINE_IN]: {
+    nameAr: 'الطلب من الطاولة',
+    nameEn: 'Dine-in',
+    includes: ['dine_in'],
+  },
+  [ServicePlan.FULL]: {
+    nameAr: 'الباقة الشاملة',
+    nameEn: 'Full (both)',
+    includes: ['drive_through', 'dine_in'],
+  },
+};
+
+export const GRACE_PERIOD_DAYS = 3;
+export const RENEWAL_WARNING_DAYS = 7;
 
 export enum BillingCycle {
   MONTHLY = 'monthly',

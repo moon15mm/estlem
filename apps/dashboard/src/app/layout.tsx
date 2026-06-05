@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Toaster } from 'react-hot-toast';
 import { GlobalOrderNotifications } from '@/components/GlobalOrderNotifications';
+import { I18nProvider } from '@/lib/i18n/I18nProvider';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -18,9 +19,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ar" dir="rtl">
       <body className="bg-background antialiased">
-        {children}
-        <Toaster position="top-center" />
-        <GlobalOrderNotifications />
+        <I18nProvider>
+          {children}
+          <Toaster position="top-center" />
+          <GlobalOrderNotifications />
+        </I18nProvider>
       </body>
     </html>
   );

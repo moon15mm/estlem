@@ -1,10 +1,11 @@
 import {
   Controller, Post, Get, Body, Param, UseGuards, Headers, Query,
-  ForbiddenException, Request, Res,
+  ForbiddenException, Request, Res, RawBodyRequest,
 } from '@nestjs/common';
-import type { Response } from 'express';
+import type { Response, Request as ExpressRequest } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
+import { createHmac, timingSafeEqual } from 'crypto';
 import { PaymentsService } from './payments.service';
 import { PaymentMethod, StaffRole } from '@estlem/shared';
 import { IsEnum, IsString, IsUUID } from 'class-validator';
@@ -31,12 +32,17 @@ export class PaymentsController {
   }
 
   @Post('test-confirm/:sessionId')
+  @UseGuards(AuthGuard('jwt'))
   testConfirm(@Param('sessionId') sessionId: string) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new ForbiddenException('Test payments are disabled in production');
+    }
     return this.service.confirmTestPayment(sessionId);
   }
 
   // Get publishable key + amount for inline Moyasar form
   @Get('checkout-info/:orderId')
+  @UseGuards(AuthGuard('jwt'))
   checkoutInfo(@Param('orderId') orderId: string) {
     return this.service.getCheckoutInfo(orderId);
   }
@@ -61,13 +67,48 @@ export class PaymentsController {
   @Post('webhook')
   webhook(
     @Body() payload: Record<string, unknown>,
-    @Headers('authorization') signature: string,
+    @Headers('authorization') authHeader: string,
+    @Headers('x-moyasar-signature') moyasarSig: string,
   ) {
-    // Moyasar webhooks: signature usually in 'authorization' header or 'X-Moyasar-Signature'
     const secret = this.config.get<string>('MOYASAR_WEBHOOK_SECRET') || this.config.get<string>('CHECKOUT_WEBHOOK_SECRET');
-    if (secret && signature !== secret && signature !== `Bearer ${secret}`) {
+
+    if (!secret) {
+      throw new ForbiddenException('Webhook secret not configured');
+    }
+
+    // Verify signature using timing-safe comparison
+    const signature = moyasarSig || authHeader;
+    if (!signature) {
+      throw new ForbiddenException('Missing webhook signature');
+    }
+
+    // Try HMAC verification first, then fall back to token comparison
+    const payloadStr = JSON.stringify(payload);
+    const expectedHmac = createHmac('sha256', secret).update(payloadStr).digest('hex');
+
+    const sigToCompare = signature.replace('Bearer ', '');
+    let isValid = false;
+    try {
+      isValid = timingSafeEqual(
+        Buffer.from(sigToCompare),
+        Buffer.from(expectedHmac),
+      );
+    } catch {
+      // Length mismatch — try direct token comparison with timing-safe
+      try {
+        isValid = timingSafeEqual(
+          Buffer.from(sigToCompare),
+          Buffer.from(secret),
+        );
+      } catch {
+        isValid = false;
+      }
+    }
+
+    if (!isValid) {
       throw new ForbiddenException('Invalid webhook signature');
     }
+
     return this.service.handleWebhook(payload);
   }
 

@@ -259,32 +259,56 @@ export class PaymentsService {
   /**
    * Handle Moyasar's redirect callback after payment.
    * Moyasar appends ?id=...&status=paid|failed&token=orderId
+   * SECURITY: Always verify payment status server-side via Moyasar API
    */
   async handleMoyasarCallback(orderId: string, paymentId: string, status: string) {
     const order = await this.orderRepo.findOne({ where: { id: orderId } });
     if (!order) return { success: false, reason: 'Order not found' };
 
-    const SUCCESS_STATUSES = ['paid', 'authorized', 'verified'];
+    // SECURITY: Never trust query params — verify server-side with Moyasar API
+    const store = await this.storeRepo.findOne({ where: { id: order.storeId } });
+    const settings = (store?.operatingHours ?? {}) as StoreSettings;
+    const secretKey =
+      settings.paymentSettings?.moyasarSecretKey ||
+      this.config.get<string>('MOYASAR_SECRET_KEY');
 
-    if (SUCCESS_STATUSES.includes(status)) {
-      // Create payment record
-      const payment = this.paymentRepo.create({
-        orderId,
-        gatewayRef: paymentId,
-        amount: order.total,
-        currency: 'SAR',
-        method: order.paymentMethod,
-        status: PaymentStatus.PAID,
-        capturedAt: new Date(),
-        metadata: { mode: 'live', moyasarStatus: status },
-      });
-      await this.paymentRepo.save(payment);
-      await this.orderRepo.update(orderId, { paymentStatus: PaymentStatus.PAID });
-      await this.finalizeOrderAfterPayment(orderId);
-      return { success: true };
+    if (secretKey && paymentId && !paymentId.startsWith('test_')) {
+      try {
+        const auth = 'Basic ' + Buffer.from(`${secretKey}:`).toString('base64');
+        const response = await fetch(`${MOYASAR_API_BASE}/payments/${paymentId}`, {
+          headers: { Authorization: auth },
+        });
+        const realPayment: any = await response.json();
+        const verifiedStatus = realPayment?.status;
+
+        const SUCCESS_STATUSES = ['paid', 'authorized', 'captured'];
+        if (!SUCCESS_STATUSES.includes(verifiedStatus)) {
+          console.warn(`[Moyasar] Callback status mismatch: query=${status}, actual=${verifiedStatus}`);
+          return { success: false, reason: `Payment not verified (status: ${verifiedStatus})` };
+        }
+
+        // Verified — create payment record
+        const payment = this.paymentRepo.create({
+          orderId,
+          gatewayRef: paymentId,
+          amount: order.total,
+          currency: 'SAR',
+          method: order.paymentMethod,
+          status: PaymentStatus.PAID,
+          capturedAt: new Date(),
+          metadata: { mode: 'live', moyasarStatus: verifiedStatus, verifiedServerSide: true },
+        });
+        await this.paymentRepo.save(payment);
+        await this.orderRepo.update(orderId, { paymentStatus: PaymentStatus.PAID });
+        await this.finalizeOrderAfterPayment(orderId);
+        return { success: true };
+      } catch (err: any) {
+        console.error(`[Moyasar] Verification failed: ${err?.message}`);
+        return { success: false, reason: 'Payment verification failed' };
+      }
     }
 
-    return { success: false, reason: `Payment status: ${status}` };
+    return { success: false, reason: 'Payment could not be verified' };
   }
 
   async refund(paymentId: string) {

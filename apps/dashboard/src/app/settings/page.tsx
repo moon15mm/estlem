@@ -7,8 +7,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { Sidebar } from '@/components/Sidebar';
 import toast from 'react-hot-toast';
 import type { Store, ParkingSpot } from '@estlem/shared';
-import { DINE_IN_CATEGORIES, StoreCategory, Language } from '@estlem/shared';
+import {
+  DINE_IN_CATEGORIES, StoreCategory, Language,
+  ServicePlan, SERVICE_PLAN_META, SubscriptionStatus,
+} from '@estlem/shared';
 import { LanguageSettings } from '@/components/LanguageSettings';
+import { useTranslation } from '@/lib/i18n/I18nProvider';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,6 +28,7 @@ const WEB_URL = 'https://estlem.store';
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { t, dir } = useTranslation();
   const { storeId, staff, logout } = useAuth();
   const handleLogout = () => { logout(); router.replace('/login'); };
   const [store, setStore] = useState<Store | null>(null);
@@ -49,6 +55,7 @@ export default function SettingsPage() {
   const [savingGateway, setSavingGateway] = useState(false);
   const [showSecret, setShowSecret] = useState(false);
   const [serviceMode, setServiceMode] = useState('drive_through');
+  const [subscription, setSubscription] = useState<{ plan: ServicePlan; status: SubscriptionStatus } | null>(null);
   const [savingMode, setSavingMode] = useState(false);
   const [newTable, setNewTable] = useState('');
   const [addingTable, setAddingTable] = useState(false);
@@ -57,10 +64,12 @@ export default function SettingsPage() {
     if (!storeId) return;
     setLoading(true);
     try {
-      const [s, sp] = await Promise.all([
+      const [s, sp, subResp] = await Promise.all([
         api.get(`/stores/${storeId}`),
         api.get(`/stores/${storeId}/parking-spots`),
+        api.get('/service-subscriptions/me').catch(() => ({ subscription: null })),
       ]);
+      setSubscription((subResp as any)?.subscription ?? null);
       const storeData = s as unknown as Store;
       setStore(storeData);
       setEditLat(storeData.lat ? String(storeData.lat) : '');
@@ -81,7 +90,7 @@ export default function SettingsPage() {
       setServiceMode(canDineIn ? savedMode : 'drive_through');
       setSpots((sp as unknown as ParkingSpot[]) ?? []);
     } catch {
-      toast.error('فشل تحميل الإعدادات');
+      toast.error(t('settings.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -94,11 +103,11 @@ export default function SettingsPage() {
     setAdding(true);
     try {
       await api.post(`/stores/${storeId}/parking-spots`, { spotNumbers: [newSpot.trim()] });
-      toast.success('تمت إضافة الموقف');
+      toast.success(t('settings.spotAdded'));
       setNewSpot('');
       load();
     } catch {
-      toast.error('فشل الإضافة');
+      toast.error(t('settings.saveFailed'));
     } finally {
       setAdding(false);
     }
@@ -106,12 +115,12 @@ export default function SettingsPage() {
 
   const copyLink = (qr: string) => {
     navigator.clipboard.writeText(`${WEB_URL}/scan/${qr}`);
-    toast.success('تم نسخ الرابط');
+    toast.success(t('settings.linkCopied'));
   };
 
   const detectLocation = () => {
     if (!navigator.geolocation) {
-      toast.error('المتصفح لا يدعم تحديد الموقع');
+      toast.error(t('settings.locationNotSupported'));
       return;
     }
     setLocating(true);
@@ -120,11 +129,11 @@ export default function SettingsPage() {
         setEditLat(pos.coords.latitude.toFixed(7));
         setEditLng(pos.coords.longitude.toFixed(7));
         setLocating(false);
-        toast.success('تم تحديد الموقع');
+        toast.success(t('settings.locationDetected'));
       },
       (err) => {
         setLocating(false);
-        toast.error('فشل تحديد الموقع — تأكد من السماح بالوصول');
+        toast.error(t('settings.locationDenied'));
       },
       { enableHighAccuracy: true, timeout: 15000 },
     );
@@ -132,7 +141,7 @@ export default function SettingsPage() {
 
   const saveLocation = async () => {
     if (!editLat || !editLng) {
-      toast.error('حدد الموقع أولاً');
+      toast.error(t('settings.selectLocationFirst'));
       return;
     }
     setSavingLocation(true);
@@ -142,10 +151,10 @@ export default function SettingsPage() {
         lng: parseFloat(editLng),
         address: editAddress || undefined,
       });
-      toast.success('تم حفظ الموقع');
+      toast.success(t('settings.locationSaved'));
       load();
     } catch {
-      toast.error('فشل حفظ الموقع');
+      toast.error(t('settings.locationFailed'));
     } finally {
       setSavingLocation(false);
     }
@@ -158,10 +167,10 @@ export default function SettingsPage() {
         phoneNumber: editPhone || undefined,
         address: editAddress || undefined,
       });
-      toast.success('تم حفظ المعلومات');
+      toast.success(t('settings.infoSaved'));
       load();
     } catch {
-      toast.error('فشل الحفظ');
+      toast.error(t('settings.saveFailed'));
     } finally {
       setSavingInfo(false);
     }
@@ -176,10 +185,10 @@ export default function SettingsPage() {
           paymentMethods,
         },
       });
-      toast.success('تم حفظ إعدادات الدفع');
+      toast.success(t('settings.paymentSaved'));
       load();
     } catch {
-      toast.error('فشل الحفظ');
+      toast.error(t('settings.saveFailed'));
     } finally {
       setSavingPayment(false);
     }
@@ -198,10 +207,10 @@ export default function SettingsPage() {
           },
         },
       });
-      toast.success('تم حفظ إعدادات بوابة الدفع');
+      toast.success(t('settings.gatewaySaved'));
       load();
     } catch {
-      toast.error('فشل الحفظ');
+      toast.error(t('settings.saveFailed'));
     } finally {
       setSavingGateway(false);
     }
@@ -212,6 +221,13 @@ export default function SettingsPage() {
   };
 
   const saveServiceMode = async (mode: string) => {
+    // Client-side guard — backend will eventually enforce too
+    const needsDine = mode === 'dine_in' || mode === 'both';
+    const needsDrive = mode === 'drive_through' || mode === 'both';
+    if ((needsDine && !canDineIn) || (needsDrive && !canDriveThrough) || !subActive) {
+      toast.error('هذا الوضع غير مشمول باشتراكك — رقّ الباقة أولاً');
+      return;
+    }
     const previousMode = serviceMode;
     setServiceMode(mode);
     setSavingMode(true);
@@ -227,11 +243,11 @@ export default function SettingsPage() {
       if (result) {
         setStore(result as unknown as Store);
       }
-      toast.success('تم تحديث وضع الخدمة');
+      toast.success(t('settings.modeUpdated'));
     } catch (err: any) {
       console.error('Save service mode error:', err);
       setServiceMode(previousMode);
-      toast.error(err?.response?.data?.message || 'فشل الحفظ');
+      toast.error(err?.response?.data?.message || t('settings.saveFailed'));
     } finally {
       setSavingMode(false);
     }
@@ -245,11 +261,11 @@ export default function SettingsPage() {
         spotNumbers: [newTable.trim()],
         type: 'table',
       });
-      toast.success('تمت إضافة الطاولة');
+      toast.success(t('settings.tableAdded'));
       setNewTable('');
       load();
     } catch {
-      toast.error('فشل الإضافة');
+      toast.error(t('settings.saveFailed'));
     } finally {
       setAddingTable(false);
     }
@@ -258,16 +274,35 @@ export default function SettingsPage() {
   const tables = spots.filter((s) => s.spotNumber?.startsWith('T:'));
   const parkingSpots = spots.filter((s) => !s.spotNumber?.startsWith('T:'));
 
+  // Allowed service modes = subscription plan ∩ store category capability
+  const subActive =
+    !!subscription &&
+    (subscription.status === SubscriptionStatus.ACTIVE ||
+      subscription.status === SubscriptionStatus.GRACE ||
+      subscription.status === SubscriptionStatus.TRIAL);
+
+  const canDineInCategory =
+    !!store && DINE_IN_CATEGORIES.includes(store.category as StoreCategory);
+
+  const allowedModes: ('drive_through' | 'dine_in')[] = subActive && subscription
+    ? SERVICE_PLAN_META[subscription.plan].includes.filter(
+        (m) => m === 'drive_through' || canDineInCategory,
+      )
+    : [];
+  const canDriveThrough = allowedModes.includes('drive_through');
+  const canDineIn = allowedModes.includes('dine_in');
+  const canBoth = canDriveThrough && canDineIn;
+
   const hasLocation = !!editLat && !!editLng;
   const mapUrl = hasLocation
     ? `https://www.openstreetmap.org/export/embed.html?bbox=${parseFloat(editLng) - 0.005},${parseFloat(editLat) - 0.003},${parseFloat(editLng) + 0.005},${parseFloat(editLat) + 0.003}&layer=mapnik&marker=${editLat},${editLng}`
     : '';
 
   return (
-    <div className="flex min-h-screen bg-background" dir="rtl">
+    <div className="flex min-h-screen bg-background" dir={dir}>
       <Sidebar />
       <main className="flex-1 p-6 space-y-6 max-w-3xl">
-        <h1 className="text-2xl font-black text-foreground">الإعدادات</h1>
+        <h1 className="text-2xl font-black text-foreground">{t('settings.title')}</h1>
 
         {loading ? (
           <div className="space-y-4">
@@ -281,27 +316,27 @@ export default function SettingsPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <StoreIcon className="h-5 w-5 text-primary" /> معلومات المتجر
+                  <StoreIcon className="h-5 w-5 text-primary" /> {t('settings.storeInfo')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p className="text-muted-foreground text-xs mb-1">الاسم بالعربي</p>
+                    <p className="text-muted-foreground text-xs mb-1">{t('settings.nameAr')}</p>
                     <p className="font-semibold">{store?.nameAr}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground text-xs mb-1">الاسم بالإنجليزي</p>
+                    <p className="text-muted-foreground text-xs mb-1">{t('settings.nameEn')}</p>
                     <p className="font-semibold">{store?.name}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground text-xs mb-1">التصنيف</p>
+                    <p className="text-muted-foreground text-xs mb-1">{t('settings.category')}</p>
                     <Badge>{store?.category}</Badge>
                   </div>
                   <div>
-                    <p className="text-muted-foreground text-xs mb-1">الحالة</p>
+                    <p className="text-muted-foreground text-xs mb-1">{t('settings.status')}</p>
                     <Badge variant={store?.isActive ? 'success' : 'muted'}>
-                      {store?.isActive ? 'نشط' : 'معطل'}
+                      {store?.isActive ? t('settings.active') : t('settings.inactive')}
                     </Badge>
                   </div>
                 </div>
@@ -309,7 +344,7 @@ export default function SettingsPage() {
                 <div className="border-t border-border pt-4 space-y-3">
                   <div>
                     <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
-                      <Phone className="h-3 w-3 inline ml-1" /> رقم الهاتف
+                      <Phone className="h-3 w-3 inline ml-1" /> {t('settings.phone')}
                     </label>
                     <Input
                       value={editPhone}
@@ -319,16 +354,16 @@ export default function SettingsPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1.5 block">العنوان</label>
+                    <label className="text-xs font-medium text-muted-foreground mb-1.5 block">{t('settings.address')}</label>
                     <Input
                       value={editAddress}
                       onChange={(e) => setEditAddress(e.target.value)}
-                      placeholder="مثال: حي النخيل، شارع الأمير سلطان"
+                      placeholder={t('settings.addressPlaceholder')}
                     />
                   </div>
                   <Button onClick={saveStoreInfo} disabled={savingInfo} size="sm" className="gap-2">
                     {savingInfo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                    حفظ المعلومات
+                    {t('settings.saveInfo')}
                   </Button>
                 </div>
               </CardContent>
@@ -338,12 +373,12 @@ export default function SettingsPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-primary" /> موقع المتجر على الخريطة
+                  <MapPin className="h-5 w-5 text-primary" /> {t('settings.locationOnMap')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  حدد موقع متجرك ليظهر للعملاء على الخريطة ويمكنهم الوصول إليك بسهولة.
+                  {t('settings.locationDesc')}
                 </p>
 
                 <div className="flex gap-2">
@@ -353,13 +388,13 @@ export default function SettingsPage() {
                     ) : (
                       <Navigation className="h-4 w-4" />
                     )}
-                    {locating ? 'جاري تحديد الموقع...' : 'حدد موقعي الحالي'}
+                    {locating ? t('settings.locating') : t('settings.detectLocation')}
                   </Button>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1.5 block">خط العرض (Lat)</label>
+                    <label className="text-xs font-medium text-muted-foreground mb-1.5 block">{t('settings.latitude')}</label>
                     <Input
                       value={editLat}
                       onChange={(e) => setEditLat(e.target.value)}
@@ -370,7 +405,7 @@ export default function SettingsPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-1.5 block">خط الطول (Lng)</label>
+                    <label className="text-xs font-medium text-muted-foreground mb-1.5 block">{t('settings.longitude')}</label>
                     <Input
                       value={editLng}
                       onChange={(e) => setEditLng(e.target.value)}
@@ -390,7 +425,7 @@ export default function SettingsPage() {
                       height="250"
                       style={{ border: 0 }}
                       loading="lazy"
-                      title="موقع المتجر"
+                      title={t('settings.mapTitle')}
                     />
                     <div className="bg-secondary/50 px-3 py-2 flex items-center justify-between">
                       <span className="text-xs text-muted-foreground" dir="ltr">
@@ -402,7 +437,7 @@ export default function SettingsPage() {
                         rel="noopener noreferrer"
                         className="text-xs text-primary hover:underline"
                       >
-                        فتح في خرائط Google ↗
+                        {t('settings.openInGoogleMaps')}
                       </a>
                     </div>
                   </div>
@@ -410,26 +445,41 @@ export default function SettingsPage() {
 
                 <Button onClick={saveLocation} disabled={savingLocation || !hasLocation} className="gap-2">
                   {savingLocation ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                  حفظ الموقع
+                  {t('settings.saveLocation')}
                 </Button>
               </CardContent>
             </Card>
 
-            {/* Service Mode — only for restaurants, cafes, buffets */}
-            {store?.category && DINE_IN_CATEGORIES.includes(store.category as StoreCategory) && <Card>
+            {/* Service Mode — only for restaurants/cafes/buffets with at least one allowed mode */}
+            {canDineInCategory && allowedModes.length > 0 && <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Layers className="h-5 w-5 text-primary" /> وضع الخدمة
+                  <Layers className="h-5 w-5 text-primary" /> {t('settings.serviceMode')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">اختر نوع الخدمة التي يقدمها متجرك.</p>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <p className="text-sm text-muted-foreground">{t('settings.serviceModeDesc')}</p>
+                {!subActive && (
+                  <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800">
+                    اشتراكك غير نشط — لا يمكن تغيير وضع الخدمة. <a href="/subscription" className="font-bold underline">جدّد الآن</a>
+                  </div>
+                )}
+                {subActive && !canBoth && (
+                  <div className="rounded-xl bg-blue-50 border border-blue-200 p-3 text-xs text-blue-900">
+                    اشتراكك الحالي ({SERVICE_PLAN_META[subscription!.plan].nameAr}) يشمل {allowedModes.length === 1 ? 'وضع خدمة واحد فقط' : 'الوضعين'}.
+                    {!canBoth && <> للحصول على المزيد، <a href="/subscription" className="font-bold underline">رقّ للباقة الشاملة</a>.</>}
+                  </div>
+                )}
+                <div className={cn(
+                  'grid gap-3',
+                  allowedModes.length === 1 ? 'grid-cols-1 max-w-sm' :
+                  canBoth ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2',
+                )}>
                   {[
-                    { key: 'drive_through', label: 'طلب من السيارة', desc: 'مواقف سيارات + QR', icon: <Car className="h-5 w-5" /> },
-                    { key: 'dine_in', label: 'طلب من الطاولة', desc: 'طاولات داخل المطعم + QR', icon: <UtensilsCrossed className="h-5 w-5" /> },
-                    { key: 'both', label: 'الاثنان معاً', desc: 'سيارات + طاولات', icon: <Layers className="h-5 w-5" /> },
-                  ].map((mode) => (
+                    { key: 'drive_through', label: t('settings.serviceDrive'), desc: t('settings.serviceDriveDesc'), icon: <Car className="h-5 w-5" />,             show: canDriveThrough },
+                    { key: 'dine_in',       label: t('settings.serviceDine'),  desc: t('settings.serviceDineDesc'),  icon: <UtensilsCrossed className="h-5 w-5" />, show: canDineIn },
+                    { key: 'both',          label: t('settings.serviceBoth'),  desc: t('settings.serviceBothDesc'),  icon: <Layers className="h-5 w-5" />,          show: canBoth },
+                  ].filter((m) => m.show).map((mode) => (
                     <button
                       key={mode.key}
                       onClick={() => saveServiceMode(mode.key)}
@@ -453,13 +503,13 @@ export default function SettingsPage() {
               </CardContent>
             </Card>}
 
-            {/* Tables (Dine-in) — only for eligible categories AND when dine-in is active */}
-            {store?.category && DINE_IN_CATEGORIES.includes(store.category as StoreCategory) &&
+            {/* Tables (Dine-in) — eligible category + dine_in covered by subscription + selected mode */}
+            {canDineInCategory && canDineIn &&
               (serviceMode === 'dine_in' || serviceMode === 'both') && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <UtensilsCrossed className="h-5 w-5 text-primary" /> الطاولات ورموز QR
+                    <UtensilsCrossed className="h-5 w-5 text-primary" /> {t('settings.tables')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -467,29 +517,29 @@ export default function SettingsPage() {
                     <Input
                       value={newTable}
                       onChange={(e) => setNewTable(e.target.value)}
-                      placeholder="رقم الطاولة (مثل 1، 2، VIP-1)"
+                      placeholder={t('settings.tableNumberPlaceholder')}
                       onKeyDown={(e) => e.key === 'Enter' && addTable()}
                     />
                     <Button onClick={addTable} disabled={addingTable} className="gap-1 shrink-0">
                       {addingTable ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                      إضافة
+                      {t('settings.addBtn')}
                     </Button>
                   </div>
 
                   <div className="space-y-2">
-                    {tables.map((t) => (
-                      <div key={t.id} className="flex items-center justify-between border border-border rounded-xl p-3">
+                    {tables.map((tbl) => (
+                      <div key={tbl.id} className="flex items-center justify-between border border-border rounded-xl p-3">
                         <div className="flex items-center gap-3">
-                          <Badge variant="accent">🍽️ طاولة {t.spotNumber.replace('T:', '')}</Badge>
-                          <code className="text-xs text-muted-foreground" dir="ltr">{t.qrCode}</code>
+                          <Badge variant="accent">🍽️ {t('settings.tableLabel')} {tbl.spotNumber.replace('T:', '')}</Badge>
+                          <code className="text-xs text-muted-foreground" dir="ltr">{tbl.qrCode}</code>
                         </div>
-                        <Button variant="outline" size="sm" onClick={() => copyLink(t.qrCode)} className="gap-1">
-                          <Copy className="h-3.5 w-3.5" /> نسخ الرابط
+                        <Button variant="outline" size="sm" onClick={() => copyLink(tbl.qrCode)} className="gap-1">
+                          <Copy className="h-3.5 w-3.5" /> {t('settings.copyLink')}
                         </Button>
                       </div>
                     ))}
                     {tables.length === 0 && (
-                      <p className="text-center text-muted-foreground text-sm py-6">لا توجد طاولات بعد — أضف طاولة لبدء استقبال الطلبات</p>
+                      <p className="text-center text-muted-foreground text-sm py-6">{t('settings.noTablesYet')}</p>
                     )}
                   </div>
                 </CardContent>
@@ -500,18 +550,18 @@ export default function SettingsPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="h-5 w-5 text-primary" /> طرق الدفع المسموحة
+                  <CreditCard className="h-5 w-5 text-primary" /> {t('settings.paymentMethods')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">اختر طرق الدفع التي تقبلها في متجرك.</p>
+                <p className="text-sm text-muted-foreground">{t('settings.paymentMethodsDesc')}</p>
 
                 <div className="space-y-3">
                   {[
-                    { key: 'cash' as const, label: 'الدفع عند الاستلام (كاش)', icon: <Banknote className="h-5 w-5" />, desc: 'العميل يدفع نقداً عند التوصيل' },
-                    { key: 'card' as const, label: 'بطاقة ائتمانية (Visa/MC)', icon: <CreditCard className="h-5 w-5" />, desc: 'الدفع ببطاقة ائتمانية أونلاين' },
-                    { key: 'mada' as const, label: 'مدى', icon: <CreditCard className="h-5 w-5" />, desc: 'الدفع عبر بطاقة مدى' },
-                    { key: 'apple_pay' as const, label: 'Apple Pay', icon: <Smartphone className="h-5 w-5" />, desc: 'الدفع عبر Apple Pay' },
+                    { key: 'cash'      as const, label: t('settings.cashOption'),   icon: <Banknote className="h-5 w-5" />,    desc: t('settings.cashOptionDesc') },
+                    { key: 'card'      as const, label: t('settings.cardOption'),   icon: <CreditCard className="h-5 w-5" />,  desc: t('settings.cardOptionDesc') },
+                    { key: 'mada'      as const, label: t('settings.madaOption'),   icon: <CreditCard className="h-5 w-5" />,  desc: t('settings.madaOptionDesc') },
+                    { key: 'apple_pay' as const, label: 'Apple Pay',                icon: <Smartphone className="h-5 w-5" />,  desc: t('settings.applePayDesc') },
                   ].map((method) => (
                     <div
                       key={method.key}
@@ -546,7 +596,7 @@ export default function SettingsPage() {
 
                 <Button onClick={savePaymentMethods} disabled={savingPayment} className="gap-2">
                   {savingPayment ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                  حفظ إعدادات الدفع
+                  {t('settings.savePayment')}
                 </Button>
               </CardContent>
             </Card>
@@ -555,17 +605,15 @@ export default function SettingsPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="h-5 w-5 text-primary" /> بوابة الدفع (مياسر)
+                  <CreditCard className="h-5 w-5 text-primary" /> {t('settings.gateway')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs text-blue-900 leading-relaxed">
-                  استخدم مياسر (Moyasar) لتفعيل الدفع الإلكتروني الحقيقي (مدى، Apple Pay، بطاقات).
-                  احصل على المفاتيح من{' '}
+                  {t('settings.gatewayIntro')}{' '}
                   <a href="https://moyasar.com" target="_blank" rel="noreferrer" className="font-bold underline">
                     moyasar.com
                   </a>
-                  {' '}بعد التسجيل. إذا تركتها فارغة، الدفع يعمل في وضع تجريبي تلقائي.
                 </div>
 
                 <div>
@@ -598,22 +646,23 @@ export default function SettingsPage() {
                       onClick={() => setShowSecret((p) => !p)}
                       className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground px-2 py-1 cursor-pointer"
                     >
-                      {showSecret ? 'إخفاء' : 'إظهار'}
+                      {showSecret ? t('settings.hide') : t('settings.show')}
                     </button>
                   </div>
                   <p className="text-[10px] text-muted-foreground mt-1">
-                    🔒 يُخزّن مشفّراً على السيرفر — لا يظهر للعملاء أبداً.
+                    {t('settings.secretEncrypted')}
                   </p>
                 </div>
 
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 leading-relaxed">
-                  <strong>وضع الاختبار:</strong> استخدم مفاتيح <code className="bg-amber-100 px-1 rounded">pk_test_</code> و <code className="bg-amber-100 px-1 rounded">sk_test_</code> لاختبار الدفع بدون رسوم حقيقية.
-                  بطاقة الاختبار: <code className="bg-amber-100 px-1 rounded" dir="ltr">4111 1111 1111 1111</code>
+                  <strong>{t('settings.testMode')}</strong> {t('settings.testModeDesc')}
+                  <br />
+                  {t('settings.testCard')} <code className="bg-amber-100 px-1 rounded" dir="ltr">4111 1111 1111 1111</code>
                 </div>
 
                 <Button onClick={saveGatewaySettings} disabled={savingGateway} className="gap-2">
                   {savingGateway ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                  حفظ مفاتيح البوابة
+                  {t('settings.saveGateway')}
                 </Button>
 
                 {/* Status indicator */}
@@ -623,18 +672,16 @@ export default function SettingsPage() {
                     : 'bg-amber-50 text-amber-700 border border-amber-200'
                 }`}>
                   <span className={`w-2 h-2 rounded-full ${moyasarSec ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                  {moyasarSec
-                    ? 'الدفع الإلكتروني مُفعّل (مياسر)'
-                    : 'الدفع في وضع تجريبي — لن تُحصّل أي مبالغ حقيقية'}
+                  {moyasarSec ? t('settings.gatewayActive') : t('settings.gatewayTest')}
                 </div>
               </CardContent>
             </Card>
 
-            {/* Parking spots + QR */}
-            {(serviceMode === 'drive_through' || serviceMode === 'both') && <Card>
+            {/* Parking spots + QR — only if drive_through is in the subscription AND selected */}
+            {canDriveThrough && (serviceMode === 'drive_through' || serviceMode === 'both') && <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <QrCode className="h-5 w-5 text-primary" /> مواقف السيارات ورموز QR
+                  <QrCode className="h-5 w-5 text-primary" /> {t('settings.parkingSpotsTitle')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -642,12 +689,12 @@ export default function SettingsPage() {
                   <Input
                     value={newSpot}
                     onChange={(e) => setNewSpot(e.target.value)}
-                    placeholder="رقم الموقف الجديد (مثل C-1)"
+                    placeholder={t('settings.spotNumberPlaceholder')}
                     onKeyDown={(e) => e.key === 'Enter' && addSpot()}
                   />
                   <Button onClick={addSpot} disabled={adding} className="gap-1 shrink-0">
                     {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                    إضافة
+                    {t('settings.addBtn')}
                   </Button>
                 </div>
 
@@ -659,12 +706,12 @@ export default function SettingsPage() {
                         <code className="text-xs text-muted-foreground" dir="ltr">{sp.qrCode}</code>
                       </div>
                       <Button variant="outline" size="sm" onClick={() => copyLink(sp.qrCode)} className="gap-1">
-                        <Copy className="h-3.5 w-3.5" /> نسخ الرابط
+                        <Copy className="h-3.5 w-3.5" /> {t('settings.copyLink')}
                       </Button>
                     </div>
                   ))}
                   {spots.length === 0 && (
-                    <p className="text-center text-muted-foreground text-sm py-6">لا توجد مواقف بعد</p>
+                    <p className="text-center text-muted-foreground text-sm py-6">{t('settings.noSpotsYet')}</p>
                   )}
                 </div>
               </CardContent>
@@ -682,7 +729,7 @@ export default function SettingsPage() {
             {/* Account */}
             <Card>
               <CardHeader>
-                <CardTitle>الحساب</CardTitle>
+                <CardTitle>{t('settings.account')}</CardTitle>
               </CardHeader>
               <CardContent className="flex items-center justify-between">
                 <div>
@@ -690,7 +737,7 @@ export default function SettingsPage() {
                   <p className="text-xs text-muted-foreground" dir="ltr">{staff?.mobile}</p>
                 </div>
                 <Button variant="destructive" onClick={handleLogout} className="gap-2">
-                  <LogOut className="h-4 w-4" /> تسجيل خروج
+                  <LogOut className="h-4 w-4" /> {t('settings.logout')}
                 </Button>
               </CardContent>
             </Card>

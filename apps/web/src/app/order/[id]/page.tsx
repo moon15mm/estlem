@@ -9,16 +9,9 @@ import { OrderStatus } from '@estlem/shared';
 import type { Order } from '@estlem/shared';
 import { QuoteApprovalCard } from '@/components/QuoteApprovalCard';
 import { PaymentModal } from '@/components/PaymentModal';
+import { useTranslation } from '@/lib/i18n/I18nProvider';
 
 interface Props { params: { id: string } }
-
-const STEPS = [
-  { status: OrderStatus.NEW,       label: 'تم الاستلام',   icon: '📥' },
-  { status: OrderStatus.ACCEPTED,  label: 'مقبول',         icon: '✅' },
-  { status: OrderStatus.PREPARING, label: 'جاري التحضير',  icon: '⚙️' },
-  { status: OrderStatus.READY,     label: 'جاهز',          icon: '🎉' },
-  { status: OrderStatus.DELIVERED, label: 'تم التوصيل',    icon: '🚗' },
-];
 
 const STATUS_COLORS: Record<OrderStatus, string> = {
   [OrderStatus.PENDING_PAYMENT]: 'bg-amber-100 text-amber-800',
@@ -33,6 +26,14 @@ const STATUS_COLORS: Record<OrderStatus, string> = {
 };
 
 export default function OrderTrackerPage({ params }: Props) {
+  const { t, dir } = useTranslation();
+  const STEPS = [
+    { status: OrderStatus.NEW,       label: t('orderDetail.received'),  icon: '📥' },
+    { status: OrderStatus.ACCEPTED,  label: t('orderDetail.accepted'),  icon: '✅' },
+    { status: OrderStatus.PREPARING, label: t('orderDetail.preparing'), icon: '⚙️' },
+    { status: OrderStatus.READY,     label: t('orderDetail.ready'),     icon: '🎉' },
+    { status: OrderStatus.DELIVERED, label: t('orderDetail.delivered'), icon: '🚗' },
+  ];
   const [order, setOrder] = useState<Order | null>(null);
   const [payOpen, setPayOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -69,7 +70,7 @@ export default function OrderTrackerPage({ params }: Props) {
     const cleanup = onQuoteReady((data: any) => {
       if (data?.id === params.id) {
         setOrder(data as Order);
-        toast.success('وصل السعر النهائي — راجع وأكد الطلب', { duration: 6000, icon: '💰' });
+        toast.success(t('orderDetail.priceArrivedReview'), { duration: 6000, icon: '💰' });
         try {
           // Optional: play a sound
           const ctx = new AudioContext();
@@ -110,7 +111,7 @@ export default function OrderTrackerPage({ params }: Props) {
       <div className="min-h-screen flex items-center justify-center text-gray-400">
         <div className="text-center">
           <p className="text-5xl mb-3">❓</p>
-          <p>الطلب غير موجود</p>
+          <p>{t('orderDetail.notFound')}</p>
         </div>
       </div>
     );
@@ -119,10 +120,10 @@ export default function OrderTrackerPage({ params }: Props) {
   const currentIdx = STEPS.findIndex((s) => s.status === order.status);
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-8" dir="rtl">
+    <div className="min-h-screen bg-gray-50 pb-8" dir={dir}>
       {/* Header */}
       <div className="bg-blue-900 text-white px-4 pt-12 pb-6">
-        <p className="text-blue-200 text-sm mb-1">طلب رقم</p>
+        <p className="text-blue-200 text-sm mb-1">{t('orderDetail.orderNumber')}</p>
         <h1 className="text-2xl font-black">{order.orderNumber}</h1>
         <p className="text-blue-200 text-xs mt-1">{formatDate(order.createdAt)}</p>
       </div>
@@ -134,15 +135,15 @@ export default function OrderTrackerPage({ params }: Props) {
             <div className="w-14 h-14 bg-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-3">
               <span className="text-2xl">💳</span>
             </div>
-            <h2 className="text-base font-black text-amber-900 mb-1">بانتظار إتمام الدفع</h2>
+            <h2 className="text-base font-black text-amber-900 mb-1">{t('orderDetail.awaitingPayment')}</h2>
             <p className="text-xs text-amber-700 leading-relaxed mb-4">
-              لم يتم إرسال طلبك للمحل بعد. الرجاء إتمام الدفع لتأكيد الطلب وبدء التحضير.
+              {t('orderDetail.notSentYet')}
             </p>
             <button
               onClick={() => setPayOpen(true)}
               className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-xl font-bold text-sm w-full cursor-pointer"
             >
-              💳 ادفع الآن
+              {t('orderDetail.payNow')}
             </button>
           </div>
         </div>
@@ -155,7 +156,7 @@ export default function OrderTrackerPage({ params }: Props) {
             <div className="w-14 h-14 bg-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-3 animate-float">
               <span className="text-2xl">⏳</span>
             </div>
-            <h2 className="text-base font-black text-amber-900 mb-1">المحل يحضّر السعر لك</h2>
+            <h2 className="text-base font-black text-amber-900 mb-1">{t('orderDetail.storePreparingQuote')}</h2>
             <p className="text-xs text-amber-700 leading-relaxed">
               قائمتك تحتوي على عناصر تحتاج تسعير. سيقوم المحل بإدخال الأسعار وإرسالها لك خلال دقائق للموافقة.
             </p>
@@ -184,15 +185,15 @@ export default function OrderTrackerPage({ params }: Props) {
           <div className="bg-white rounded-2xl p-4 flex items-center gap-3 shadow-sm">
             <span className="text-3xl">⏱️</span>
             <div>
-              <p className="text-xs text-gray-400">الوقت المتوقع للتسليم</p>
-              <p className="font-bold text-xl text-blue-900">{order.estimatedMins} دقيقة</p>
+              <p className="text-xs text-gray-400">{t('orderDetail.estimatedTime')}</p>
+              <p className="font-bold text-xl text-blue-900">{order.estimatedMins} {t('orderDetail.minutes')}</p>
             </div>
           </div>
         )}
 
         {/* Stepper */}
         <div className="bg-white rounded-2xl p-5 shadow-sm">
-          <h2 className="font-bold text-gray-700 mb-4">تتبع الطلب</h2>
+          <h2 className="font-bold text-gray-700 mb-4">{t('orderDetail.trackOrder')}</h2>
           <div className="relative">
             <div className="absolute right-4 top-4 bottom-4 w-0.5 bg-gray-200" />
             <div className="space-y-6">
@@ -227,7 +228,7 @@ export default function OrderTrackerPage({ params }: Props) {
               <div className="flex items-center gap-3">
                 <span className="text-2xl">🅿️</span>
                 <div>
-                  <p className="text-xs text-gray-400">رقم الموقف</p>
+                  <p className="text-xs text-gray-400">{t('orderDetail.spotNumber')}</p>
                   <p className="font-bold">{order.parkingSpot.spotNumber}</p>
                 </div>
               </div>
@@ -236,7 +237,7 @@ export default function OrderTrackerPage({ params }: Props) {
               <div className="flex items-center gap-3">
                 <span className="text-2xl">🚗</span>
                 <div>
-                  <p className="text-xs text-gray-400">سيارتك</p>
+                  <p className="text-xs text-gray-400">{t('orderDetail.yourCar')}</p>
                   <p className="font-bold">
                     {order.vehicle.color} {order.vehicle.make} {order.vehicle.model}
                     {' — '}{order.vehicle.plateNumber}
@@ -249,7 +250,7 @@ export default function OrderTrackerPage({ params }: Props) {
 
         {/* Order items */}
         <div className="bg-white rounded-2xl p-4 shadow-sm">
-          <h3 className="font-bold text-gray-700 mb-3">المنتجات</h3>
+          <h3 className="font-bold text-gray-700 mb-3">{t('orderDetail.products')}</h3>
           <div className="space-y-2">
             {order.items.map((item) => (
               <div key={item.id} className="flex justify-between text-sm">
@@ -260,13 +261,13 @@ export default function OrderTrackerPage({ params }: Props) {
           </div>
           <div className="border-t mt-3 pt-3 space-y-1 text-sm">
             <div className="flex justify-between text-gray-500">
-              <span>المجموع</span><span>{formatPrice(order.subtotal)}</span>
+              <span>{t('orderDetail.subtotal')}</span><span>{formatPrice(order.subtotal)}</span>
             </div>
             <div className="flex justify-between text-gray-500">
-              <span>ضريبة 15%</span><span>{formatPrice(order.tax)}</span>
+              <span>{t('orderDetail.vat')}</span><span>{formatPrice(order.tax)}</span>
             </div>
             <div className="flex justify-between font-black text-base pt-1">
-              <span>الإجمالي</span>
+              <span>{t('orderDetail.total')}</span>
               <span className="text-blue-900">{formatPrice(order.total)}</span>
             </div>
           </div>

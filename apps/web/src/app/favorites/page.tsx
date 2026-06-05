@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Heart, MapPin, Star, Store as StoreIcon } from 'lucide-react';
 import { useCustomerAuth } from '@/hooks/useCustomerAuth';
 import { api } from '@/lib/api';
+import { useTranslation } from '@/lib/i18n/I18nProvider';
 
 interface FavoriteStore {
   id: string;
@@ -18,6 +19,7 @@ interface FavoriteStore {
 
 export default function FavoritesPage() {
   const { customer, token } = useCustomerAuth();
+  const { t, dir } = useTranslation();
   const [stores, setStores] = useState<FavoriteStore[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -46,19 +48,19 @@ export default function FavoritesPage() {
   }
 
   return (
-    <div className="max-w-md mx-auto px-4 py-6" dir="rtl">
+    <div className="max-w-md mx-auto px-4 py-6" dir={dir}>
       <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
         <Heart className="h-6 w-6 text-red-500 fill-red-500" />
-        المفضلة
+        {t('favorites.title')}
       </h1>
 
       {stores.length === 0 ? (
         <div className="text-center py-16">
           <Heart className="h-16 w-16 text-gray-200 mx-auto mb-4" />
-          <p className="text-gray-500 text-lg">لا توجد متاجر مفضلة</p>
-          <p className="text-gray-400 text-sm mt-2">أضف متاجرك المفضلة للوصول السريع</p>
+          <p className="text-gray-500 text-lg">{t('favorites.empty')}</p>
+          <p className="text-gray-400 text-sm mt-2">{t('favorites.addForQuick')}</p>
           <Link href="/discover" className="inline-block mt-4 bg-emerald-500 text-white px-6 py-3 rounded-xl font-medium">
-            تصفح المتاجر
+            {t('discover.title')}
           </Link>
         </div>
       ) : (
@@ -85,9 +87,9 @@ export default function FavoritesPage() {
                       <Star className="h-3 w-3 text-yellow-400 fill-yellow-400" />
                       {store.rating || '—'}
                     </span>
-                    <span className="text-xs text-gray-400">{store.totalOrders} طلب</span>
+                    <span className="text-xs text-gray-400">{store.totalOrders} {t('favorites.ordersCount')}</span>
                     <span className={`text-xs px-2 py-0.5 rounded-full ${store.status === 'open' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
-                      {store.status === 'open' ? 'مفتوح' : 'مغلق'}
+                      {store.status === 'open' ? t('favorites.open') : t('favorites.closed')}
                     </span>
                   </div>
                 </div>

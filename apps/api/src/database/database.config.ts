@@ -5,7 +5,11 @@ import { join } from 'path';
 export const databaseConfig = (config: ConfigService): TypeOrmModuleOptions => {
   const isProduction = config.get('NODE_ENV') === 'production';
   const dbUrl = config.get<string>('DATABASE_URL') ?? '';
-  const isNeon = dbUrl.includes('neon.tech');
+  const requiresSsl = isProduction || dbUrl.includes('neon.tech') || dbUrl.includes('sslmode=require');
+
+  // NOTE: rejectUnauthorized should be true in production with proper CA certs.
+  // Set DB_SSL_REJECT_UNAUTHORIZED=true and provide CA cert via DB_SSL_CA env var.
+  const rejectUnauthorized = config.get('DB_SSL_REJECT_UNAUTHORIZED') === 'true';
 
   return {
     type: 'postgres',
@@ -15,9 +19,9 @@ export const databaseConfig = (config: ConfigService): TypeOrmModuleOptions => {
     migrationsRun: true,
     synchronize: false,
     logging: !isProduction,
-    ssl: (isProduction || isNeon) ? { rejectUnauthorized: false } : false,
-    extra: (isProduction || isNeon) ? {
-      ssl: { rejectUnauthorized: false },
+    ssl: requiresSsl ? { rejectUnauthorized } : false,
+    extra: requiresSsl ? {
+      ssl: { rejectUnauthorized },
     } : undefined,
   };
 };

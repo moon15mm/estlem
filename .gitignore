@@ -20,7 +20,11 @@ android/captures/
 .env
 .env.local
 .env.*.local
+.env.production
+.env.staging
 apps/api/.env
+apps/api/.env.production
+apps/api/.env.staging
 apps/web/.env.local
 apps/dashboard/.env.local
 

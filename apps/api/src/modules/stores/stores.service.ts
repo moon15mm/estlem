@@ -97,18 +97,41 @@ export class StoresService {
       .getMany();
   }
 
+  async listActive(limit = 20): Promise<Store[]> {
+    return this.storeRepo
+      .createQueryBuilder('store')
+      .where('store.isActive = true')
+      .select([
+        'store.id', 'store.name', 'store.nameAr', 'store.category',
+        'store.address', 'store.lat', 'store.lng', 'store.logoUrl',
+        'store.coverUrl', 'store.tenantId',
+      ])
+      .orderBy('store.createdAt', 'DESC')
+      .take(limit)
+      .getMany();
+  }
+
   async findNearby(lat: number, lng: number, radiusKm = 10, limit = 20) {
+    // Haversine formula. Cast lat/lng to double precision because TypeORM stores
+    // them as numeric(10,7). Use WHERE (with the raw expression repeated) instead
+    // of HAVING — PostgreSQL does not allow column aliases in HAVING within a
+    // non-grouped SELECT, which was the source of the 500 we were seeing.
+    const distanceExpr = `(6371 * acos(
+      LEAST(1.0, GREATEST(-1.0,
+        cos(radians(:lat)) * cos(radians(store.lat::float8))
+        * cos(radians(store.lng::float8) - radians(:lng))
+        + sin(radians(:lat)) * sin(radians(store.lat::float8))
+      ))
+    ))`;
+
     const stores = await this.storeRepo
       .createQueryBuilder('store')
-      .addSelect(
-        `(6371 * acos(cos(radians(:lat)) * cos(radians(store.lat)) * cos(radians(store.lng) - radians(:lng)) + sin(radians(:lat)) * sin(radians(store.lat))))`,
-        'distance',
-      )
+      .addSelect(distanceExpr, 'distance')
       .where('store.isActive = true')
       .andWhere('store.lat IS NOT NULL')
       .andWhere('store.lng IS NOT NULL')
-      .having('distance < :radius', { radius: radiusKm })
-      .setParameters({ lat, lng })
+      .andWhere(`${distanceExpr} < :radius`)
+      .setParameters({ lat, lng, radius: radiusKm })
       .orderBy('distance', 'ASC')
       .limit(limit)
       .getRawAndEntities();

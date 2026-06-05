@@ -8,10 +8,13 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import type { Store } from '@estlem/shared';
+import { useTranslation } from '@/lib/i18n/I18nProvider';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 type StoreWithDistance = Store & { distance?: number };
 
 export default function DiscoverPage() {
+  const { t, dir } = useTranslation();
   const [tab, setTab] = useState<'nearby' | 'search'>('nearby');
   const [nearbyStores, setNearbyStores] = useState<StoreWithDistance[]>([]);
   const [searchResults, setSearchResults] = useState<StoreWithDistance[]>([]);
@@ -32,13 +35,13 @@ export default function DiscoverPage() {
           ) as StoreWithDistance[];
           setNearbyStores(data ?? []);
         } catch {
-          setLocationError('تعذر تحميل المتاجر القريبة');
+          setLocationError(t('discover.locationFailed'));
         } finally {
           setLoading(false);
         }
       },
       () => {
-        setLocationError('يرجى السماح بالوصول إلى موقعك لعرض المتاجر القريبة');
+        setLocationError(t('discover.allowLocation'));
         setLoading(false);
       },
       { enableHighAccuracy: true, timeout: 10000 },
@@ -71,17 +74,20 @@ export default function DiscoverPage() {
   const stores = tab === 'nearby' ? nearbyStores : searchResults;
 
   return (
-    <div className="min-h-screen bg-background" dir="rtl">
+    <div className="min-h-screen bg-background" dir={dir}>
       {/* Header */}
-      <div className="bg-gradient-to-br from-primary to-brand-light px-6 pt-10 pb-16 text-white">
+      <div className="bg-gradient-to-br from-primary to-brand-light px-6 pt-10 pb-16 text-white relative">
+        <div className="absolute top-4 end-4 z-20">
+          <LanguageSwitcher />
+        </div>
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 bg-white/15 rounded-2xl flex items-center justify-center backdrop-blur">
               <Car className="h-6 w-6" />
             </div>
             <div>
-              <h1 className="text-2xl font-black">اكتشف المتاجر</h1>
-              <p className="text-sm text-white/70">ابحث عن أقرب متجر واطلب من سيارتك</p>
+              <h1 className="text-2xl font-black">{t('discover.title')}</h1>
+              <p className="text-sm text-white/70">{t('discover.subtitle')}</p>
             </div>
           </div>
 
@@ -94,7 +100,7 @@ export default function DiscoverPage() {
               }`}
             >
               <Navigation className="h-4 w-4" />
-              القريبة
+              {t('home.nearbyShort')}
             </button>
             <button
               onClick={() => setTab('search')}
@@ -103,7 +109,7 @@ export default function DiscoverPage() {
               }`}
             >
               <Search className="h-4 w-4" />
-              بحث
+              {t('common.search')}
             </button>
           </div>
         </div>
@@ -119,7 +125,7 @@ export default function DiscoverPage() {
               <Input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="ابحث باسم المتجر..."
+                placeholder={t('discover.searchPlaceholder')}
                 className="h-12 pr-10 rounded-2xl shadow-lg border-0 text-base"
                 autoFocus
               />
@@ -139,11 +145,11 @@ export default function DiscoverPage() {
           <Card className="border-0 shadow-lg">
             <CardContent className="p-8 text-center">
               <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
-              <h3 className="font-bold text-foreground mb-2">تحديد الموقع</h3>
+              <h3 className="font-bold text-foreground mb-2">{t('discover.locationTitle')}</h3>
               <p className="text-sm text-muted-foreground mb-4">{locationError}</p>
               <Button onClick={loadNearby} className="gap-2">
                 <MapPin className="h-4 w-4" />
-                إعادة المحاولة
+                {t('common.retry')}
               </Button>
             </CardContent>
           </Card>
@@ -173,16 +179,16 @@ export default function DiscoverPage() {
             <Card className="border-0 shadow-lg">
               <CardContent className="p-8 text-center">
                 <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="font-bold text-foreground">لا توجد نتائج</h3>
-                <p className="text-sm text-muted-foreground mt-2">جرّب البحث باسم مختلف</p>
+                <h3 className="font-bold text-foreground">{t('discover.noResults')}</h3>
+                <p className="text-sm text-muted-foreground mt-2">{t('discover.tryDifferentName')}</p>
               </CardContent>
             </Card>
           ) : tab === 'nearby' && locationGranted ? (
             <Card className="border-0 shadow-lg">
               <CardContent className="p-8 text-center">
                 <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="font-bold text-foreground">لا توجد متاجر قريبة</h3>
-                <p className="text-sm text-muted-foreground mt-2">لم نجد متاجر في محيط 10 كم</p>
+                <h3 className="font-bold text-foreground">{t('discover.noNearby')}</h3>
+                <p className="text-sm text-muted-foreground mt-2">{t('discover.notFoundIn10km')}</p>
               </CardContent>
             </Card>
           ) : null

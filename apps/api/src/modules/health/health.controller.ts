@@ -15,10 +15,7 @@ export class HealthController {
     } catch {}
 
     return {
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-      db: dbOk ? 'connected' : 'error',
-      uptime: Math.floor(process.uptime()),
+      status: dbOk ? 'ok' : 'degraded',
     };
   }
 }
