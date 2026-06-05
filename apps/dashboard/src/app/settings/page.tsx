@@ -7,9 +7,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { Sidebar } from '@/components/Sidebar';
 import toast from 'react-hot-toast';
 import type { Store, ParkingSpot } from '@estlem/shared';
-import { DINE_IN_CATEGORIES, StoreCategory, Language } from '@estlem/shared';
+import {
+  DINE_IN_CATEGORIES, StoreCategory, Language,
+  ServicePlan, SERVICE_PLAN_META, SubscriptionStatus,
+} from '@estlem/shared';
 import { LanguageSettings } from '@/components/LanguageSettings';
 import { useTranslation } from '@/lib/i18n/I18nProvider';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -51,6 +55,7 @@ export default function SettingsPage() {
   const [savingGateway, setSavingGateway] = useState(false);
   const [showSecret, setShowSecret] = useState(false);
   const [serviceMode, setServiceMode] = useState('drive_through');
+  const [subscription, setSubscription] = useState<{ plan: ServicePlan; status: SubscriptionStatus } | null>(null);
   const [savingMode, setSavingMode] = useState(false);
   const [newTable, setNewTable] = useState('');
   const [addingTable, setAddingTable] = useState(false);
@@ -59,10 +64,12 @@ export default function SettingsPage() {
     if (!storeId) return;
     setLoading(true);
     try {
-      const [s, sp] = await Promise.all([
+      const [s, sp, subResp] = await Promise.all([
         api.get(`/stores/${storeId}`),
         api.get(`/stores/${storeId}/parking-spots`),
+        api.get('/service-subscriptions/me').catch(() => ({ subscription: null })),
       ]);
+      setSubscription((subResp as any)?.subscription ?? null);
       const storeData = s as unknown as Store;
       setStore(storeData);
       setEditLat(storeData.lat ? String(storeData.lat) : '');
@@ -214,6 +221,13 @@ export default function SettingsPage() {
   };
 
   const saveServiceMode = async (mode: string) => {
+    // Client-side guard — backend will eventually enforce too
+    const needsDine = mode === 'dine_in' || mode === 'both';
+    const needsDrive = mode === 'drive_through' || mode === 'both';
+    if ((needsDine && !canDineIn) || (needsDrive && !canDriveThrough) || !subActive) {
+      toast.error('هذا الوضع غير مشمول باشتراكك — رقّ الباقة أولاً');
+      return;
+    }
     const previousMode = serviceMode;
     setServiceMode(mode);
     setSavingMode(true);
@@ -259,6 +273,25 @@ export default function SettingsPage() {
 
   const tables = spots.filter((s) => s.spotNumber?.startsWith('T:'));
   const parkingSpots = spots.filter((s) => !s.spotNumber?.startsWith('T:'));
+
+  // Allowed service modes = subscription plan ∩ store category capability
+  const subActive =
+    !!subscription &&
+    (subscription.status === SubscriptionStatus.ACTIVE ||
+      subscription.status === SubscriptionStatus.GRACE ||
+      subscription.status === SubscriptionStatus.TRIAL);
+
+  const canDineInCategory =
+    !!store && DINE_IN_CATEGORIES.includes(store.category as StoreCategory);
+
+  const allowedModes: ('drive_through' | 'dine_in')[] = subActive && subscription
+    ? SERVICE_PLAN_META[subscription.plan].includes.filter(
+        (m) => m === 'drive_through' || canDineInCategory,
+      )
+    : [];
+  const canDriveThrough = allowedModes.includes('drive_through');
+  const canDineIn = allowedModes.includes('dine_in');
+  const canBoth = canDriveThrough && canDineIn;
 
   const hasLocation = !!editLat && !!editLng;
   const mapUrl = hasLocation
@@ -417,8 +450,8 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
 
-            {/* Service Mode — only for restaurants, cafes, buffets */}
-            {store?.category && DINE_IN_CATEGORIES.includes(store.category as StoreCategory) && <Card>
+            {/* Service Mode — only for restaurants/cafes/buffets with at least one allowed mode */}
+            {canDineInCategory && allowedModes.length > 0 && <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Layers className="h-5 w-5 text-primary" /> {t('settings.serviceMode')}
@@ -426,12 +459,27 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">{t('settings.serviceModeDesc')}</p>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {!subActive && (
+                  <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800">
+                    اشتراكك غير نشط — لا يمكن تغيير وضع الخدمة. <a href="/subscription" className="font-bold underline">جدّد الآن</a>
+                  </div>
+                )}
+                {subActive && !canBoth && (
+                  <div className="rounded-xl bg-blue-50 border border-blue-200 p-3 text-xs text-blue-900">
+                    اشتراكك الحالي ({SERVICE_PLAN_META[subscription!.plan].nameAr}) يشمل {allowedModes.length === 1 ? 'وضع خدمة واحد فقط' : 'الوضعين'}.
+                    {!canBoth && <> للحصول على المزيد، <a href="/subscription" className="font-bold underline">رقّ للباقة الشاملة</a>.</>}
+                  </div>
+                )}
+                <div className={cn(
+                  'grid gap-3',
+                  allowedModes.length === 1 ? 'grid-cols-1 max-w-sm' :
+                  canBoth ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2',
+                )}>
                   {[
-                    { key: 'drive_through', label: t('settings.serviceDrive'), desc: t('settings.serviceDriveDesc'), icon: <Car className="h-5 w-5" /> },
-                    { key: 'dine_in',       label: t('settings.serviceDine'),  desc: t('settings.serviceDineDesc'),  icon: <UtensilsCrossed className="h-5 w-5" /> },
-                    { key: 'both',          label: t('settings.serviceBoth'),  desc: t('settings.serviceBothDesc'),  icon: <Layers className="h-5 w-5" /> },
-                  ].map((mode) => (
+                    { key: 'drive_through', label: t('settings.serviceDrive'), desc: t('settings.serviceDriveDesc'), icon: <Car className="h-5 w-5" />,             show: canDriveThrough },
+                    { key: 'dine_in',       label: t('settings.serviceDine'),  desc: t('settings.serviceDineDesc'),  icon: <UtensilsCrossed className="h-5 w-5" />, show: canDineIn },
+                    { key: 'both',          label: t('settings.serviceBoth'),  desc: t('settings.serviceBothDesc'),  icon: <Layers className="h-5 w-5" />,          show: canBoth },
+                  ].filter((m) => m.show).map((mode) => (
                     <button
                       key={mode.key}
                       onClick={() => saveServiceMode(mode.key)}
@@ -455,8 +503,8 @@ export default function SettingsPage() {
               </CardContent>
             </Card>}
 
-            {/* Tables (Dine-in) — only for eligible categories AND when dine-in is active */}
-            {store?.category && DINE_IN_CATEGORIES.includes(store.category as StoreCategory) &&
+            {/* Tables (Dine-in) — eligible category + dine_in covered by subscription + selected mode */}
+            {canDineInCategory && canDineIn &&
               (serviceMode === 'dine_in' || serviceMode === 'both') && (
               <Card>
                 <CardHeader>
@@ -629,8 +677,8 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
 
-            {/* Parking spots + QR */}
-            {(serviceMode === 'drive_through' || serviceMode === 'both') && <Card>
+            {/* Parking spots + QR — only if drive_through is in the subscription AND selected */}
+            {canDriveThrough && (serviceMode === 'drive_through' || serviceMode === 'both') && <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <QrCode className="h-5 w-5 text-primary" /> {t('settings.parkingSpotsTitle')}
