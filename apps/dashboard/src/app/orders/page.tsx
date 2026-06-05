@@ -13,20 +13,9 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { RefreshCw, Inbox, Bell, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/lib/i18n/I18nProvider';
 
 type Filter = 'active' | 'all' | OrderStatus;
-
-const FILTERS: { label: string; value: Filter }[] = [
-  { label: 'النشطة', value: 'active' },
-  { label: 'الكل', value: 'all' },
-  { label: 'يحتاج تسعير', value: OrderStatus.PENDING_QUOTE },
-  { label: 'ينتظر العميل', value: OrderStatus.PENDING_APPROVAL },
-  { label: 'جديد', value: OrderStatus.NEW },
-  { label: 'مقبول', value: OrderStatus.ACCEPTED },
-  { label: 'تحضير', value: OrderStatus.PREPARING },
-  { label: 'جاهز', value: OrderStatus.READY },
-  { label: 'مُسلَّم', value: OrderStatus.DELIVERED },
-];
 
 function playAlertSound() {
   if (typeof window === 'undefined') return;
@@ -59,6 +48,18 @@ function playAlertSound() {
 }
 
 export default function OrdersPage() {
+  const { t, dir } = useTranslation();
+  const FILTERS: { label: string; value: Filter }[] = [
+    { label: t('orders.active'),               value: 'active' },
+    { label: t('orders.all'),                  value: 'all' },
+    { label: t('orders.pending_quote'),        value: OrderStatus.PENDING_QUOTE },
+    { label: t('orders.pending_approval'),     value: OrderStatus.PENDING_APPROVAL },
+    { label: t('orders.new'),                  value: OrderStatus.NEW },
+    { label: t('orders.accepted'),             value: OrderStatus.ACCEPTED },
+    { label: t('orders.preparing'),            value: OrderStatus.PREPARING },
+    { label: t('orders.ready'),                value: OrderStatus.READY },
+    { label: t('orders.delivered'),            value: OrderStatus.DELIVERED },
+  ];
   const { storeId, staff } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [filter, setFilter] = useState<Filter>('active');
@@ -127,7 +128,7 @@ export default function OrdersPage() {
       );
       toast.success('تم تحديث الحالة');
     } catch {
-      toast.error('فشل التحديث');
+      toast.error(t('orders.updateFailed'));
     }
   };
 
@@ -137,7 +138,7 @@ export default function OrdersPage() {
   };
 
   return (
-    <div className="flex min-h-screen" dir="rtl">
+    <div className="flex min-h-screen" dir={dir}>
       <Sidebar />
       <main className="flex-1 p-6">
         {/* New Order Alert Banner */}
@@ -150,10 +151,10 @@ export default function OrdersPage() {
                     <Bell className="h-7 w-7" />
                   </div>
                   <div>
-                    <p className="text-xl font-black">طلب جديد!</p>
+                    <p className="text-xl font-black">{t('orders.newOrderReceived')}</p>
                     <p className="text-white/80 text-sm">
-                      #{newOrderAlert.orderNumber} — {(newOrderAlert as any).customer?.fullName ?? 'عميل'}
-                      {(newOrderAlert as any).items?.length ? ` — ${(newOrderAlert as any).items.length} منتجات` : ''}
+                      #{newOrderAlert.orderNumber} — {(newOrderAlert as any).customer?.fullName ?? t('orders.customer')}
+                      {(newOrderAlert as any).items?.length ? ` — ${(newOrderAlert as any).items.length} ${t('orders.itemsCount')}` : ''}
                     </p>
                   </div>
                 </div>
@@ -172,11 +173,11 @@ export default function OrdersPage() {
 
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-black text-foreground">الطلبات</h1>
-            <p className="text-muted-foreground text-sm">اليوم &bull; {orders.length} طلب</p>
+            <h1 className="text-2xl font-black text-foreground">{t('orders.title')}</h1>
+            <p className="text-muted-foreground text-sm">{t('orders.today')} &bull; {orders.length} {t('orders.count')}</p>
           </div>
           <Button variant="outline" size="sm" onClick={load} className="gap-2 text-primary">
-            <RefreshCw className="h-4 w-4" /> تحديث
+            <RefreshCw className="h-4 w-4" /> {t('orders.refresh')}
           </Button>
         </div>
 
@@ -205,7 +206,7 @@ export default function OrdersPage() {
           <Card className="border-dashed">
             <div className="text-center py-20 text-muted-foreground">
               <Inbox className="h-14 w-14 mx-auto mb-3 opacity-40" />
-              <p className="text-lg font-medium">لا توجد طلبات</p>
+              <p className="text-lg font-medium">{t('orders.empty')}</p>
             </div>
           </Card>
         ) : (

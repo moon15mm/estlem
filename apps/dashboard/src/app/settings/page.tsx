@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import type { Store, ParkingSpot } from '@estlem/shared';
 import { DINE_IN_CATEGORIES, StoreCategory, Language } from '@estlem/shared';
 import { LanguageSettings } from '@/components/LanguageSettings';
+import { useTranslation } from '@/lib/i18n/I18nProvider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,6 +24,7 @@ const WEB_URL = 'https://estlem.store';
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { t, dir } = useTranslation();
   const { storeId, staff, logout } = useAuth();
   const handleLogout = () => { logout(); router.replace('/login'); };
   const [store, setStore] = useState<Store | null>(null);
@@ -264,10 +266,10 @@ export default function SettingsPage() {
     : '';
 
   return (
-    <div className="flex min-h-screen bg-background" dir="rtl">
+    <div className="flex min-h-screen bg-background" dir={dir}>
       <Sidebar />
       <main className="flex-1 p-6 space-y-6 max-w-3xl">
-        <h1 className="text-2xl font-black text-foreground">الإعدادات</h1>
+        <h1 className="text-2xl font-black text-foreground">{t('settings.title')}</h1>
 
         {loading ? (
           <div className="space-y-4">
@@ -682,7 +684,7 @@ export default function SettingsPage() {
             {/* Account */}
             <Card>
               <CardHeader>
-                <CardTitle>الحساب</CardTitle>
+                <CardTitle>{t('settings.account')}</CardTitle>
               </CardHeader>
               <CardContent className="flex items-center justify-between">
                 <div>
