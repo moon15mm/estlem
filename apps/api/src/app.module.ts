@@ -17,6 +17,7 @@ import { RealtimeModule } from './modules/realtime/realtime.module';
 import { HealthModule } from './modules/health/health.module';
 import { CustomersModule } from './modules/customers/customers.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { ServiceSubscriptionsModule } from './modules/service-subscriptions/service-subscriptions.module';
 import { databaseConfig } from './database/database.config';
 
 @Module({
@@ -42,6 +43,7 @@ import { databaseConfig } from './database/database.config';
     HealthModule,
     CustomersModule,
     AdminModule,
+    ServiceSubscriptionsModule,
   ],
 })
 export class AppModule {}
