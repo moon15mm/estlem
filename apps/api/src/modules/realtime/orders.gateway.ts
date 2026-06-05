@@ -10,7 +10,11 @@ import { WsEvent } from '@estlem/shared';
 
 @WebSocketGateway({
   cors: {
-    origin: true,
+    origin: [
+      process.env.FRONTEND_URL || 'https://estlem.store',
+      process.env.DASHBOARD_URL || 'https://dashboard.estlem.store',
+      ...(process.env.NODE_ENV !== 'production' ? [/^https?:\/\/localhost(:\d+)?$/] : []),
+    ].filter(Boolean),
     credentials: true,
   },
   namespace: '/ws',
@@ -35,9 +39,15 @@ export class OrdersGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.logger.debug(`WS authenticated: ${payload.sub} (${payload.type})`);
       } catch {
         this.logger.warn(`WS invalid token from ${client.id}`);
+        client.disconnect(true);
+        return;
       }
+    } else {
+      // Reject unauthenticated connections
+      this.logger.warn(`WS connection rejected — no token: ${client.id}`);
+      client.disconnect(true);
+      return;
     }
-    // Allow connection even without token — room join checks auth
     this.logger.debug(`WS connect: ${client.id}`);
   }
 
@@ -59,7 +69,11 @@ export class OrdersGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('join:customer')
   joinCustomer(@ConnectedSocket() client: Socket, @MessageBody() data: { customerId: string }) {
-    // Customers can join their own room (with or without token)
+    const user = (client as any).user;
+    // Verify the customer is joining their own room
+    if (!user || user.sub !== data.customerId) {
+      return { event: 'error', data: 'Unauthorized — you can only join your own room' };
+    }
     client.join(`customer:${data.customerId}`);
     return { event: 'joined', data: `customer:${data.customerId}` };
   }

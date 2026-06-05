@@ -3,9 +3,20 @@ import * as bcrypt from 'bcrypt';
 import { SuperAdmin } from '../entities/super-admin.entity';
 
 async function seedAdmin() {
-  const email = process.env.SUPER_ADMIN_EMAIL || 'moon15mm@gmail.com';
-  const password = process.env.SUPER_ADMIN_PASSWORD || 'Estlem@2026!';
+  const email = process.env.SUPER_ADMIN_EMAIL;
+  const password = process.env.SUPER_ADMIN_PASSWORD;
   const name = process.env.SUPER_ADMIN_NAME || 'Super Admin';
+
+  if (!email || !password) {
+    console.error('ERROR: SUPER_ADMIN_EMAIL and SUPER_ADMIN_PASSWORD environment variables are required.');
+    console.error('Usage: SUPER_ADMIN_EMAIL=admin@example.com SUPER_ADMIN_PASSWORD=StrongP@ss123 npx ts-node seed-admin.ts');
+    process.exit(1);
+  }
+
+  if (password.length < 12) {
+    console.error('ERROR: Password must be at least 12 characters long.');
+    process.exit(1);
+  }
 
   const dataSource = new DataSource({
     type: 'postgres',
@@ -34,8 +45,7 @@ async function seedAdmin() {
   await repo.save(admin);
 
   console.log(`Super admin created: ${email}`);
-  console.log(`Password: ${password}`);
-  console.log('IMPORTANT: Change this password after first login!');
+  console.log('IMPORTANT: Store your credentials securely. Do not share them.');
   await dataSource.destroy();
 }
 

@@ -44,20 +44,23 @@ export class OrdersController {
   ) {}
 
   @Post()
+  @UseGuards(AuthGuard('jwt'))
   @Throttle({ default: { limit: 10, ttl: 60000 } })
-  async create(@Body() dto: CreateOrderDto) {
+  async create(@Body() dto: CreateOrderDto, @Request() req: { user: { sub: string } }) {
     const verified = await this.ordersService.verifyStoreOwnership(dto.storeId, dto.tenantId);
     if (!verified) throw new BadRequestException('Invalid store or tenant');
     return this.ordersService.create(dto, dto.storeId, dto.tenantId);
   }
 
   @Post('ai-parse')
+  @UseGuards(AuthGuard('jwt'))
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   aiParse(@Body() dto: AiParseDto) {
     return this.aiCart.parseShoppingList(dto.rawRequest, dto.storeId);
   }
 
   @Get(':id')
+  @UseGuards(AuthGuard('jwt'))
   findOne(@Param('id') id: string) {
     return this.ordersService.findById(id);
   }
@@ -95,6 +98,7 @@ export class OrdersController {
 
   // Customer approves the quote
   @Post(':id/approve-quote')
+  @UseGuards(AuthGuard('jwt'))
   @Throttle({ default: { limit: 20, ttl: 60000 } })
   approveQuote(@Param('id') id: string, @Body() dto: ApproveQuoteDto) {
     return this.ordersService.approveQuote(id, dto.paymentMethod);
@@ -102,6 +106,7 @@ export class OrdersController {
 
   // Customer rejects the quote
   @Post(':id/reject-quote')
+  @UseGuards(AuthGuard('jwt'))
   @Throttle({ default: { limit: 20, ttl: 60000 } })
   rejectQuote(@Param('id') id: string, @Body() dto: RejectQuoteDto) {
     return this.ordersService.rejectQuote(id, dto.reason);
