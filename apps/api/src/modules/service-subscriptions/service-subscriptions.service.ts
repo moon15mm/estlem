@@ -16,6 +16,7 @@ import {
 import { ServiceSubscription } from '../../database/entities/service-subscription.entity';
 import { Store } from '../../database/entities/store.entity';
 import { TenantAlert } from '../../database/entities/tenant-alert.entity';
+import { ServicePlanSetting } from '../../database/entities/service-plan-setting.entity';
 
 const MOYASAR_API_BASE = 'https://api.moyasar.com/v1';
 
@@ -28,8 +29,41 @@ export class ServiceSubscriptionsService {
     private storeRepo: Repository<Store>,
     @InjectRepository(TenantAlert)
     private alertRepo: Repository<TenantAlert>,
+    @InjectRepository(ServicePlanSetting)
+    private planSettingRepo: Repository<ServicePlanSetting>,
     private config: ConfigService,
   ) {}
+
+  // ── Plan pricing (overrides the shared constants) ─────────────────────
+
+  /**
+   * Returns the effective monthly price for every ServicePlan.
+   * Reads overrides from the DB and falls back to SERVICE_PLAN_PRICE.
+   */
+  async getEffectivePrices(): Promise<Record<ServicePlan, number>> {
+    const overrides = await this.planSettingRepo.find();
+    const map: Record<ServicePlan, number> = { ...SERVICE_PLAN_PRICE };
+    for (const o of overrides) map[o.plan] = Number(o.monthlyPrice);
+    return map;
+  }
+
+  /** Effective monthly price for a single plan. */
+  async getPrice(plan: ServicePlan): Promise<number> {
+    const o = await this.planSettingRepo.findOne({ where: { plan } });
+    return o ? Number(o.monthlyPrice) : SERVICE_PLAN_PRICE[plan];
+  }
+
+  /** Admin: bulk update prices. */
+  async updatePrices(updates: Partial<Record<ServicePlan, number>>): Promise<void> {
+    for (const [plan, price] of Object.entries(updates) as Array<[ServicePlan, number]>) {
+      if (price === undefined || price === null) continue;
+      if (price < 0) throw new BadRequestException(`Invalid price for ${plan}`);
+      await this.planSettingRepo.upsert(
+        { plan, monthlyPrice: price, isActive: true },
+        ['plan'],
+      );
+    }
+  }
 
   // ── Alerts ─────────────────────────────────────────────────────────────
 
@@ -114,7 +148,7 @@ export class ServiceSubscriptionsService {
 
     const current = await this.getCurrent(tenantId);
     const now = new Date();
-    const monthlyPrice = SERVICE_PLAN_PRICE[plan];
+    const monthlyPrice = await this.getPrice(plan);
 
     // Start from the later of "now" or "current expiry" so renewals stack up
     const startBase =
@@ -164,14 +198,15 @@ export class ServiceSubscriptionsService {
   async handlePayment(tenantId: string, amount: number): Promise<ServiceSubscription> {
     const months = 1;
     const current = await this.getCurrent(tenantId);
+    const prices = await this.getEffectivePrices();
 
     let targetPlan: ServicePlan;
-    if (amount >= SERVICE_PLAN_PRICE[ServicePlan.FULL]) {
+    if (amount >= prices[ServicePlan.FULL]) {
       targetPlan = ServicePlan.FULL;
-    } else if (amount >= SERVICE_PLAN_PRICE[ServicePlan.PARKING]) {
+    } else if (amount >= prices[ServicePlan.PARKING]) {
       targetPlan = (current?.plan as ServicePlan) ?? ServicePlan.PARKING;
     } else {
-      throw new BadRequestException('Amount below the minimum plan price (99 SAR)');
+      throw new BadRequestException('Amount below the minimum plan price');
     }
 
     return this.subscribe(tenantId, targetPlan, months, { paid: true, amount });
@@ -242,7 +277,7 @@ export class ServiceSubscriptionsService {
       }
     }
 
-    const monthlyPrice = SERVICE_PLAN_PRICE[plan];
+    const monthlyPrice = await this.getPrice(plan);
     const total = monthlyPrice * months;
 
     // Pick a Moyasar secret key from any of the tenant's stores
@@ -323,7 +358,8 @@ export class ServiceSubscriptionsService {
       return { ok: false, reason: `Payment status: ${status}` };
     }
     // Verify amount matches expected price (prevents tampering)
-    const expected = SERVICE_PLAN_PRICE[plan] * months;
+    const unitPrice = await this.getPrice(plan);
+    const expected = unitPrice * months;
     if (Math.abs(amount - expected) > 0.5) {
       return { ok: false, reason: 'Amount mismatch' };
     }

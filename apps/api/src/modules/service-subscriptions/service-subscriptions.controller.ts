@@ -119,6 +119,13 @@ export class ServiceSubscriptionsController {
     return { ok: true };
   }
 
+  // ── Public pricing (used by store + admin UIs) ────────────────────────
+
+  @Get('prices')
+  async getPrices() {
+    return this.service.getEffectivePrices();
+  }
+
   // ── Admin endpoints (super-admin only) ────────────────────────────────
 
   @Get('admin/list')
@@ -151,5 +158,13 @@ export class ServiceSubscriptionsController {
   async runSweep() {
     // Allow admin to trigger the daily check on-demand
     return this.service.dailySweep();
+  }
+
+  @Post('admin/prices')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles(SystemRole.SUPER_ADMIN)
+  async updatePrices(@Body() body: Partial<Record<ServicePlan, number>>) {
+    await this.service.updatePrices(body);
+    return this.service.getEffectivePrices();
   }
 }

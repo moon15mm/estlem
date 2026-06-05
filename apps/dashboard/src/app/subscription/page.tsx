@@ -64,6 +64,7 @@ export default function SubscriptionPage() {
   const [months, setMonths] = useState(1);
   const [subscribing, setSubscribing] = useState(false);
   const [hasDineIn, setHasDineIn] = useState(false);
+  const [prices, setPrices] = useState<Record<ServicePlan, number>>(SERVICE_PLAN_PRICE);
 
   const availablePlans = hasDineIn
     ? [ServicePlan.PARKING, ServicePlan.DINE_IN, ServicePlan.FULL]
@@ -77,12 +78,14 @@ export default function SubscriptionPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const [r, storesData] = await Promise.all([
+      const [r, storesData, pricesData] = await Promise.all([
         api.get('/service-subscriptions/me'),
         api.get('/stores').catch(() => []),
+        api.get('/service-subscriptions/prices').catch(() => SERVICE_PLAN_PRICE),
       ]);
       const resp = r as unknown as SubResp;
       setSub(resp?.subscription ?? null);
+      setPrices(pricesData as unknown as Record<ServicePlan, number>);
 
       // Detect whether this tenant has any dine-in capable store
       const stores: Array<{ category?: string }> = (storesData as any[]) ?? [];
@@ -272,7 +275,7 @@ export default function SubscriptionPage() {
             <div className={cn('grid gap-3', availablePlans.length === 1 ? 'sm:grid-cols-1 max-w-md mx-auto' : 'sm:grid-cols-3')}>
               {availablePlans.map((p) => {
                 const meta = SERVICE_PLAN_META[p];
-                const price = SERVICE_PLAN_PRICE[p];
+                const price = prices[p] ?? SERVICE_PLAN_PRICE[p];
                 const isSelected = selectedPlan === p;
                 return (
                   <button
@@ -334,7 +337,7 @@ export default function SubscriptionPage() {
               <div>
                 <p className="text-xs text-muted-foreground">المبلغ الإجمالي</p>
                 <p className="font-black text-2xl text-primary mt-1">
-                  {(SERVICE_PLAN_PRICE[selectedPlan] * months).toLocaleString('ar-SA')} ر.س
+                  {((prices[selectedPlan] ?? SERVICE_PLAN_PRICE[selectedPlan]) * months).toLocaleString('ar-SA')} ر.س
                 </p>
               </div>
               <Button onClick={subscribe} disabled={subscribing} size="lg" className="gap-2">

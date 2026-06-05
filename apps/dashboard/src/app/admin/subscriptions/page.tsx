@@ -10,6 +10,7 @@ import {
   ServicePlan, SERVICE_PLAN_META, SERVICE_PLAN_PRICE,
   SubscriptionStatus, DINE_IN_CATEGORIES, StoreCategory,
 } from '@estlem/shared';
+import { DollarSign, Save } from 'lucide-react';
 import { adminApi } from '@/lib/adminApi';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { cn } from '@/lib/utils';
@@ -94,6 +95,7 @@ export default function AdminSubscriptionsPage() {
   const [filterPlan, setFilterPlan] = useState<'all' | ServicePlan>('all');
   const [editing, setEditing] = useState<SubscriptionRow | null>(null);
   const [sweepRunning, setSweepRunning] = useState(false);
+  const [prices, setPrices] = useState<Record<ServicePlan, number>>(SERVICE_PLAN_PRICE);
 
   useEffect(() => {
     if (!useAdminAuth.getState().token) {
@@ -106,11 +108,13 @@ export default function AdminSubscriptionsPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const [subsData, tenantsData] = await Promise.all([
+      const [subsData, tenantsData, pricesData] = await Promise.all([
         adminApi.get('/service-subscriptions/admin/list'),
         adminApi.get('/tenants/admin/list'),
+        adminApi.get('/service-subscriptions/prices').catch(() => SERVICE_PLAN_PRICE),
       ]);
       setSubs(subsData as unknown as SubscriptionRow[]);
+      setPrices(pricesData as unknown as Record<ServicePlan, number>);
       const map: Record<string, TenantRef> = {};
       (tenantsData as any[]).forEach((tnt) => {
         const stores: Array<{ category?: string }> = tnt.stores ?? [];
@@ -172,6 +176,16 @@ export default function AdminSubscriptionsPage() {
       await load();
     } catch {
       toast.error('فشل الإلغاء');
+    }
+  };
+
+  const savePrices = async (next: Record<ServicePlan, number>) => {
+    try {
+      const r = (await adminApi.post('/service-subscriptions/admin/prices', next)) as unknown as Record<ServicePlan, number>;
+      setPrices(r);
+      toast.success('تم حفظ الأسعار');
+    } catch {
+      toast.error('فشل حفظ الأسعار');
     }
   };
 
@@ -367,6 +381,21 @@ export default function AdminSubscriptionsPage() {
           </CardContent>
         </Card>
 
+        {/* Pricing — admin can adjust */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-primary" /> أسعار الباقات
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              يطبّق السعر الجديد على كل الاشتراكات الجديدة والتجديدات. الاشتراكات الحالية تبقى بسعرها المحفوظ.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <PricesEditor prices={prices} onSave={savePrices} />
+          </CardContent>
+        </Card>
+
         {/* New / Manual subscribe — quick form for tenants without a subscription */}
         <Card>
           <CardHeader>
@@ -374,7 +403,7 @@ export default function AdminSubscriptionsPage() {
             <p className="text-xs text-muted-foreground">اختر منشأة وباقة وعدد الأشهر — يعمل أيضاً كتجديد فوري.</p>
           </CardHeader>
           <CardContent>
-            <NewSubForm tenants={Object.values(tenants)} onSubmit={setPlan} />
+            <NewSubForm tenants={Object.values(tenants)} prices={prices} onSubmit={setPlan} />
           </CardContent>
         </Card>
       </main>
@@ -385,6 +414,7 @@ export default function AdminSubscriptionsPage() {
           row={editing}
           tenantName={tenants[editing.tenantId]?.name ?? '—'}
           hasDineIn={tenants[editing.tenantId]?.hasDineIn ?? false}
+          prices={prices}
           onClose={() => setEditing(null)}
           onSubmit={(plan, months) => setPlan(editing.tenantId, plan, months)}
         />
@@ -419,11 +449,11 @@ function Stat({ title, value, icon: Icon, tone }: {
   );
 }
 
-function PlanCard({ plan, selected, onClick }: {
-  plan: ServicePlan; selected: boolean; onClick: () => void;
+function PlanCard({ plan, selected, onClick, price }: {
+  plan: ServicePlan; selected: boolean; onClick: () => void; price?: number;
 }) {
   const meta = SERVICE_PLAN_META[plan];
-  const price = SERVICE_PLAN_PRICE[plan];
+  const finalPrice = price ?? SERVICE_PLAN_PRICE[plan];
   return (
     <button
       type="button"
@@ -435,7 +465,7 @@ function PlanCard({ plan, selected, onClick }: {
     >
       <div className="flex items-center justify-between mb-2">
         <span className="font-bold">{meta.nameAr}</span>
-        <span className="font-black text-primary">{price} ر.س</span>
+        <span className="font-black text-primary">{finalPrice} ر.س</span>
       </div>
       <div className="text-xs text-muted-foreground">
         {meta.includes.includes('drive_through') && '✓ السيارة '}
@@ -445,8 +475,10 @@ function PlanCard({ plan, selected, onClick }: {
   );
 }
 
-function NewSubForm({ tenants, onSubmit }: {
-  tenants: TenantRef[]; onSubmit: (tid: string, plan: ServicePlan, months: number) => void;
+function NewSubForm({ tenants, prices, onSubmit }: {
+  tenants: TenantRef[];
+  prices: Record<ServicePlan, number>;
+  onSubmit: (tid: string, plan: ServicePlan, months: number) => void;
 }) {
   const [tenantId, setTenantId] = useState('');
   const [plan, setPlan] = useState<ServicePlan>(ServicePlan.PARKING);
@@ -504,7 +536,7 @@ function NewSubForm({ tenants, onSubmit }: {
         )}
         <div className={cn('grid gap-3', availablePlans.length === 1 ? 'sm:grid-cols-1 max-w-xs' : 'sm:grid-cols-3')}>
           {availablePlans.map((p) => (
-            <PlanCard key={p} plan={p} selected={plan === p} onClick={() => setPlan(p)} />
+            <PlanCard key={p} plan={p} selected={plan === p} onClick={() => setPlan(p)} price={prices[p]} />
           ))}
         </div>
       </div>
@@ -512,7 +544,7 @@ function NewSubForm({ tenants, onSubmit }: {
       <div className="flex justify-between items-center pt-2 border-t">
         <div className="text-sm">
           <span className="text-muted-foreground">المجموع: </span>
-          <span className="font-black text-primary">{(SERVICE_PLAN_PRICE[plan] * months).toLocaleString('ar-SA')} ر.س</span>
+          <span className="font-black text-primary">{(prices[plan] * months).toLocaleString('ar-SA')} ر.س</span>
         </div>
         <Button onClick={submit} className="gap-2">
           <CheckCircle2 className="h-4 w-4" /> تفعيل الاشتراك
@@ -522,8 +554,94 @@ function NewSubForm({ tenants, onSubmit }: {
   );
 }
 
-function EditModal({ row, tenantName, hasDineIn, onClose, onSubmit }: {
-  row: SubscriptionRow; tenantName: string; hasDineIn: boolean; onClose: () => void;
+function PricesEditor({ prices, onSave }: {
+  prices: Record<ServicePlan, number>;
+  onSave: (next: Record<ServicePlan, number>) => void;
+}) {
+  const [draft, setDraft] = useState<Record<ServicePlan, string>>({
+    [ServicePlan.PARKING]: String(prices[ServicePlan.PARKING] ?? ''),
+    [ServicePlan.DINE_IN]: String(prices[ServicePlan.DINE_IN] ?? ''),
+    [ServicePlan.FULL]:    String(prices[ServicePlan.FULL] ?? ''),
+  });
+
+  useEffect(() => {
+    setDraft({
+      [ServicePlan.PARKING]: String(prices[ServicePlan.PARKING] ?? ''),
+      [ServicePlan.DINE_IN]: String(prices[ServicePlan.DINE_IN] ?? ''),
+      [ServicePlan.FULL]:    String(prices[ServicePlan.FULL] ?? ''),
+    });
+  }, [prices]);
+
+  const changed =
+    Number(draft[ServicePlan.PARKING]) !== prices[ServicePlan.PARKING] ||
+    Number(draft[ServicePlan.DINE_IN]) !== prices[ServicePlan.DINE_IN] ||
+    Number(draft[ServicePlan.FULL])    !== prices[ServicePlan.FULL];
+
+  const handleSave = () => {
+    const next = {
+      [ServicePlan.PARKING]: Number(draft[ServicePlan.PARKING]),
+      [ServicePlan.DINE_IN]: Number(draft[ServicePlan.DINE_IN]),
+      [ServicePlan.FULL]:    Number(draft[ServicePlan.FULL]),
+    };
+    for (const v of Object.values(next)) {
+      if (isNaN(v) || v < 0) { toast.error('سعر غير صالح'); return; }
+    }
+    onSave(next);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-4 sm:grid-cols-3">
+        {Object.values(ServicePlan).map((p) => {
+          const meta = SERVICE_PLAN_META[p];
+          return (
+            <div key={p} className="border rounded-xl p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-sm">{meta.nameAr}</span>
+                <span className="text-[10px] text-muted-foreground" dir="ltr">{p}</span>
+              </div>
+              <div className="text-[10px] text-muted-foreground">
+                {meta.includes.includes('drive_through') && '🚗 السيارة '}
+                {meta.includes.includes('dine_in') && '🍽️ الطاولة'}
+              </div>
+              <div className="relative">
+                <Input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={draft[p]}
+                  onChange={(e) => setDraft((d) => ({ ...d, [p]: e.target.value }))}
+                  className="h-11 pe-12 text-lg font-black text-primary"
+                  dir="ltr"
+                />
+                <span className="absolute end-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">ر.س</span>
+              </div>
+              {Number(draft[p]) !== prices[p] && (
+                <p className="text-[10px] text-amber-600">
+                  السعر الحالي: {prices[p]} ر.س
+                </p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="flex items-center justify-between border-t pt-3">
+        <p className="text-xs text-muted-foreground">
+          💡 السعر الجديد يطبّق على الاشتراكات والتجديدات بعد الحفظ.
+        </p>
+        <Button onClick={handleSave} disabled={!changed} className="gap-2">
+          <Save className="h-4 w-4" /> حفظ الأسعار
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function EditModal({ row, tenantName, hasDineIn, prices, onClose, onSubmit }: {
+  row: SubscriptionRow; tenantName: string; hasDineIn: boolean;
+  prices: Record<ServicePlan, number>;
+  onClose: () => void;
   onSubmit: (plan: ServicePlan, months: number) => void;
 }) {
   const [plan, setPlan] = useState<ServicePlan>(row.plan);
@@ -566,7 +684,7 @@ function EditModal({ row, tenantName, hasDineIn, onClose, onSubmit }: {
             )}
             <div className={cn('grid gap-3', availablePlans.length === 1 ? 'sm:grid-cols-1' : 'sm:grid-cols-3')}>
               {availablePlans.map((p) => (
-                <PlanCard key={p} plan={p} selected={plan === p} onClick={() => setPlan(p)} />
+                <PlanCard key={p} plan={p} selected={plan === p} onClick={() => setPlan(p)} price={prices[p]} />
               ))}
             </div>
           </div>
@@ -604,7 +722,7 @@ function EditModal({ row, tenantName, hasDineIn, onClose, onSubmit }: {
           <div className="flex gap-2 pt-2 border-t">
             <Button variant="outline" className="flex-1" onClick={onClose}>إلغاء</Button>
             <Button className="flex-1 gap-2" onClick={() => onSubmit(plan, months)}>
-              <CheckCircle2 className="h-4 w-4" /> حفظ ({SERVICE_PLAN_PRICE[plan] * months} ر.س)
+              <CheckCircle2 className="h-4 w-4" /> حفظ ({(prices[plan] ?? SERVICE_PLAN_PRICE[plan]) * months} ر.س)
             </Button>
           </div>
         </CardContent>
