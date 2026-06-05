@@ -488,6 +488,14 @@ export default function SuperAdminDashboard() {
               <RefreshCw className={cn('h-4 w-4', refreshing && 'animate-spin')} />
               تحديث
             </Button>
+            <Button
+              variant="outline"
+              onClick={() => (window.location.href = '/admin/subscriptions')}
+              className="gap-2"
+            >
+              <CreditCard className="h-4 w-4" />
+              الاشتراكات
+            </Button>
             <Button onClick={() => setModalOpen(true)} className="gap-2">
               <Plus className="h-4 w-4" />
               منشأة جديدة

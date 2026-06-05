@@ -7,6 +7,7 @@ import { ClipboardList, Package, Users, BarChart3, Settings, LogOut, Car, Ban } 
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from '@/lib/i18n/I18nProvider';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { SubscriptionBanner } from '@/components/SubscriptionBanner';
 import { cn } from '@/lib/utils';
 
 export function Sidebar() {
@@ -46,9 +47,12 @@ export function Sidebar() {
       </div>
 
       {/* Language Switcher */}
-      <div className="mb-6 px-1">
+      <div className="mb-4 px-1">
         <LanguageSwitcher compact />
       </div>
+
+      {/* Subscription banner */}
+      <SubscriptionBanner />
 
       <nav className="flex-1 space-y-1">
         {NAV.map((item) => {
