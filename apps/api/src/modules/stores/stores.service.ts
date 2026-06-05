@@ -97,6 +97,20 @@ export class StoresService {
       .getMany();
   }
 
+  async listActive(limit = 20): Promise<Store[]> {
+    return this.storeRepo
+      .createQueryBuilder('store')
+      .where('store.isActive = true')
+      .select([
+        'store.id', 'store.name', 'store.nameAr', 'store.category',
+        'store.address', 'store.lat', 'store.lng', 'store.logoUrl',
+        'store.coverUrl', 'store.tenantId',
+      ])
+      .orderBy('store.createdAt', 'DESC')
+      .take(limit)
+      .getMany();
+  }
+
   async findNearby(lat: number, lng: number, radiusKm = 10, limit = 20) {
     const stores = await this.storeRepo
       .createQueryBuilder('store')

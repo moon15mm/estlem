@@ -25,6 +25,14 @@ export class StoresController {
     return this.service.searchByName(query, Math.min(limit ? parseInt(limit, 10) : 20, 50));
   }
 
+  @Get('active')
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
+  listActive(@Query('limit') limit?: string) {
+    // Public list of every active store — used as a fallback on the home page
+    // when the customer is too far from any store or denied location access.
+    return this.service.listActive(Math.min(limit ? parseInt(limit, 10) : 20, 50));
+  }
+
   @Get('nearby')
   @Throttle({ default: { limit: 20, ttl: 60000 } })
   findNearby(

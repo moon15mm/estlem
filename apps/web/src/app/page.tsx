@@ -31,22 +31,50 @@ export default function HomePage() {
 
   useEffect(() => { loadNearby(); }, []);
 
+  const loadAllStores = async () => {
+    // Fallback when no nearby stores: show all active stores in the country
+    try {
+      const all = (await api.get(`/stores/active?limit=20`)) as StoreWithDistance[];
+      setNearbyStores(all ?? []);
+    } catch { /* ignore */ }
+  };
+
   const loadNearby = () => {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      // Browser w/o geolocation → just show all stores
+      setLocationStatus('denied');
+      setLoadingStores(true);
+      loadAllStores().finally(() => setLoadingStores(false));
+      return;
+    }
     setLocationStatus('loading');
     setLoadingStores(true);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         setLocationStatus('granted');
         try {
-          const data = await api.get(
-            `/stores/nearby?lat=${pos.coords.latitude}&lng=${pos.coords.longitude}&radius=15`,
-          ) as StoreWithDistance[];
-          setNearbyStores(data ?? []);
-        } catch { /* ignore */ }
+          // Try nearby first (50km radius — covers a wide area within a city/region)
+          const data = (await api.get(
+            `/stores/nearby?lat=${pos.coords.latitude}&lng=${pos.coords.longitude}&radius=50`,
+          )) as StoreWithDistance[];
+          if (data && data.length > 0) {
+            setNearbyStores(data);
+          } else {
+            // No stores within 50km → fall back to all active stores so the user still
+            // sees something they can order from
+            await loadAllStores();
+          }
+        } catch {
+          await loadAllStores();
+        }
         finally { setLoadingStores(false); }
       },
-      () => { setLocationStatus('denied'); setLoadingStores(false); },
+      async () => {
+        // Permission denied → still show all stores instead of leaving the page empty
+        setLocationStatus('denied');
+        await loadAllStores();
+        setLoadingStores(false);
+      },
       { enableHighAccuracy: true, timeout: 10000 },
     );
   };
