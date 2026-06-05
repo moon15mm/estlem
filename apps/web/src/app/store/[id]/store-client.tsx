@@ -13,6 +13,8 @@ import { CartDrawer } from '@/components/CartDrawer';
 import { CategoryTabs } from '@/components/CategoryTabs';
 import { FreeTextModal } from '@/components/FreeTextModal';
 import { WelcomeOverlay } from '@/components/WelcomeOverlay';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { useTranslation } from '@/lib/i18n/I18nProvider';
 import { formatPrice } from '@/lib/utils';
 import type { Product, ProductCategory, Store } from '@estlem/shared';
 
@@ -23,6 +25,7 @@ interface StoreClientProps {
 export function StoreClient({ storeId }: StoreClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t, dir } = useTranslation();
   const tenantId = searchParams.get('tenantId') ?? '';
   const { isLoggedIn } = useCustomerAuth();
 
@@ -96,12 +99,12 @@ export function StoreClient({ storeId }: StoreClientProps) {
 
   if (!store) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#0F3460] via-[#1B4F72] to-[#16537E]" dir="rtl">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#0F3460] via-[#1B4F72] to-[#16537E]" dir={dir}>
         <div className="relative">
           <div className="w-16 h-16 border-4 border-white/20 border-t-white rounded-full animate-spin" />
           <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-[#1ABC9C] rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }} />
         </div>
-        <p className="text-white/70 text-sm mt-6 animate-pulse">جاري التحضير...</p>
+        <p className="text-white/70 text-sm mt-6 animate-pulse">{t('store.loading')}</p>
       </div>
     );
   }
@@ -120,7 +123,7 @@ export function StoreClient({ storeId }: StoreClientProps) {
         />
       )}
 
-      <div className="min-h-screen bg-[#F8FAFC] pb-32" dir="rtl">
+      <div className="min-h-screen bg-[#F8FAFC] pb-32" dir={dir}>
         {/* ── Hero Section ─────────────────────────── */}
         <div className="relative overflow-hidden">
           <div
@@ -141,6 +144,11 @@ export function StoreClient({ storeId }: StoreClientProps) {
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 rounded-full border border-white/5 animate-rotate-slow" />
             </div>
 
+            {/* Language switcher — top left */}
+            <div className="absolute top-4 left-4 z-10">
+              <LanguageSwitcher />
+            </div>
+
             {/* Spot/Table indicator — top right corner */}
             {spotNumber && (
               <div className="absolute top-4 right-4 z-10 animate-slide-up-bounce">
@@ -153,7 +161,7 @@ export function StoreClient({ storeId }: StoreClientProps) {
                     )}
                   </div>
                   <div className="text-right">
-                    <p className="text-white/60 text-[10px] leading-tight">{isTable ? 'طاولة' : 'موقف'}</p>
+                    <p className="text-white/60 text-[10px] leading-tight">{isTable ? t('store.table') : t('store.parkingSpot')}</p>
                     <p className="text-white font-black text-base leading-tight">{displaySpotNumber}</p>
                   </div>
                 </div>
@@ -178,7 +186,7 @@ export function StoreClient({ storeId }: StoreClientProps) {
                 <h1 className="text-2xl font-black drop-shadow-md truncate">{store.nameAr}</h1>
                 <p className="text-white/80 text-xs mt-0.5 flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-                  متاح الآن
+                  {t('store.available')}
                 </p>
               </div>
             </div>
@@ -203,12 +211,10 @@ export function StoreClient({ storeId }: StoreClientProps) {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-black text-gray-900 flex items-center gap-1.5">
                   <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-                  {isTable ? `أهلاً بك على الطاولة ${displaySpotNumber}` : `أهلاً بك في الموقف ${displaySpotNumber}`}
+                  {isTable ? `${t('store.welcomeTable')} ${displaySpotNumber}` : `${t('store.welcomeParking')} ${displaySpotNumber}`}
                 </p>
                 <p className="text-xs text-gray-600 mt-1 leading-relaxed">
-                  {isTable
-                    ? 'تصفح قائمتنا واختر طلبك — سيصلك على طاولتك فور تجهيزه'
-                    : 'تصفح قائمتنا واختر طلبك — سنحضره إلى سيارتك دون الحاجة للنزول'}
+                  {isTable ? t('store.tableMessage') : t('store.parkingMessage')}
                 </p>
               </div>
             </div>
@@ -223,7 +229,7 @@ export function StoreClient({ storeId }: StoreClientProps) {
               type="search"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="ابحث عن منتج..."
+              placeholder={t('store.searchProduct')}
               className="w-full border border-gray-200 rounded-2xl pr-11 pl-4 py-3 text-sm focus:outline-none focus:border-[#1B4F72] focus:ring-2 focus:ring-[#1B4F72]/10 bg-gray-50 transition-all"
             />
           </div>
@@ -255,8 +261,8 @@ export function StoreClient({ storeId }: StoreClientProps) {
             <div className="w-20 h-20 bg-gray-100 rounded-3xl flex items-center justify-center mx-auto mb-4">
               <Search className="h-8 w-8 text-gray-300" />
             </div>
-            <p className="font-bold text-gray-700">لا توجد منتجات</p>
-            <p className="text-sm text-gray-400 mt-1">جرب البحث بكلمة أخرى</p>
+            <p className="font-bold text-gray-700">{t('store.noProducts')}</p>
+            <p className="text-sm text-gray-400 mt-1">{t('store.tryDifferent')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3 p-4">
