@@ -5,6 +5,7 @@ import { api } from '@/lib/api';
 import { useCart, type CartItem } from '@/hooks/useCart';
 import { formatPrice } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import { useTranslation } from '@/lib/i18n/I18nProvider';
 
 interface Props {
   open: boolean;
@@ -23,6 +24,7 @@ interface ParsedItem {
 }
 
 export function FreeTextModal({ open, onClose, storeId }: Props) {
+  const { t } = useTranslation();
   const { addFreeTextItems, itemCount } = useCart();
   const [text, setText] = useState('');
   const [parsed, setParsed] = useState<ParsedItem[]>([]);
@@ -39,7 +41,7 @@ export function FreeTextModal({ open, onClose, storeId }: Props) {
       setParsed(result);
       setStep('confirm');
     } catch {
-      toast.error('فشل التحليل، حاول مجدداً');
+      toast.error(t('freeText.analyzeFailed'));
     } finally {
       setParsing(false);
     }
@@ -84,7 +86,7 @@ export function FreeTextModal({ open, onClose, storeId }: Props) {
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
       <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 max-h-[85vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-bold text-lg">✨ قائمة التسوق الذكية</h2>
+          <h2 className="font-bold text-lg">{t('freeText.title')}</h2>
           <button onClick={onClose} className="text-gray-400 text-2xl">&times;</button>
         </div>
 
@@ -101,7 +103,7 @@ export function FreeTextModal({ open, onClose, storeId }: Props) {
             </p>
             <textarea
               className="w-full border border-gray-200 rounded-xl p-4 text-sm h-36 resize-none focus:outline-none focus:border-blue-400 bg-gray-50"
-              placeholder={'مثال:\nحليب ٢ لتر\nبيض ١٢ حبة\nخبز بر'}
+              placeholder={t('freeText.placeholder')}
               value={text}
               onChange={(e) => setText(e.target.value)}
             />
@@ -117,7 +119,7 @@ export function FreeTextModal({ open, onClose, storeId }: Props) {
 
         {step === 'confirm' && (
           <>
-            <p className="text-sm text-gray-500 mb-3">راجع العناصر — يمكنك تعديل الكمية أو حذف عنصر:</p>
+            <p className="text-sm text-gray-500 mb-3">{t('freeText.reviewItems')}</p>
             <div className="space-y-2 mb-4">
               {parsed.map((item, i) => (
                 <div key={i} className="flex items-center gap-3 bg-gray-50 rounded-xl p-3">
@@ -130,7 +132,7 @@ export function FreeTextModal({ open, onClose, storeId }: Props) {
                       <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
                         item.productId ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
                       }`}>
-                        {item.productId ? '✓ مطابق' : 'حر'}
+                        {item.productId ? t('freeText.matched') : t('freeText.free')}
                       </span>
                     </div>
                   </div>
@@ -148,7 +150,7 @@ export function FreeTextModal({ open, onClose, storeId }: Props) {
 
             {parsedTotal > 0 && (
               <div className="bg-gray-50 rounded-xl p-3 flex justify-between mb-4 text-sm">
-                <span className="text-gray-500">مجموع العناصر الجديدة</span>
+                <span className="text-gray-500">{t('freeText.totalNew')}</span>
                 <span className="font-bold text-blue-900">{formatPrice(parsedTotal)}</span>
               </div>
             )}

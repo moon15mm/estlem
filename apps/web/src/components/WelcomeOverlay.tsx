@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Car, UtensilsCrossed, Sparkles } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n/I18nProvider';
 
 interface Props {
   storeName: string;
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export function WelcomeOverlay({ storeName, spotNumber, spotType, onDismiss }: Props) {
+  const { t } = useTranslation();
   const [phase, setPhase] = useState<'enter' | 'hold' | 'exit'>('enter');
   const isTable = spotType === 'table';
   const displayNumber = spotNumber.replace('T:', '');
@@ -82,7 +84,7 @@ export function WelcomeOverlay({ storeName, spotNumber, spotType, onDismiss }: P
 
       {/* Welcome text */}
       <div className="relative z-10 text-center px-6 animate-slide-up-bounce delay-300">
-        <p className="text-white/70 text-sm font-medium mb-2 tracking-wider">أهلاً بك في</p>
+        <p className="text-white/70 text-sm font-medium mb-2 tracking-wider">{t('welcome.welcomeTo')}</p>
         <h1 className="text-3xl md:text-4xl font-black text-white mb-4 leading-tight">{storeName}</h1>
 
         <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-xl border border-white/20 px-5 py-2.5 rounded-2xl animate-fade-in delay-500">
@@ -92,14 +94,14 @@ export function WelcomeOverlay({ storeName, spotNumber, spotType, onDismiss }: P
             <Car className="h-4 w-4 text-[#1ABC9C]" />
           )}
           <span className="text-white font-bold text-base">
-            {isTable ? `طاولة رقم ${displayNumber}` : `موقف ${displayNumber}`}
+            {isTable ? `${t('store.table')} ${displayNumber}` : `${t('store.parkingSpot')} ${displayNumber}`}
           </span>
         </div>
       </div>
 
       {/* Bottom hint */}
       <div className="absolute bottom-10 left-0 right-0 text-center animate-fade-in delay-700">
-        <p className="text-white/50 text-xs">جاري التحميل...</p>
+        <p className="text-white/50 text-xs">{t('welcome.loading')}</p>
         <div className="w-32 h-1 bg-white/10 rounded-full mx-auto mt-3 overflow-hidden">
           <div className="h-full bg-gradient-to-l from-[#1ABC9C] to-white rounded-full" style={{
             animation: 'gradient-shift 2s linear infinite, fade-up 2s ease-out',
