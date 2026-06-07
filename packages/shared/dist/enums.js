@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.WsEvent = exports.BillingCycle = exports.SubscriptionStatus = exports.LoyaltyTransactionType = exports.MembershipTier = exports.InvoiceStatus = exports.CommissionStatus = exports.CommissionType = exports.SpotType = exports.ServiceMode = exports.PosProvider = exports.NotificationChannel = exports.DINE_IN_CATEGORIES = exports.StoreCategory = exports.Language = exports.SystemRole = exports.StaffRole = exports.TenantStatus = exports.TenantPlan = exports.OrderType = exports.PaymentStatus = exports.PaymentMethod = exports.OrderStatus = void 0;
+exports.WsEvent = exports.BillingCycle = exports.RENEWAL_WARNING_DAYS = exports.GRACE_PERIOD_DAYS = exports.SERVICE_PLAN_META = exports.SERVICE_PLAN_PRICE = exports.ServicePlan = exports.SubscriptionStatus = exports.LoyaltyTransactionType = exports.MembershipTier = exports.InvoiceStatus = exports.CommissionStatus = exports.CommissionType = exports.SpotType = exports.ServiceMode = exports.PosProvider = exports.NotificationChannel = exports.DINE_IN_CATEGORIES = exports.StoreCategory = exports.ALL_LANGUAGES = exports.LANGUAGE_META = exports.Language = exports.SystemRole = exports.StaffRole = exports.TenantStatus = exports.TenantPlan = exports.OrderType = exports.PaymentStatus = exports.PaymentMethod = exports.OrderStatus = void 0;
 var OrderStatus;
 (function (OrderStatus) {
     OrderStatus["NEW"] = "new";
@@ -61,7 +61,18 @@ var Language;
 (function (Language) {
     Language["AR"] = "ar";
     Language["EN"] = "en";
+    Language["HI"] = "hi";
+    Language["BN"] = "bn";
+    Language["TL"] = "tl";
 })(Language || (exports.Language = Language = {}));
+exports.LANGUAGE_META = {
+    [Language.AR]: { name: 'Arabic', native: 'العربية', flag: '🇸🇦', dir: 'rtl' },
+    [Language.EN]: { name: 'English', native: 'English', flag: '🇬🇧', dir: 'ltr' },
+    [Language.HI]: { name: 'Hindi', native: 'हिन्दी', flag: '🇮🇳', dir: 'ltr' },
+    [Language.BN]: { name: 'Bengali', native: 'বাংলা', flag: '🇧🇩', dir: 'ltr' },
+    [Language.TL]: { name: 'Filipino', native: 'Filipino', flag: '🇵🇭', dir: 'ltr' },
+};
+exports.ALL_LANGUAGES = Object.values(Language);
 var StoreCategory;
 (function (StoreCategory) {
     StoreCategory["GROCERY"] = "grocery";
@@ -146,9 +157,45 @@ var SubscriptionStatus;
     SubscriptionStatus["TRIAL"] = "trial";
     SubscriptionStatus["ACTIVE"] = "active";
     SubscriptionStatus["PAST_DUE"] = "past_due";
+    SubscriptionStatus["GRACE"] = "grace";
     SubscriptionStatus["CANCELLED"] = "cancelled";
     SubscriptionStatus["EXPIRED"] = "expired";
 })(SubscriptionStatus || (exports.SubscriptionStatus = SubscriptionStatus = {}));
+// ── Estlem service-plan model ─────────────────────────────────────────────
+// Stores subscribe to one of three plans. Pricing is per month in SAR.
+//   - PARKING  → drive-through only (car ordering via parking-spot QR)
+//   - DINE_IN  → table ordering only (restaurants / cafés / buffets)
+//   - FULL     → both modes combined (cheaper than buying the two)
+var ServicePlan;
+(function (ServicePlan) {
+    ServicePlan["PARKING"] = "parking";
+    ServicePlan["DINE_IN"] = "dine_in";
+    ServicePlan["FULL"] = "full";
+})(ServicePlan || (exports.ServicePlan = ServicePlan = {}));
+exports.SERVICE_PLAN_PRICE = {
+    [ServicePlan.PARKING]: 99,
+    [ServicePlan.DINE_IN]: 99,
+    [ServicePlan.FULL]: 198,
+};
+exports.SERVICE_PLAN_META = {
+    [ServicePlan.PARKING]: {
+        nameAr: 'الطلب من السيارة',
+        nameEn: 'Drive-through',
+        includes: ['drive_through'],
+    },
+    [ServicePlan.DINE_IN]: {
+        nameAr: 'الطلب من الطاولة',
+        nameEn: 'Dine-in',
+        includes: ['dine_in'],
+    },
+    [ServicePlan.FULL]: {
+        nameAr: 'الباقة الشاملة',
+        nameEn: 'Full (both)',
+        includes: ['drive_through', 'dine_in'],
+    },
+};
+exports.GRACE_PERIOD_DAYS = 3;
+exports.RENEWAL_WARNING_DAYS = 7;
 var BillingCycle;
 (function (BillingCycle) {
     BillingCycle["MONTHLY"] = "monthly";
