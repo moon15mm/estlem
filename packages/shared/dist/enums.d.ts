@@ -48,8 +48,18 @@ export declare enum SystemRole {
 }
 export declare enum Language {
     AR = "ar",
-    EN = "en"
+    EN = "en",
+    HI = "hi",
+    BN = "bn",
+    TL = "tl"
 }
+export declare const LANGUAGE_META: Record<Language, {
+    name: string;
+    native: string;
+    flag: string;
+    dir: 'ltr' | 'rtl';
+}>;
+export declare const ALL_LANGUAGES: Language[];
 export declare enum StoreCategory {
     GROCERY = "grocery",
     PHARMACY = "pharmacy",
@@ -119,9 +129,23 @@ export declare enum SubscriptionStatus {
     TRIAL = "trial",
     ACTIVE = "active",
     PAST_DUE = "past_due",
+    GRACE = "grace",// grace period after expiry (3 days)
     CANCELLED = "cancelled",
     EXPIRED = "expired"
 }
+export declare enum ServicePlan {
+    PARKING = "parking",
+    DINE_IN = "dine_in",
+    FULL = "full"
+}
+export declare const SERVICE_PLAN_PRICE: Record<ServicePlan, number>;
+export declare const SERVICE_PLAN_META: Record<ServicePlan, {
+    nameAr: string;
+    nameEn: string;
+    includes: ('drive_through' | 'dine_in')[];
+}>;
+export declare const GRACE_PERIOD_DAYS = 3;
+export declare const RENEWAL_WARNING_DAYS = 7;
 export declare enum BillingCycle {
     MONTHLY = "monthly",
     QUARTERLY = "quarterly",

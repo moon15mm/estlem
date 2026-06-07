@@ -26,6 +26,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
+      - name: Build Shared
+        run: pnpm --filter @estlem/shared build
+
       - name: Build API
         run: pnpm --filter @estlem/api build
 
