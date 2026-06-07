@@ -1,5 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../../src/lib/api';
@@ -19,15 +29,25 @@ type Order = {
   id: string;
   orderNumber: string;
   status: string;
+  type?: string;
   subtotal: number | string;
   tax: number | string;
   total: number | string;
   createdAt: string;
   estimatedMins?: number;
+  rawRequest?: string;
+  customerId?: string;
   items: OrderItem[];
   parkingSpot?: { spotNumber?: string };
   vehicle?: { make?: string; model?: string; color?: string; plateNumber?: string };
 };
+
+const PAYMENT_METHODS = [
+  { label: 'كاش', value: 'cash', icon: 'cash-outline' as const },
+  { label: 'مدى', value: 'mada', icon: 'card-outline' as const },
+  { label: 'Apple Pay', value: 'apple_pay', icon: 'logo-apple' as const },
+  { label: 'بطاقة', value: 'card', icon: 'card-outline' as const },
+];
 
 const steps = [
   { status: 'new', label: 'استلمنا الطلب', icon: 'receipt-outline' },
@@ -44,6 +64,9 @@ export default function OrderDetailsScreen() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState('cash');
+  const [approving, setApproving] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
 
   const load = useCallback(async (quiet = false) => {
     if (!id) return;
@@ -68,6 +91,58 @@ export default function OrderDetailsScreen() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Auto-refresh every 10s for active orders
+  useEffect(() => {
+    if (!order) return;
+    const active = ['pending_payment', 'pending_quote', 'pending_approval', 'new', 'accepted', 'preparing', 'ready'];
+    if (!active.includes(order.status)) return;
+    const interval = setInterval(() => load(true), 10000);
+    return () => clearInterval(interval);
+  }, [order?.status, load]);
+
+  const handleApproveQuote = async () => {
+    if (!order) return;
+    setApproving(true);
+    try {
+      await api.post(`/orders/${order.id}/approve-quote`, {
+        paymentMethod: selectedPayment,
+      });
+      Alert.alert('تم التأكيد', 'تم تأكيد الطلب بنجاح وسيبدأ المحل بالتحضير');
+      load(true);
+    } catch {
+      Alert.alert('خطأ', 'فشل تأكيد الطلب، حاول مجدداً');
+    } finally {
+      setApproving(false);
+    }
+  };
+
+  const handleRejectQuote = () => {
+    if (!order) return;
+    Alert.alert(
+      'رفض التسعير',
+      'هل أنت متأكد من رفض التسعير وإلغاء الطلب؟',
+      [
+        { text: 'لا، رجوع', style: 'cancel' },
+        {
+          text: 'نعم، إلغاء الطلب',
+          style: 'destructive',
+          onPress: async () => {
+            setRejecting(true);
+            try {
+              await api.post(`/orders/${order.id}/reject-quote`, {});
+              Alert.alert('تم الإلغاء', 'تم إلغاء الطلب');
+              load(true);
+            } catch {
+              Alert.alert('خطأ', 'فشل إلغاء الطلب');
+            } finally {
+              setRejecting(false);
+            }
+          },
+        },
+      ],
+    );
+  };
 
   const currentIndex = useMemo(() => {
     if (!order) return -1;
@@ -112,6 +187,7 @@ export default function OrderDetailsScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} />}
         showsVerticalScrollIndicator={false}
       >
+        {/* Status card */}
         <View style={styles.statusCard}>
           <View style={styles.statusIcon}>
             <Ionicons name="pulse-outline" size={24} color="#fff" />
@@ -127,24 +203,157 @@ export default function OrderDetailsScreen() {
           ) : null}
         </View>
 
-        <View style={styles.panel}>
-          <Text style={styles.panelTitle}>تتبع الطلب</Text>
-          <View style={styles.timeline}>
-            {steps.map((step, index) => {
-              const done = index <= currentIndex;
-              const active = index === currentIndex;
-              return (
-                <View key={step.status} style={styles.stepRow}>
-                  <View style={[styles.stepDot, done && styles.stepDotDone, active && styles.stepDotActive]}>
-                    <Ionicons name={step.icon} size={17} color={done ? '#fff' : colors.textMuted} />
-                  </View>
-                  <Text style={[styles.stepText, done && styles.stepTextDone]}>{step.label}</Text>
-                </View>
-              );
-            })}
+        {/* PENDING_QUOTE — waiting for store to price */}
+        {order.status === 'pending_quote' && (
+          <View style={styles.waitingCard}>
+            <View style={styles.waitingIcon}>
+              <Ionicons name="time-outline" size={28} color={colors.warning} />
+            </View>
+            <Text style={styles.waitingTitle}>بانتظار تسعير المحل</Text>
+            <Text style={styles.waitingDesc}>
+              قائمتك تحتوي على عناصر تحتاج تسعير. سيقوم المحل بإدخال الأسعار وإرسالها لك للموافقة.
+            </Text>
           </View>
-        </View>
+        )}
 
+        {/* PENDING_PAYMENT — waiting for payment */}
+        {order.status === 'pending_payment' && (
+          <View style={styles.waitingCard}>
+            <View style={styles.waitingIcon}>
+              <Ionicons name="card-outline" size={28} color={colors.warning} />
+            </View>
+            <Text style={styles.waitingTitle}>بانتظار الدفع</Text>
+            <Text style={styles.waitingDesc}>
+              يرجى إكمال عملية الدفع لإرسال الطلب للمحل.
+            </Text>
+          </View>
+        )}
+
+        {/* PENDING_APPROVAL — customer must approve the quote */}
+        {order.status === 'pending_approval' && (
+          <View style={styles.approvalCard}>
+            <View style={styles.approvalHeader}>
+              <Ionicons name="pricetag-outline" size={24} color={colors.primary} />
+              <Text style={styles.approvalTitle}>السعر النهائي جاهز!</Text>
+            </View>
+            <Text style={styles.approvalDesc}>
+              قام المحل بتسعير عناصر القائمة. راجع الأسعار ووافق لبدء التحضير.
+            </Text>
+
+            {/* Quoted items */}
+            <View style={styles.quotedItems}>
+              {order.items.map((item) => (
+                <View key={item.id} style={styles.quotedItem}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.quotedItemName}>
+                      {item.nameArSnapshot || item.nameSnapshot}
+                    </Text>
+                    <Text style={styles.quotedItemQty}>
+                      {item.quantity} × {formatPrice(Number(item.priceSnapshot))}
+                    </Text>
+                  </View>
+                  <Text style={styles.quotedItemTotal}>
+                    {formatPrice(Number(item.priceSnapshot) * item.quantity)}
+                  </Text>
+                </View>
+              ))}
+            </View>
+
+            {/* Total */}
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>الإجمالي</Text>
+              <Text style={styles.totalValue}>{formatPrice(Number(order.total))}</Text>
+            </View>
+
+            {/* Payment method selection */}
+            <Text style={styles.paymentLabel}>اختر طريقة الدفع:</Text>
+            <View style={styles.paymentGrid}>
+              {PAYMENT_METHODS.map((m) => (
+                <Pressable
+                  key={m.value}
+                  onPress={() => setSelectedPayment(m.value)}
+                  style={[
+                    styles.paymentOption,
+                    selectedPayment === m.value && styles.paymentOptionActive,
+                  ]}
+                >
+                  <Ionicons
+                    name={m.icon}
+                    size={18}
+                    color={selectedPayment === m.value ? colors.primary : colors.textMuted}
+                  />
+                  <Text
+                    style={[
+                      styles.paymentOptionText,
+                      selectedPayment === m.value && styles.paymentOptionTextActive,
+                    ]}
+                  >
+                    {m.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+
+            {/* Approve / Reject buttons */}
+            <Pressable
+              onPress={handleApproveQuote}
+              disabled={approving}
+              style={styles.approveButton}
+            >
+              {approving ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <>
+                  <Ionicons name="checkmark-circle" size={20} color="#fff" />
+                  <Text style={styles.approveText}>
+                    أوافق — {formatPrice(Number(order.total))}
+                  </Text>
+                </>
+              )}
+            </Pressable>
+
+            <Pressable
+              onPress={handleRejectQuote}
+              disabled={rejecting}
+              style={styles.rejectButton}
+            >
+              <Text style={styles.rejectText}>
+                {rejecting ? '...' : 'لا أوافق — إلغاء الطلب'}
+              </Text>
+            </Pressable>
+          </View>
+        )}
+
+        {/* Raw request for free-text orders */}
+        {order.rawRequest ? (
+          <View style={styles.panel}>
+            <Text style={styles.panelTitle}>قائمة الطلب</Text>
+            <Text style={styles.rawRequestText}>{order.rawRequest}</Text>
+          </View>
+        ) : null}
+
+        {/* Stepper — only show for orders past the quote phase */}
+        {!['pending_quote', 'pending_payment', 'pending_approval'].includes(order.status) && (
+          <View style={styles.panel}>
+            <Text style={styles.panelTitle}>تتبع الطلب</Text>
+            <View style={styles.timeline}>
+              {steps.map((step, index) => {
+                const done = index <= currentIndex;
+                const active = index === currentIndex;
+                return (
+                  <View key={step.status} style={styles.stepRow}>
+                    <View style={[styles.stepDot, done && styles.stepDotDone, active && styles.stepDotActive]}>
+                      <Ionicons name={step.icon} size={17} color={done ? '#fff' : colors.textMuted} />
+                    </View>
+                    <Text style={[styles.stepText, done && styles.stepTextDone]}>{step.label}</Text>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+        )}
+
+        {/* Parking & Vehicle */}
         {(order.parkingSpot || order.vehicle) ? (
           <View style={styles.panel}>
             <Text style={styles.panelTitle}>بيانات الاستلام</Text>
@@ -161,22 +370,23 @@ export default function OrderDetailsScreen() {
           </View>
         ) : null}
 
-        <View style={styles.panel}>
-          <Text style={styles.panelTitle}>المنتجات</Text>
-          {order.items.map((item) => (
-            <View key={item.id} style={styles.itemRow}>
-              <View style={styles.itemInfo}>
-                <Text style={styles.itemName}>{item.nameArSnapshot || item.nameSnapshot}</Text>
-                <Text style={styles.itemQty}>الكمية {item.quantity}</Text>
+        {/* Order items — show when not in approval state (approval shows its own items) */}
+        {order.status !== 'pending_approval' && order.items.length > 0 && (
+          <View style={styles.panel}>
+            <Text style={styles.panelTitle}>المنتجات</Text>
+            {order.items.map((item) => (
+              <View key={item.id} style={styles.itemRow}>
+                <View style={styles.itemInfo}>
+                  <Text style={styles.itemName}>{item.nameArSnapshot || item.nameSnapshot}</Text>
+                  <Text style={styles.itemQty}>الكمية {item.quantity}</Text>
+                </View>
+                <Text style={styles.itemPrice}>{formatPrice(Number(item.priceSnapshot) * item.quantity)}</Text>
               </View>
-              <Text style={styles.itemPrice}>{formatPrice(Number(item.priceSnapshot) * item.quantity)}</Text>
-            </View>
-          ))}
-          <View style={styles.divider} />
-          <Summary label="المجموع" value={formatPrice(Number(order.subtotal ?? 0))} />
-          <Summary label="الضريبة" value={formatPrice(Number(order.tax ?? 0))} />
-          <Summary label="الإجمالي" value={formatPrice(Number(order.total ?? 0))} strong />
-        </View>
+            ))}
+            <View style={styles.divider} />
+            <Summary label="الإجمالي" value={formatPrice(Number(order.total ?? 0))} strong />
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -218,11 +428,8 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   backButton: {
-    width: 42,
-    height: 42,
-    borderRadius: radius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 42, height: 42, borderRadius: radius.lg,
+    alignItems: 'center', justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.14)',
   },
   headerText: { flex: 1 },
@@ -230,45 +437,100 @@ const styles = StyleSheet.create({
   title: { ...typography.h2, color: '#fff', textAlign: 'right' },
   subtitle: { ...typography.caption, color: 'rgba(255,255,255,0.72)', textAlign: 'right' },
   content: { padding: spacing.base, paddingBottom: spacing['4xl'], gap: spacing.base },
+
+  // Status card
   statusCard: {
-    backgroundColor: colors.primaryDark,
-    borderRadius: radius.lg,
-    padding: spacing.base,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
+    backgroundColor: colors.primaryDark, borderRadius: radius.lg, padding: spacing.base,
+    flexDirection: 'row', alignItems: 'center', gap: spacing.md,
   },
   statusIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: radius.lg,
-    backgroundColor: 'rgba(255,255,255,0.14)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 48, height: 48, borderRadius: radius.lg,
+    backgroundColor: 'rgba(255,255,255,0.14)', alignItems: 'center', justifyContent: 'center',
   },
   statusText: { flex: 1 },
   statusLabel: { ...typography.caption, color: 'rgba(255,255,255,0.7)', textAlign: 'right' },
   statusValue: { ...typography.h4, color: '#fff', textAlign: 'right' },
   etaBadge: { borderRadius: radius.full, backgroundColor: colors.accent, paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
   etaText: { ...typography.caption, color: '#fff', fontFamily: typography.label.fontFamily },
+
+  // Waiting card (pending_quote / pending_payment)
+  waitingCard: {
+    backgroundColor: '#FFF8E1', borderRadius: radius.xl, padding: spacing.xl,
+    borderWidth: 2, borderColor: '#FFD54F', alignItems: 'center', gap: spacing.md,
+  },
+  waitingIcon: {
+    width: 56, height: 56, borderRadius: 28,
+    backgroundColor: '#FFF3C4', alignItems: 'center', justifyContent: 'center',
+  },
+  waitingTitle: { ...typography.h4, color: '#F57F17', textAlign: 'center' },
+  waitingDesc: { ...typography.bodySm, color: '#795548', textAlign: 'center', lineHeight: 22 },
+
+  // Approval card (pending_approval)
+  approvalCard: {
+    backgroundColor: '#E8F5E9', borderRadius: radius.xl, padding: spacing.xl,
+    borderWidth: 2, borderColor: '#81C784', gap: spacing.md,
+  },
+  approvalHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, justifyContent: 'center' },
+  approvalTitle: { ...typography.h4, color: '#2E7D32', textAlign: 'center' },
+  approvalDesc: { ...typography.bodySm, color: '#4E342E', textAlign: 'center', lineHeight: 22 },
+
+  // Quoted items
+  quotedItems: { gap: spacing.sm },
+  quotedItem: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: '#fff', borderRadius: radius.lg, padding: spacing.md,
+    borderWidth: 1, borderColor: '#C8E6C9',
+  },
+  quotedItemName: { ...typography.label, color: colors.textPrimary, textAlign: 'right' },
+  quotedItemQty: { ...typography.caption, color: colors.textSecondary, textAlign: 'right', marginTop: 2 },
+  quotedItemTotal: { ...typography.label, color: '#2E7D32' },
+
+  // Total
+  totalRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: '#C8E6C9', borderRadius: radius.lg, padding: spacing.md,
+  },
+  totalLabel: { ...typography.label, color: '#1B5E20' },
+  totalValue: { ...typography.h3, color: '#1B5E20' },
+
+  // Payment
+  paymentLabel: { ...typography.label, color: colors.textPrimary, textAlign: 'right' },
+  paymentGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  paymentOption: {
+    width: '48%', flexGrow: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: spacing.xs, backgroundColor: '#fff', borderRadius: radius.lg,
+    borderWidth: 2, borderColor: '#E0E0E0', paddingVertical: spacing.md,
+  },
+  paymentOptionActive: { borderColor: colors.primary, backgroundColor: '#E3F2FD' },
+  paymentOptionText: { ...typography.bodySm, color: colors.textSecondary },
+  paymentOptionTextActive: { color: colors.primary, fontFamily: typography.label.fontFamily },
+
+  // Buttons
+  approveButton: {
+    backgroundColor: '#2E7D32', borderRadius: radius.lg, paddingVertical: 14,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm,
+  },
+  approveText: { ...typography.buttonSm, color: '#fff', fontSize: 15 },
+  rejectButton: {
+    backgroundColor: 'transparent', borderRadius: radius.lg, paddingVertical: 10,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  rejectText: { ...typography.bodySm, color: '#D32F2F' },
+
+  // Raw request
+  rawRequestText: { ...typography.bodySm, color: colors.textPrimary, textAlign: 'right', lineHeight: 24 },
+
+  // Panel
   panel: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.borderLight,
-    padding: spacing.base,
-    gap: spacing.md,
+    backgroundColor: colors.surface, borderRadius: radius.lg,
+    borderWidth: 1, borderColor: colors.borderLight, padding: spacing.base, gap: spacing.md,
   },
   panelTitle: { ...typography.h4, color: colors.textPrimary, textAlign: 'right' },
   timeline: { gap: spacing.base },
   stepRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   stepDot: {
-    width: 38,
-    height: 38,
-    borderRadius: radius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.backgroundSecondary,
+    width: 38, height: 38, borderRadius: radius.full,
+    alignItems: 'center', justifyContent: 'center', backgroundColor: colors.backgroundSecondary,
   },
   stepDotDone: { backgroundColor: colors.primary },
   stepDotActive: { backgroundColor: colors.accent },

@@ -2,6 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -43,15 +46,25 @@ type Category = {
   sortOrder?: number;
 };
 
+type OrderItem = {
+  id: string;
+  nameArSnapshot?: string;
+  nameSnapshot?: string;
+  quantity: number;
+  priceSnapshot?: number | string;
+};
+
 type Order = {
   id: string;
   orderNumber: string;
   status: string;
+  type?: string;
   total: number | string;
   createdAt: string;
+  rawRequest?: string;
   customer?: { mobile?: string; fullName?: string };
   parkingSpot?: { spotNumber?: string };
-  items?: Array<{ id: string; nameArSnapshot?: string; nameSnapshot?: string; quantity: number }>;
+  items?: OrderItem[];
 };
 
 type Catalog = {
@@ -62,6 +75,9 @@ type Catalog = {
 type TabKey = 'orders' | 'location' | 'categories';
 
 const nextStatus: Record<string, { status: string; label: string; icon: keyof typeof Ionicons.glyphMap } | null> = {
+  pending_payment: null,
+  pending_quote: null, // handled separately with quote modal
+  pending_approval: null, // waiting for customer
   new: { status: 'accepted', label: 'قبول', icon: 'checkmark-outline' },
   accepted: { status: 'preparing', label: 'تحضير', icon: 'restaurant-outline' },
   preparing: { status: 'ready', label: 'جاهز', icon: 'bag-check-outline' },
@@ -98,6 +114,9 @@ export default function StaffScreen() {
   const [savingLocation, setSavingLocation] = useState(false);
   const [savingCategory, setSavingCategory] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [quoteOrder, setQuoteOrder] = useState<Order | null>(null);
+  const [quotePrices, setQuotePrices] = useState<Record<string, string>>({});
+  const [submittingQuote, setSubmittingQuote] = useState(false);
 
   const user = isStaffUser(session?.user) ? session.user : null;
   const lat = toNumber(store?.lat);
@@ -204,6 +223,40 @@ export default function StaffScreen() {
     }
   };
 
+  const openQuoteModal = (order: Order) => {
+    const prices: Record<string, string> = {};
+    order.items?.forEach((item) => {
+      prices[item.id] = item.priceSnapshot ? String(item.priceSnapshot) : '';
+    });
+    setQuotePrices(prices);
+    setQuoteOrder(order);
+  };
+
+  const submitQuote = async () => {
+    if (!quoteOrder) return;
+    const items = Object.entries(quotePrices).map(([itemId, price]) => ({
+      itemId,
+      price: Number(price) || 0,
+    }));
+
+    if (items.some((i) => i.price <= 0)) {
+      Alert.alert('أسعار ناقصة', 'يجب إدخال سعر لكل عنصر في القائمة.');
+      return;
+    }
+
+    setSubmittingQuote(true);
+    try {
+      await api.patch(`/orders/${quoteOrder.id}/quote`, { items });
+      setQuoteOrder(null);
+      Alert.alert('تم الإرسال', 'تم إرسال التسعير للعميل وبانتظار موافقته.');
+      await load(true);
+    } catch {
+      Alert.alert('خطأ', 'تعذر إرسال التسعير، حاول مرة أخرى.');
+    } finally {
+      setSubmittingQuote(false);
+    }
+  };
+
   const addCategory = async () => {
     if (!user) return;
     const nameAr = categoryNameAr.trim();
@@ -270,6 +323,7 @@ export default function StaffScreen() {
               summary={summary}
               updatingId={updatingId}
               onUpdateStatus={updateStatus}
+              onOpenQuote={openQuoteModal}
             />
           ) : null}
 
@@ -395,6 +449,97 @@ export default function StaffScreen() {
           ) : null}
         </ScrollView>
       )}
+
+      {/* Quote Pricing Modal */}
+      <Modal visible={!!quoteOrder} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            style={styles.modalContainer}
+          >
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Pressable onPress={() => setQuoteOrder(null)} style={styles.modalClose}>
+                  <Ionicons name="close" size={22} color={colors.textPrimary} />
+                </Pressable>
+                <Text style={styles.modalTitle}>تسعير الطلب #{quoteOrder?.orderNumber}</Text>
+                <View style={{ width: 36 }} />
+              </View>
+
+              {quoteOrder?.rawRequest ? (
+                <View style={styles.rawRequestBox}>
+                  <Text style={styles.rawRequestLabel}>طلب العميل:</Text>
+                  <Text style={styles.rawRequestContent}>{quoteOrder.rawRequest}</Text>
+                </View>
+              ) : null}
+
+              <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
+                {quoteOrder?.items?.map((item) => (
+                  <View key={item.id} style={styles.quoteItemRow}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.quoteItemName}>
+                        {item.nameArSnapshot || item.nameSnapshot}
+                      </Text>
+                      <Text style={styles.quoteItemQty}>الكمية: {item.quantity}</Text>
+                    </View>
+                    <TextInput
+                      value={quotePrices[item.id] ?? ''}
+                      onChangeText={(text) =>
+                        setQuotePrices((prev) => ({ ...prev, [item.id]: text }))
+                      }
+                      placeholder="السعر"
+                      placeholderTextColor={colors.textMuted}
+                      keyboardType="decimal-pad"
+                      style={styles.priceInput}
+                      textAlign="center"
+                    />
+                  </View>
+                ))}
+
+                {(!quoteOrder?.items || quoteOrder.items.length === 0) && quoteOrder?.rawRequest ? (
+                  <View style={styles.noItemsHint}>
+                    <Ionicons name="information-circle-outline" size={22} color={colors.warning} />
+                    <Text style={styles.noItemsText}>
+                      هذا طلب نص حر. أضف العناصر والأسعار من لوحة التحكم ثم أرسل التسعير.
+                    </Text>
+                  </View>
+                ) : null}
+              </ScrollView>
+
+              {quoteOrder?.items && quoteOrder.items.length > 0 ? (
+                <>
+                  <View style={styles.quoteTotalRow}>
+                    <Text style={styles.quoteTotalLabel}>الإجمالي</Text>
+                    <Text style={styles.quoteTotalValue}>
+                      {formatPrice(
+                        quoteOrder.items.reduce(
+                          (sum, item) => sum + (Number(quotePrices[item.id] || 0) * item.quantity),
+                          0,
+                        ),
+                      )}
+                    </Text>
+                  </View>
+
+                  <Pressable
+                    onPress={submitQuote}
+                    disabled={submittingQuote}
+                    style={styles.submitQuoteButton}
+                  >
+                    {submittingQuote ? (
+                      <ActivityIndicator color="#fff" size="small" />
+                    ) : (
+                      <>
+                        <Ionicons name="send" size={18} color="#fff" />
+                        <Text style={styles.submitQuoteText}>إرسال التسعير للعميل</Text>
+                      </>
+                    )}
+                  </Pressable>
+                </>
+              ) : null}
+            </View>
+          </KeyboardAvoidingView>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -406,6 +551,7 @@ function OrdersTab({
   summary,
   updatingId,
   onUpdateStatus,
+  onOpenQuote,
 }: {
   orders: Order[];
   productsCount: number;
@@ -413,6 +559,7 @@ function OrdersTab({
   summary: { total: number; active: number; ready: number; revenue: number };
   updatingId: string | null;
   onUpdateStatus: (order: Order, status: string) => void;
+  onOpenQuote: (order: Order) => void;
 }) {
   return (
     <>
@@ -471,12 +618,54 @@ function OrdersTab({
                 <Text style={styles.orderTotal}>{formatPrice(Number(order.total ?? 0))}</Text>
               </View>
 
+              {/* Raw request for free-text orders */}
+              {order.rawRequest ? (
+                <Text style={styles.rawText} numberOfLines={2}>📝 {order.rawRequest}</Text>
+              ) : null}
+
               {order.items?.length ? (
                 <Text style={styles.itemsText} numberOfLines={2}>
                   {order.items.map((item) => `${item.quantity}x ${item.nameArSnapshot || item.nameSnapshot}`).join('، ')}
                 </Text>
               ) : null}
 
+              {/* PENDING_QUOTE — show "تسعير" button */}
+              {order.status === 'pending_quote' ? (
+                <View style={styles.actionRow}>
+                  <Pressable
+                    onPress={() => onOpenQuote(order)}
+                    style={styles.quoteAction}
+                  >
+                    <Ionicons name="pricetag-outline" size={18} color="#fff" />
+                    <Text style={styles.primaryActionText}>تسعير</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => onUpdateStatus(order, 'cancelled')}
+                    disabled={updatingId === order.id}
+                    style={styles.cancelAction}
+                  >
+                    <Text style={styles.cancelActionText}>إلغاء</Text>
+                  </Pressable>
+                </View>
+              ) : null}
+
+              {/* PENDING_APPROVAL — waiting for customer */}
+              {order.status === 'pending_approval' ? (
+                <View style={styles.waitingBadge}>
+                  <Ionicons name="hourglass-outline" size={16} color={colors.warning} />
+                  <Text style={styles.waitingBadgeText}>بانتظار موافقة العميل</Text>
+                </View>
+              ) : null}
+
+              {/* PENDING_PAYMENT — waiting for payment */}
+              {order.status === 'pending_payment' ? (
+                <View style={styles.waitingBadge}>
+                  <Ionicons name="card-outline" size={16} color={colors.warning} />
+                  <Text style={styles.waitingBadgeText}>بانتظار دفع العميل</Text>
+                </View>
+              ) : null}
+
+              {/* Normal status actions */}
               {action ? (
                 <View style={styles.actionRow}>
                   <Pressable
@@ -753,4 +942,127 @@ const styles = StyleSheet.create({
   empty: { alignItems: 'center', paddingVertical: spacing['4xl'], gap: spacing.sm },
   emptyText: { ...typography.bodySm, color: colors.textMuted },
   mutedText: { ...typography.bodySm, color: colors.textMuted, textAlign: 'center', paddingVertical: spacing.md },
+
+  // Raw text for free-text orders
+  rawText: { ...typography.caption, color: '#795548', textAlign: 'right', backgroundColor: '#FFF8E1', borderRadius: radius.md, padding: spacing.sm },
+
+  // Quote action button
+  quoteAction: {
+    flex: 1,
+    minHeight: 42,
+    borderRadius: radius.lg,
+    backgroundColor: '#F57C00',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+
+  // Waiting badge
+  waitingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    backgroundColor: '#FFF8E1',
+    borderRadius: radius.lg,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+  },
+  waitingBadgeText: { ...typography.caption, color: '#F57F17', fontFamily: typography.label.fontFamily },
+
+  // Quote Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContainer: { flex: 1, justifyContent: 'flex-end' },
+  modalContent: {
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: radius['2xl'],
+    borderTopRightRadius: radius['2xl'],
+    paddingTop: spacing.base,
+    paddingBottom: spacing['4xl'],
+    paddingHorizontal: spacing.base,
+    maxHeight: '85%',
+    gap: spacing.md,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  modalClose: {
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: colors.backgroundSecondary,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  modalTitle: { ...typography.h4, color: colors.textPrimary, textAlign: 'center', flex: 1 },
+  modalScroll: { maxHeight: 300 },
+
+  rawRequestBox: {
+    backgroundColor: '#FFF8E1',
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: '#FFD54F',
+  },
+  rawRequestLabel: { ...typography.caption, color: '#F57F17', textAlign: 'right', marginBottom: spacing.xs },
+  rawRequestContent: { ...typography.bodySm, color: '#795548', textAlign: 'right', lineHeight: 22 },
+
+  quoteItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+  },
+  quoteItemName: { ...typography.label, color: colors.textPrimary, textAlign: 'right' },
+  quoteItemQty: { ...typography.caption, color: colors.textSecondary, textAlign: 'right', marginTop: 2 },
+  priceInput: {
+    width: 90,
+    height: 44,
+    borderRadius: radius.lg,
+    borderWidth: 2,
+    borderColor: colors.border,
+    backgroundColor: colors.background,
+    color: colors.textPrimary,
+    fontFamily: typography.label.fontFamily,
+    fontSize: 16,
+  },
+
+  noItemsHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: '#FFF8E1',
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    marginVertical: spacing.md,
+  },
+  noItemsText: { ...typography.caption, color: '#795548', flex: 1, textAlign: 'right', lineHeight: 20 },
+
+  quoteTotalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+  },
+  quoteTotalLabel: { ...typography.label, color: colors.textPrimary },
+  quoteTotalValue: { ...typography.h3, color: colors.primary },
+
+  submitQuoteButton: {
+    minHeight: 50,
+    borderRadius: radius.lg,
+    backgroundColor: '#F57C00',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  submitQuoteText: { ...typography.buttonSm, color: '#fff', fontSize: 15 },
 });

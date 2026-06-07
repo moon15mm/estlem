@@ -31,6 +31,9 @@ const CATEGORY_AR: Record<string, string> = {
 export const getCategoryLabel = (cat: string) => CATEGORY_AR[cat] ?? cat;
 
 const STATUS_AR: Record<string, string> = {
+  pending_payment: 'بانتظار الدفع',
+  pending_quote: 'بانتظار التسعير',
+  pending_approval: 'بانتظار الموافقة',
   new: 'جديد',
   accepted: 'مقبول',
   preparing: 'قيد التحضير',
