@@ -81,6 +81,7 @@ export default function OrderDetailsScreen() {
         orderNumber: data.orderNumber,
         total: Number(data.total ?? 0),
         createdAt: data.createdAt,
+        storeName: '',
       });
     } finally {
       setLoading(false);

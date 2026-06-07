@@ -50,8 +50,7 @@ export default function CartScreen() {
   });
 
   const subtotal = total();
-  const tax = useMemo(() => subtotal * 0.15, [subtotal]);
-  const grandTotal = useMemo(() => subtotal + tax, [subtotal, tax]);
+  const grandTotal = subtotal;
 
   const submit = async () => {
     if (!storeId || !tenantId || items.length === 0) {
@@ -219,9 +218,6 @@ export default function CartScreen() {
             </View>
 
             <View style={styles.summary}>
-              <SummaryRow label="المجموع" value={formatPrice(subtotal)} />
-              <SummaryRow label="ضريبة القيمة المضافة 15%" value={formatPrice(tax)} />
-              <View style={styles.summaryDivider} />
               <SummaryRow label="الإجمالي" value={formatPrice(grandTotal)} strong />
             </View>
           </>

@@ -1,12 +1,27 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import Animated, { FadeInDown, FadeInUp, SlideInDown } from '@/lib/animated';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { api } from '../../src/lib/api';
 import { ProductCard } from '../../src/components/ProductCard';
+import { useAuth } from '../../src/stores/useAuth';
 import { useCart } from '../../src/stores/useCart';
+import { useOrders } from '../../src/stores/useOrders';
 import { formatPrice, getCategoryLabel } from '../../src/lib/utils';
 import { colors, radius, spacing, typography } from '../../src/theme';
 
@@ -54,6 +69,16 @@ export default function StoreScreen() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showFreeText, setShowFreeText] = useState(false);
+  const [freeTextRequest, setFreeTextRequest] = useState('');
+  const [freeTextName, setFreeTextName] = useState('');
+  const [freeTextMobile, setFreeTextMobile] = useState('');
+  const [submittingFreeText, setSubmittingFreeText] = useState(false);
+  const session = useAuth((state) => state.session);
+  const addOrder = useOrders((state) => state.addOrder);
+  const customer = session?.type === 'customer'
+    ? session.user as { fullName?: string | null; mobile?: string }
+    : null;
 
   useEffect(() => {
     if (!id || !tenantId) return;
@@ -90,6 +115,57 @@ export default function StoreScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
   }, [addItem]);
 
+  const openFreeText = () => {
+    setFreeTextName(customer?.fullName ?? '');
+    setFreeTextMobile(customer?.mobile ?? '');
+    setFreeTextRequest('');
+    setShowFreeText(true);
+  };
+
+  const submitFreeText = async () => {
+    if (!freeTextRequest.trim()) {
+      Alert.alert('القائمة فارغة', 'اكتب ما تريد شراءه.');
+      return;
+    }
+    if (!freeTextName.trim() || freeTextMobile.trim().length < 9) {
+      Alert.alert('بيانات ناقصة', 'أدخل الاسم ورقم الجوال.');
+      return;
+    }
+
+    setSubmittingFreeText(true);
+    try {
+      const order = await api.post('/orders', {
+        storeId: id,
+        tenantId,
+        parkingSpotId: spotId ?? undefined,
+        type: 'free_text',
+        paymentMethod: 'cash',
+        rawRequest: freeTextRequest.trim(),
+        items: [],
+        customer: {
+          fullName: freeTextName.trim(),
+          mobile: freeTextMobile.trim(),
+        },
+      }) as { id: string; orderNumber?: string; total?: number; createdAt?: string };
+
+      addOrder({
+        id: order.id,
+        orderNumber: order.orderNumber,
+        total: Number(order.total ?? 0),
+        createdAt: order.createdAt ?? new Date().toISOString(),
+        storeName: store?.nameAr || store?.name,
+      });
+
+      setShowFreeText(false);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      router.push(`/order/${order.id}`);
+    } catch {
+      Alert.alert('فشل إرسال الطلب', 'تحقق من الاتصال وحاول مرة أخرى.');
+    } finally {
+      setSubmittingFreeText(false);
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -110,6 +186,10 @@ export default function StoreScreen() {
           <Text style={styles.storeName}>{store?.nameAr || store?.name || 'المتجر'}</Text>
           <Text style={styles.storeCategory}>{getCategoryLabel(store?.category ?? '')}</Text>
         </View>
+        <Pressable onPress={openFreeText} style={styles.freeTextBtn}>
+          <Ionicons name="create-outline" size={18} color="#fff" />
+          <Text style={styles.freeTextBtnText}>قائمة حرة</Text>
+        </Pressable>
       </Animated.View>
 
       {categories.length > 0 ? (
@@ -168,6 +248,75 @@ export default function StoreScreen() {
           </View>
         }
       />
+
+      {/* Free Text Modal */}
+      <Modal visible={showFreeText} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            style={styles.modalContainer}
+          >
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Pressable onPress={() => setShowFreeText(false)} style={styles.modalClose}>
+                  <Ionicons name="close" size={22} color={colors.textPrimary} />
+                </Pressable>
+                <Text style={styles.modalTitle}>📝 قائمة حرة</Text>
+                <View style={{ width: 36 }} />
+              </View>
+
+              <Text style={styles.modalDesc}>
+                اكتب ما تريد شراءه وسيقوم المحل بتسعير القائمة وإرسالها لك للموافقة.
+              </Text>
+
+              <TextInput
+                value={freeTextRequest}
+                onChangeText={setFreeTextRequest}
+                placeholder={"مثال:\n- 2 كيلو تفاح\n- حليب كبير\n- خبز أبيض 3"}
+                placeholderTextColor={colors.textMuted}
+                multiline
+                style={styles.freeTextInput}
+                textAlign="right"
+                textAlignVertical="top"
+              />
+
+              <TextInput
+                value={freeTextName}
+                onChangeText={setFreeTextName}
+                placeholder="الاسم"
+                placeholderTextColor={colors.textMuted}
+                style={styles.modalInput}
+                textAlign="right"
+              />
+
+              <TextInput
+                value={freeTextMobile}
+                onChangeText={setFreeTextMobile}
+                placeholder="رقم الجوال"
+                placeholderTextColor={colors.textMuted}
+                keyboardType="phone-pad"
+                style={styles.modalInput}
+                textAlign="right"
+              />
+
+              <Pressable
+                onPress={submitFreeText}
+                disabled={submittingFreeText}
+                style={styles.submitFreeTextBtn}
+              >
+                {submittingFreeText ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <>
+                    <Ionicons name="send" size={18} color="#fff" />
+                    <Text style={styles.submitFreeTextText}>إرسال الطلب</Text>
+                  </>
+                )}
+              </Pressable>
+            </View>
+          </KeyboardAvoidingView>
+        </View>
+      </Modal>
 
       {count > 0 ? (
         <Animated.View entering={SlideInDown.springify()} style={styles.cartBar}>
@@ -270,4 +419,75 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
   },
   cartBtnText: { ...typography.buttonSm, color: '#fff' },
+
+  // Free text button in header
+  freeTextBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.lg,
+  },
+  freeTextBtnText: { ...typography.caption, color: '#fff', fontFamily: typography.label.fontFamily },
+
+  // Modal
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  modalContainer: { flex: 1, justifyContent: 'flex-end' },
+  modalContent: {
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: radius['2xl'],
+    borderTopRightRadius: radius['2xl'],
+    paddingTop: spacing.base,
+    paddingBottom: spacing['4xl'],
+    paddingHorizontal: spacing.base,
+    gap: spacing.md,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  modalClose: {
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: colors.backgroundSecondary,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  modalTitle: { ...typography.h4, color: colors.textPrimary, textAlign: 'center', flex: 1 },
+  modalDesc: { ...typography.bodySm, color: colors.textSecondary, textAlign: 'center', lineHeight: 22 },
+  freeTextInput: {
+    minHeight: 120,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.background,
+    paddingHorizontal: spacing.base,
+    paddingVertical: spacing.md,
+    color: colors.textPrimary,
+    fontFamily: typography.body.fontFamily,
+    fontSize: 15,
+    lineHeight: 24,
+  },
+  modalInput: {
+    minHeight: 48,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.background,
+    paddingHorizontal: spacing.base,
+    color: colors.textPrimary,
+    fontFamily: typography.body.fontFamily,
+    fontSize: 15,
+  },
+  submitFreeTextBtn: {
+    minHeight: 50,
+    borderRadius: radius.lg,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  submitFreeTextText: { ...typography.buttonSm, color: '#fff', fontSize: 15 },
 });
