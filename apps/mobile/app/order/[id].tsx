@@ -43,7 +43,10 @@ type Order = {
 };
 
 const PAYMENT_METHODS = [
-  { label: 'الدفع عند الاستلام', value: 'cash', icon: 'cash-outline' as const },
+  { label: 'كاش', value: 'cash', icon: 'cash-outline' as const },
+  { label: 'مدى', value: 'mada', icon: 'card-outline' as const },
+  { label: 'Apple Pay', value: 'apple_pay', icon: 'logo-apple' as const },
+  { label: 'بطاقة', value: 'card', icon: 'card-outline' as const },
 ];
 
 const steps = [
@@ -224,6 +227,13 @@ export default function OrderDetailsScreen() {
             <Text style={styles.waitingDesc}>
               يرجى إكمال عملية الدفع لإرسال الطلب للمحل.
             </Text>
+            <Pressable
+              onPress={() => router.push(`/pay/${order.id}`)}
+              style={styles.payNowButton}
+            >
+              <Ionicons name="lock-closed" size={18} color="#fff" />
+              <Text style={styles.payNowText}>ادفع الآن — {formatPrice(Number(order.total))}</Text>
+            </Pressable>
           </View>
         )}
 
@@ -462,6 +472,17 @@ const styles = StyleSheet.create({
   },
   waitingTitle: { ...typography.h4, color: '#F57F17', textAlign: 'center' },
   waitingDesc: { ...typography.bodySm, color: '#795548', textAlign: 'center', lineHeight: 22 },
+  payNowButton: {
+    backgroundColor: colors.primary,
+    borderRadius: radius.lg,
+    paddingVertical: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    width: '100%',
+  },
+  payNowText: { ...typography.buttonSm, color: '#fff', fontSize: 15 },
 
   // Approval card (pending_approval)
   approvalCard: {

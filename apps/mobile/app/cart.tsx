@@ -20,10 +20,13 @@ import { useCart } from '../src/stores/useCart';
 import { useOrders } from '../src/stores/useOrders';
 import { colors, radius, spacing, typography } from '../src/theme';
 
-type PaymentMethod = 'cash';
+type PaymentMethod = 'mada' | 'card' | 'apple_pay' | 'cash';
 
 const PAYMENT_OPTIONS: Array<{ label: string; value: PaymentMethod; icon: keyof typeof Ionicons.glyphMap }> = [
-  { label: 'الدفع عند الاستلام', value: 'cash', icon: 'cash-outline' },
+  { label: 'مدى', value: 'mada', icon: 'card-outline' },
+  { label: 'بطاقة', value: 'card', icon: 'card' },
+  { label: 'Apple Pay', value: 'apple_pay', icon: 'logo-apple' },
+  { label: 'عند الاستلام', value: 'cash', icon: 'cash-outline' },
 ];
 
 export default function CartScreen() {
@@ -97,7 +100,12 @@ export default function CartScreen() {
         createdAt: order.createdAt ?? new Date().toISOString(),
       });
       clearCart();
-      router.replace(`/order/${order.id}`);
+      if (form.paymentMethod !== 'cash') {
+        // Electronic payment — go to payment page
+        router.replace(`/pay/${order.id}`);
+      } else {
+        router.replace(`/order/${order.id}`);
+      }
     } catch {
       Alert.alert('تعذر إرسال الطلب', 'تحقق من الاتصال وحاول مرة أخرى.');
     } finally {
