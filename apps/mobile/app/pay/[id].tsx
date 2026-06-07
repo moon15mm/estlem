@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -84,10 +85,8 @@ export default function PayScreen() {
         Alert.alert('✅ تم الدفع بنجاح', 'سيبدأ المحل بتحضير طلبك الآن.');
         router.replace(`/order/${order.id}`);
       } else if (session?.paymentUrl) {
-        // Real gateway — open in browser (WebView not needed for redirect)
-        Alert.alert('الدفع', 'سيتم فتح صفحة الدفع في المتصفح. بعد إتمام الدفع ارجع للتطبيق.');
-        const { openBrowserAsync } = await import('expo-web-browser');
-        await openBrowserAsync(session.paymentUrl);
+        // Real gateway — open in external browser
+        await Linking.openURL(session.paymentUrl);
         router.replace(`/order/${order.id}`);
       } else {
         Alert.alert('خطأ', 'فشل بدء معالجة الدفع');

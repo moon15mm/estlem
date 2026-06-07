@@ -171,10 +171,10 @@ export class OrdersService {
         relations: ['items', 'customer', 'vehicle', 'parkingSpot'],
       });
 
-      // Only notify the store if order is ready to be processed.
-      // PENDING_PAYMENT and PENDING_QUOTE wait — the store is notified
-      // after payment confirmation or quote approval.
-      if (initialStatus === OrderStatus.NEW) {
+      // Notify store for actionable orders:
+      // NEW = ready to process, PENDING_QUOTE = needs pricing
+      // PENDING_PAYMENT = waiting for customer payment (no action needed from store)
+      if (initialStatus === OrderStatus.NEW || initialStatus === OrderStatus.PENDING_QUOTE) {
         this.gateway.emitToStore(storeId, WsEvent.ORDER_CREATED, fullOrder);
       }
 
