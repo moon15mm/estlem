@@ -132,11 +132,13 @@ export class OrdersService {
       // 2. Electronic payment → wait for payment confirmation
       // 3. Cash → straight to NEW (notify store immediately)
       const hasUnpricedItems = items.some((i) => !i.priceSnapshot || i.priceSnapshot === 0);
+      const isElectronic = dto.paymentMethod !== 'cash';
       let initialStatus: OrderStatus;
       if (hasUnpricedItems) {
         initialStatus = OrderStatus.PENDING_QUOTE;
+      } else if (isElectronic) {
+        initialStatus = OrderStatus.PENDING_PAYMENT;
       } else {
-        // No payment gateway integrated — all orders go directly to NEW
         initialStatus = OrderStatus.NEW;
       }
 

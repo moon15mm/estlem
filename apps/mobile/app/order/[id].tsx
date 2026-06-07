@@ -43,10 +43,7 @@ type Order = {
 };
 
 const PAYMENT_METHODS = [
-  { label: 'كاش', value: 'cash', icon: 'cash-outline' as const },
-  { label: 'مدى', value: 'mada', icon: 'card-outline' as const },
-  { label: 'Apple Pay', value: 'apple_pay', icon: 'logo-apple' as const },
-  { label: 'بطاقة', value: 'card', icon: 'card-outline' as const },
+  { label: 'الدفع عند الاستلام', value: 'cash', icon: 'cash-outline' as const },
 ];
 
 const steps = [

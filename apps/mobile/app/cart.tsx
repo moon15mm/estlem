@@ -20,13 +20,10 @@ import { useCart } from '../src/stores/useCart';
 import { useOrders } from '../src/stores/useOrders';
 import { colors, radius, spacing, typography } from '../src/theme';
 
-type PaymentMethod = 'mada' | 'card' | 'apple_pay' | 'cash';
+type PaymentMethod = 'cash';
 
 const PAYMENT_OPTIONS: Array<{ label: string; value: PaymentMethod; icon: keyof typeof Ionicons.glyphMap }> = [
-  { label: 'مدى', value: 'mada', icon: 'card-outline' },
-  { label: 'بطاقة', value: 'card', icon: 'card' },
-  { label: 'Apple Pay', value: 'apple_pay', icon: 'logo-apple' },
-  { label: 'عند الاستلام', value: 'cash', icon: 'cash-outline' },
+  { label: 'الدفع عند الاستلام', value: 'cash', icon: 'cash-outline' },
 ];
 
 export default function CartScreen() {
