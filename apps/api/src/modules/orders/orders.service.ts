@@ -1,5 +1,5 @@
 import {
-  Injectable, NotFoundException, BadRequestException, ForbiddenException,
+  Injectable, Logger, NotFoundException, BadRequestException, ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
@@ -37,7 +37,10 @@ export class OrdersService {
     private dataSource: DataSource,
   ) {}
 
+  private readonly logger = new Logger('OrdersService');
+
   async create(dto: CreateOrderDto, storeId: string, tenantId: string): Promise<Order> {
+    this.logger.log(`[CREATE] type=${dto.type} storeId=${storeId} tenantId=${tenantId} rawRequest=${dto.rawRequest?.substring(0, 50)} items=${dto.items?.length ?? 0}`);
     return this.dataSource.transaction(async (manager) => {
       // Upsert customer
       let customer = await manager.findOne(Customer, {
@@ -85,7 +88,9 @@ export class OrdersService {
       let subtotal = 0;
 
       if (dto.type === OrderType.FREE_TEXT && dto.rawRequest) {
+        this.logger.log(`[CREATE] Parsing free text: "${dto.rawRequest.substring(0, 80)}"`);
         const parsed = await this.aiCart.parseShoppingList(dto.rawRequest, storeId);
+        this.logger.log(`[CREATE] Parsed ${parsed.length} items: ${JSON.stringify(parsed.map(p => ({ name: p.name, price: p.price })))}`);
         items = parsed.map((p) => ({
           productId: p.productId ?? null,
           nameSnapshot: p.name,
@@ -171,6 +176,8 @@ export class OrdersService {
         relations: ['items', 'customer', 'vehicle', 'parkingSpot'],
       });
 
+      this.logger.log(`[CREATED] orderId=${order.id} orderNumber=${order.orderNumber} status=${initialStatus} storeId=${order.storeId} tenantId=${order.tenantId} itemsCount=${savedItems.length} total=${order.total}`);
+
       // Notify store for actionable orders:
       // NEW = ready to process, PENDING_QUOTE = needs pricing
       // PENDING_PAYMENT = waiting for customer payment (no action needed from store)
@@ -225,6 +232,7 @@ export class OrdersService {
   }
 
   async findByStore(storeId: string, tenantId: string, query: Record<string, string>) {
+    this.logger.log(`[FIND_BY_STORE] storeId=${storeId} tenantId=${tenantId} query=${JSON.stringify(query)}`);
     const qb = this.orderRepo
       .createQueryBuilder('order')
       .where('order.storeId = :storeId AND order.tenantId = :tenantId', { storeId, tenantId })
@@ -247,6 +255,7 @@ export class OrdersService {
     qb.take(limit).skip(offset);
 
     const [items, total] = await qb.getManyAndCount();
+    this.logger.log(`[FIND_BY_STORE] found ${total} orders, statuses: ${items.map(o => o.status).join(',')}`);
     return { items, total };
   }
 

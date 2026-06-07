@@ -53,16 +53,16 @@ export class Order {
   @Column({ unique: true, length: 20 })
   orderNumber: string;
 
-  @Column({ type: 'enum', enum: OrderType, default: OrderType.CATALOG })
+  @Column({ type: 'varchar', length: 30, default: OrderType.CATALOG })
   type: OrderType;
 
   @Column({ type: 'varchar', length: 30, default: OrderStatus.NEW })
   status: OrderStatus;
 
-  @Column({ type: 'enum', enum: PaymentMethod })
+  @Column({ type: 'varchar', length: 30 })
   paymentMethod: PaymentMethod;
 
-  @Column({ type: 'enum', enum: PaymentStatus, default: PaymentStatus.PENDING })
+  @Column({ type: 'varchar', length: 30, default: PaymentStatus.PENDING })
   paymentStatus: PaymentStatus;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
