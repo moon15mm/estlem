@@ -24,6 +24,21 @@ export class Customer {
   @Column({ nullable: true })
   fcmToken: string;
 
+  @Column({ nullable: true, length: 255 })
+  deviceId: string;
+
+  @Column({ type: 'jsonb', nullable: true })
+  deviceInfo: Record<string, unknown>;
+
+  @Column({ default: false })
+  isBlocked: boolean;
+
+  @Column({ nullable: true })
+  blockedReason: string;
+
+  @Column({ nullable: true })
+  lastLoginAt: Date;
+
   @OneToMany(() => CustomerVehicle, (v) => v.customer, { cascade: true })
   vehicles: CustomerVehicle[];
 

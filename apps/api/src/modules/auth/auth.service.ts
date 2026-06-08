@@ -12,6 +12,7 @@ import { SendOtpDto } from './dto/send-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { StaffLoginDto } from './dto/staff-login.dto';
 import { AdminLoginDto } from './dto/admin-login.dto';
+import { DeviceLoginDto } from './dto/device-login.dto';
 
 @Injectable()
 export class AuthService {
@@ -68,6 +69,43 @@ export class AuthService {
       customer = this.customerRepo.create({ mobile: dto.mobile });
       await this.customerRepo.save(customer);
     }
+
+    const tokens = this.generateTokens({ sub: customer.id, type: 'customer' });
+    return { customer, ...tokens };
+  }
+
+  async deviceLogin(dto: DeviceLoginDto) {
+    let customer = await this.customerRepo.findOne({
+      where: { mobile: dto.mobile },
+      relations: ['vehicles'],
+    });
+
+    if (!customer) {
+      customer = this.customerRepo.create({ mobile: dto.mobile });
+    }
+
+    // Check if blocked
+    if (customer.isBlocked) {
+      throw new UnauthorizedException('تم حظر هذا الحساب. تواصل مع الدعم.');
+    }
+
+    // Check if device is blocked (by deviceId)
+    if (dto.deviceInfo?.deviceId) {
+      const blockedByDevice = await this.customerRepo.findOne({
+        where: { deviceId: dto.deviceInfo.deviceId as string, isBlocked: true },
+      });
+      if (blockedByDevice) {
+        throw new UnauthorizedException('تم حظر هذا الجهاز. تواصل مع الدعم.');
+      }
+    }
+
+    // Update device info
+    if (dto.deviceInfo) {
+      customer.deviceId = (dto.deviceInfo.deviceId as string) || customer.deviceId;
+      customer.deviceInfo = dto.deviceInfo as Record<string, unknown>;
+    }
+    customer.lastLoginAt = new Date();
+    await this.customerRepo.save(customer);
 
     const tokens = this.generateTokens({ sub: customer.id, type: 'customer' });
     return { customer, ...tokens };

@@ -1,4 +1,6 @@
 import * as SecureStore from 'expo-secure-store';
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 import { create } from 'zustand';
 import { api } from '../lib/api';
 
@@ -36,9 +38,7 @@ type AuthState = {
   session: AuthSession | null;
   hydrated: boolean;
   hydrate: () => Promise<void>;
-  sendCustomerOtp: (mobile: string) => Promise<void>;
-  verifyCustomerOtp: (mobile: string, otp: string) => Promise<void>;
-  loginCustomerLocal: (mobile: string) => Promise<void>;
+  loginCustomerDevice: (mobile: string) => Promise<void>;
   loginStaff: (mobile: string, secret: string) => Promise<void>;
   loginAdmin: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -74,16 +74,25 @@ export const useAuth = create<AuthState>((set) => ({
     }
   },
 
-  sendCustomerOtp: async (mobile) => {
-    await api.post('/auth/otp/send', { mobile });
-  },
+  loginCustomerDevice: async (mobile) => {
+    const deviceInfo = {
+      deviceId: Constants.installationId ?? Constants.sessionId ?? 'unknown',
+      brand: Platform.OS === 'android' ? 'Android' : 'Apple',
+      model: Constants.deviceName ?? 'unknown',
+      os: Platform.OS,
+      osVersion: String(Platform.Version),
+      appVersion: Constants.expoConfig?.version ?? '1.0.0',
+    };
 
-  verifyCustomerOtp: async (mobile, otp) => {
-    const data = await api.post('/auth/otp/verify', { mobile, otp }) as {
+    const data = await api.post('/auth/customer/device-login', {
+      mobile: mobile.trim(),
+      deviceInfo,
+    }) as {
       customer: CustomerUser;
       accessToken: string;
       refreshToken: string;
     };
+
     const session: AuthSession = {
       type: 'customer',
       accessToken: data.accessToken,
@@ -91,22 +100,6 @@ export const useAuth = create<AuthState>((set) => ({
       user: data.customer,
     };
     await saveSession(session);
-    set({ session });
-  },
-
-  loginCustomerLocal: async (mobile) => {
-    const cleanMobile = mobile.trim();
-    const session: AuthSession = {
-      type: 'customer',
-      accessToken: '',
-      user: {
-        id: `local-${cleanMobile}`,
-        mobile: cleanMobile,
-      },
-    };
-    await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(session));
-    await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
-    await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
     set({ session });
   },
 

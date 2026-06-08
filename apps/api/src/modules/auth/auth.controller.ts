@@ -6,6 +6,7 @@ import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { StaffLoginDto } from './dto/staff-login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { AdminLoginDto } from './dto/admin-login.dto';
+import { DeviceLoginDto } from './dto/device-login.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -21,6 +22,12 @@ export class AuthController {
   @Throttle({ default: { limit: 10, ttl: 60000 } })
   verifyOtp(@Body() dto: VerifyOtpDto) {
     return this.authService.verifyOtp(dto);
+  }
+
+  @Post('customer/device-login')
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  deviceLogin(@Body() dto: DeviceLoginDto) {
+    return this.authService.deviceLogin(dto);
   }
 
   @Post('staff/login')
