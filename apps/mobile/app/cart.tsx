@@ -53,6 +53,13 @@ export default function CartScreen() {
   const grandTotal = subtotal;
 
   const submit = async () => {
+    if (!session) {
+      Alert.alert('تسجيل الدخول مطلوب', 'سجّل دخولك أولاً لإتمام الطلب.', [
+        { text: 'تسجيل الدخول', onPress: () => router.push('/login') },
+        { text: 'إلغاء', style: 'cancel' },
+      ]);
+      return;
+    }
     if (!storeId || !tenantId || items.length === 0) {
       Alert.alert('السلة فارغة', 'اختر منتجات من المتجر قبل تأكيد الطلب.');
       return;
@@ -106,8 +113,19 @@ export default function CartScreen() {
       } else {
         router.replace(`/order/${order.id}`);
       }
-    } catch {
-      Alert.alert('تعذر إرسال الطلب', 'تحقق من الاتصال وحاول مرة أخرى.');
+    } catch (err: any) {
+      if (err?.response?.status === 401) {
+        Alert.alert('انتهت الجلسة', 'يرجى تسجيل الدخول مرة أخرى.', [
+          { text: 'تسجيل الدخول', onPress: () => router.push('/login') },
+        ]);
+      } else {
+        const msg = err?.response?.data?.message
+          ?? err?.response?.data?.error
+          ?? err?.message
+          ?? 'خطأ غير معروف';
+        const status = err?.response?.status ?? '';
+        Alert.alert('تعذر إرسال الطلب', `${status ? `(${status}) ` : ''}${typeof msg === 'object' ? JSON.stringify(msg) : msg}`);
+      }
     } finally {
       setLoading(false);
     }

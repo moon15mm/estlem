@@ -33,7 +33,8 @@ function routeFor(type: UserType) {
 export default function LoginScreen() {
   const router = useRouter();
   const session = useAuth((state) => state.session);
-  const loginCustomerLocal = useAuth((state) => state.loginCustomerLocal);
+  const sendCustomerOtp = useAuth((state) => state.sendCustomerOtp);
+  const verifyCustomerOtp = useAuth((state) => state.verifyCustomerOtp);
   const loginStaff = useAuth((state) => state.loginStaff);
   const loginAdmin = useAuth((state) => state.loginAdmin);
 
@@ -41,34 +42,48 @@ export default function LoginScreen() {
   const [mobile, setMobile] = useState('');
   const [email, setEmail] = useState('');
   const [secret, setSecret] = useState('');
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (session) router.replace(routeFor(session.type));
+    if (session?.accessToken) router.replace(routeFor(session.type));
   }, [router, session]);
 
   const title = useMemo(() => {
-    if (mode === 'customer') return 'دخول العميل';
+    if (mode === 'customer') return otpSent ? 'أدخل رمز التحقق' : 'دخول العميل';
     if (mode === 'staff') return 'دخول المحل';
     return 'دخول الأدمن';
-  }, [mode]);
+  }, [mode, otpSent]);
 
   const subtitle = useMemo(() => {
-    if (mode === 'customer') return 'لا تحتاج خدمة OTP الآن، أدخل رقم الجوال للمتابعة.';
+    if (mode === 'customer') return otpSent ? `تم إرسال رمز التحقق إلى ${mobile}` : 'أدخل رقم جوالك لاستلام رمز التحقق.';
     if (mode === 'staff') return 'ادخل رقم جوال الموظف و PIN أو كلمة المرور.';
     return 'ادخل بريد الأدمن وكلمة المرور.';
-  }, [mode]);
+  }, [mode, otpSent, mobile]);
 
   const submit = async () => {
     setLoading(true);
     try {
       if (mode === 'customer') {
-        if (mobile.trim().length < 9) {
-          Alert.alert('رقم غير مكتمل', 'أدخل رقم جوال صحيح للمتابعة.');
-          return;
+        if (!otpSent) {
+          // Step 1: Send OTP
+          if (mobile.trim().length < 9) {
+            Alert.alert('رقم غير مكتمل', 'أدخل رقم جوال صحيح للمتابعة.');
+            return;
+          }
+          await sendCustomerOtp(mobile.trim());
+          setOtpSent(true);
+          Alert.alert('تم الإرسال', 'تم إرسال رمز التحقق.');
+        } else {
+          // Step 2: Verify OTP
+          if (otp.trim().length < 4) {
+            Alert.alert('رمز ناقص', 'أدخل رمز التحقق المرسل لجوالك.');
+            return;
+          }
+          await verifyCustomerOtp(mobile.trim(), otp.trim());
+          router.replace('/(tabs)');
         }
-        await loginCustomerLocal(mobile.trim());
-        router.replace('/(tabs)');
       } else if (mode === 'staff') {
         await loginStaff(mobile.trim(), secret.trim());
         router.replace('/staff');
@@ -76,8 +91,9 @@ export default function LoginScreen() {
         await loginAdmin(email.trim(), secret);
         router.replace('/admin');
       }
-    } catch {
-      Alert.alert('تعذر تسجيل الدخول', 'تأكد من البيانات ثم حاول مرة أخرى.');
+    } catch (err: any) {
+      const msg = err?.response?.data?.message ?? err?.message ?? 'خطأ غير معروف';
+      Alert.alert('تعذر تسجيل الدخول', typeof msg === 'object' ? JSON.stringify(msg) : msg);
     } finally {
       setLoading(false);
     }
@@ -105,6 +121,8 @@ export default function LoginScreen() {
               onPress={() => {
                 setMode(item.key);
                 setSecret('');
+                setOtpSent(false);
+                setOtp('');
               }}
               style={[styles.modeButton, active && styles.modeButtonActive]}
             >
@@ -138,9 +156,28 @@ export default function LoginScreen() {
             placeholder="رقم الجوال"
             placeholderTextColor={colors.textMuted}
             keyboardType="phone-pad"
-            style={styles.input}
+            editable={mode !== 'customer' || !otpSent}
+            style={[styles.input, mode === 'customer' && otpSent && styles.inputDisabled]}
           />
         )}
+
+        {mode === 'customer' && otpSent ? (
+          <>
+            <TextInput
+              value={otp}
+              onChangeText={setOtp}
+              placeholder="رمز التحقق"
+              placeholderTextColor={colors.textMuted}
+              keyboardType="number-pad"
+              maxLength={6}
+              autoFocus
+              style={[styles.input, { textAlign: 'center', fontSize: 24, letterSpacing: 8 }]}
+            />
+            <Pressable onPress={() => { setOtpSent(false); setOtp(''); }}>
+              <Text style={styles.changeNumber}>تغيير رقم الجوال</Text>
+            </Pressable>
+          </>
+        ) : null}
 
         {mode !== 'customer' ? (
           <TextInput
@@ -154,11 +191,11 @@ export default function LoginScreen() {
         ) : null}
 
         <Button
-          title={mode === 'customer' ? 'متابعة كعميل' : 'تسجيل دخول'}
+          title={mode === 'customer' ? (otpSent ? 'تأكيد الرمز' : 'إرسال رمز التحقق') : 'تسجيل دخول'}
           onPress={submit}
           loading={loading}
           full
-          icon={loading ? <ActivityIndicator color="#fff" /> : <Ionicons name="log-in-outline" size={20} color="#fff" />}
+          icon={loading ? <ActivityIndicator color="#fff" /> : <Ionicons name={otpSent ? 'checkmark-circle-outline' : 'log-in-outline'} size={20} color="#fff" />}
         />
       </View>
     </KeyboardAvoidingView>
@@ -253,5 +290,15 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.textPrimary,
     textAlign: 'right',
+  },
+  inputDisabled: {
+    opacity: 0.5,
+    backgroundColor: colors.border,
+  },
+  changeNumber: {
+    ...typography.bodySm,
+    color: colors.primary,
+    textAlign: 'center',
+    marginTop: -4,
   },
 });

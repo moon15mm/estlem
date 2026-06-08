@@ -159,8 +159,10 @@ export default function StoreScreen() {
       setShowFreeText(false);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.push(`/order/${order.id}`);
-    } catch {
-      Alert.alert('فشل إرسال الطلب', 'تحقق من الاتصال وحاول مرة أخرى.');
+    } catch (err: any) {
+      const msg = err?.response?.data?.message ?? err?.response?.data?.error ?? err?.message ?? 'خطأ غير معروف';
+      const status = err?.response?.status ?? '';
+      Alert.alert('فشل إرسال الطلب', `${status ? `(${status}) ` : ''}${typeof msg === 'object' ? JSON.stringify(msg) : msg}`);
     } finally {
       setSubmittingFreeText(false);
     }

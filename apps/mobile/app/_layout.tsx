@@ -17,6 +17,7 @@ import {
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { colors } from '../src/theme';
 import { useAuth } from '../src/stores/useAuth';
+import { setOnSessionExpired } from '../src/lib/api';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -33,6 +34,7 @@ if (!I18nManager.isRTL) {
 export default function RootLayout() {
   const hydrate = useAuth((state) => state.hydrate);
   const hydrated = useAuth((state) => state.hydrated);
+  const logout = useAuth((state) => state.logout);
   const [fontsLoaded] = useFonts({
     NotoSansArabic_400Regular,
     NotoSansArabic_500Medium,
@@ -49,6 +51,13 @@ export default function RootLayout() {
   useEffect(() => {
     hydrate();
   }, [hydrate]);
+
+  // When API gets 401 and refresh fails, force logout
+  useEffect(() => {
+    setOnSessionExpired(() => {
+      logout();
+    });
+  }, [logout]);
 
   if (!fontsLoaded || !hydrated) return null;
 
