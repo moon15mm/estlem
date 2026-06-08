@@ -133,13 +133,16 @@ export class OrdersService {
       const total = parseFloat((subtotal + tax).toFixed(2));
 
       // Determine initial status:
-      // 1. Free-text items without price → quote first
-      // 2. Electronic payment → wait for payment confirmation
-      // 3. Cash → straight to NEW (notify store immediately)
+      // 1. Free-text orders → ALWAYS require store pricing (pending_quote)
+      // 2. Catalog items without price → quote first
+      // 3. Electronic payment → wait for payment confirmation
+      // 4. Cash → straight to NEW (notify store immediately)
       const hasUnpricedItems = items.some((i) => !i.priceSnapshot || i.priceSnapshot === 0);
       const isElectronic = dto.paymentMethod !== 'cash';
       let initialStatus: OrderStatus;
-      if (hasUnpricedItems) {
+      if (dto.type === OrderType.FREE_TEXT) {
+        initialStatus = OrderStatus.PENDING_QUOTE;
+      } else if (hasUnpricedItems) {
         initialStatus = OrderStatus.PENDING_QUOTE;
       } else if (isElectronic) {
         initialStatus = OrderStatus.PENDING_PAYMENT;

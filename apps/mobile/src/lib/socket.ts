@@ -3,9 +3,8 @@ import { Alert, AppState } from 'react-native';
 import { io, Socket } from 'socket.io-client';
 import * as SecureStore from 'expo-secure-store';
 import { useAuth } from '../stores/useAuth';
-import { getStatusLabel } from './utils';
 
-const WS_URL = 'https://api.estlem.store/ws';
+const WS_URL = 'https://api.estlem.store';
 
 let socket: Socket | null = null;
 
@@ -31,6 +30,7 @@ function notifyListeners(data: OrderEvent) {
 
 // ── human-readable notification ──────────────────────────────────
 const STATUS_MESSAGES: Record<string, string> = {
+  pending_quote: 'تم استلام طلبك — بانتظار تسعير المحل',
   pending_approval: 'تم تسعير طلبك — راجع السعر ووافق عليه',
   new: 'تم استلام طلبك وسيبدأ التحضير قريباً',
   accepted: 'تم قبول طلبك وبدأ التحضير',
@@ -44,8 +44,8 @@ function showStatusAlert(data: OrderEvent) {
   if (!data.status) return;
   const msg = STATUS_MESSAGES[data.status];
   if (!msg) return;
-  const title = `طلب ${data.orderNumber ?? ''}`;
-  Alert.alert(title, msg);
+  const num = data.orderNumber ? ` ${data.orderNumber}` : '';
+  Alert.alert(`طلب${num}`, msg);
 }
 
 // ── connect / disconnect ─────────────────────────────────────────
@@ -55,38 +55,52 @@ async function connect() {
   const token = await SecureStore.getItemAsync('estlem_token');
   if (!token) return;
 
-  socket = io(WS_URL, {
+  // Disconnect old socket if exists
+  if (socket) {
+    socket.removeAllListeners();
+    socket.disconnect();
+    socket = null;
+  }
+
+  socket = io(`${WS_URL}/ws`, {
     auth: { token },
-    transports: ['websocket'],
+    transports: ['polling', 'websocket'],
+    upgrade: true,
     reconnection: true,
-    reconnectionAttempts: 10,
-    reconnectionDelay: 3000,
+    reconnectionAttempts: 15,
+    reconnectionDelay: 2000,
+    reconnectionDelayMax: 30000,
+    timeout: 10000,
+    forceNew: true,
   });
 
-  socket.on('connect', () => {
-    console.log('[WS] connected');
+  socket.on('connect', async () => {
+    console.log('[WS] connected, id:', socket?.id);
     // Join customer room
-    const sessionStr = SecureStore.getItemAsync('estlem_session');
-    sessionStr.then((s) => {
-      if (!s) return;
-      try {
+    try {
+      const s = await SecureStore.getItemAsync('estlem_session');
+      if (s) {
         const session = JSON.parse(s);
         if (session.user?.id) {
           socket?.emit('join:customer', { customerId: session.user.id });
+          console.log('[WS] joined customer room:', session.user.id);
         }
-      } catch {}
-    });
+      }
+    } catch (e) {
+      console.warn('[WS] failed to join room', e);
+    }
   });
 
-  // Order events
+  // Order status changes
   socket.on('order:status_updated', (data: OrderEvent) => {
-    console.log('[WS] order:status_updated', data);
+    console.log('[WS] order:status_updated', JSON.stringify(data));
     showStatusAlert(data);
     notifyListeners(data);
   });
 
+  // Store sent a quote
   socket.on('order:quote_ready', (data: any) => {
-    console.log('[WS] order:quote_ready', data);
+    console.log('[WS] order:quote_ready', JSON.stringify(data));
     const event: OrderEvent = {
       orderId: data.id ?? data.orderId,
       orderNumber: data.orderNumber,
@@ -96,8 +110,27 @@ async function connect() {
     notifyListeners(event);
   });
 
+  // Order created (confirmation)
+  socket.on('order:created', (data: any) => {
+    console.log('[WS] order:created', JSON.stringify(data));
+    const event: OrderEvent = {
+      orderId: data.id ?? data.orderId,
+      orderNumber: data.orderNumber,
+      status: data.status,
+    };
+    notifyListeners(event);
+  });
+
+  socket.on('connect_error', (err) => {
+    console.warn('[WS] connect_error:', err.message);
+  });
+
   socket.on('disconnect', (reason) => {
     console.log('[WS] disconnected:', reason);
+  });
+
+  socket.on('reconnect', (attempt) => {
+    console.log('[WS] reconnected after', attempt, 'attempts');
   });
 }
 
@@ -125,7 +158,9 @@ export function useSocket() {
     // Reconnect when app returns to foreground
     const sub = AppState.addEventListener('change', (next) => {
       if (appState.current.match(/inactive|background/) && next === 'active') {
-        connect();
+        if (!socket?.connected) {
+          connect();
+        }
       }
       appState.current = next;
     });
