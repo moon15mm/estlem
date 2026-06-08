@@ -10,11 +10,18 @@ import { WsEvent } from '@estlem/shared';
 
 @WebSocketGateway({
   cors: {
-    origin: [
-      process.env.FRONTEND_URL || 'https://estlem.store',
-      process.env.DASHBOARD_URL || 'https://dashboard.estlem.store',
-      ...(process.env.NODE_ENV !== 'production' ? [/^https?:\/\/localhost(:\d+)?$/] : []),
-    ].filter(Boolean),
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      // Native mobile apps send no origin header — allow them
+      if (!origin) return callback(null, true);
+      const allowed = [
+        process.env.FRONTEND_URL || 'https://estlem.store',
+        process.env.DASHBOARD_URL || 'https://dashboard.estlem.store',
+      ];
+      if (allowed.includes(origin) || /^https?:\/\/localhost(:\d+)?$/.test(origin)) {
+        return callback(null, true);
+      }
+      callback(new Error('CORS not allowed'));
+    },
     credentials: true,
   },
   namespace: '/ws',

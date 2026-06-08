@@ -13,6 +13,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../../src/lib/api';
+import { onOrderUpdate } from '../../src/lib/socket';
 import { formatDate, formatPrice, getStatusLabel } from '../../src/lib/utils';
 import { useOrders } from '../../src/stores/useOrders';
 import { colors, radius, spacing, typography } from '../../src/theme';
@@ -93,12 +94,23 @@ export default function OrderDetailsScreen() {
     load();
   }, [load]);
 
-  // Auto-refresh every 10s for active orders
+  // Real-time: listen to WebSocket for instant updates
+  useEffect(() => {
+    if (!id) return;
+    const unsub = onOrderUpdate((data) => {
+      if (data.orderId === id) {
+        load(true);
+      }
+    });
+    return unsub;
+  }, [id, load]);
+
+  // Fallback: poll every 30s for active orders (in case WS disconnects)
   useEffect(() => {
     if (!order) return;
     const active = ['pending_payment', 'pending_quote', 'pending_approval', 'new', 'accepted', 'preparing', 'ready'];
     if (!active.includes(order.status)) return;
-    const interval = setInterval(() => load(true), 10000);
+    const interval = setInterval(() => load(true), 30000);
     return () => clearInterval(interval);
   }, [order?.status, load]);
 

@@ -18,6 +18,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { colors } from '../src/theme';
 import { useAuth } from '../src/stores/useAuth';
 import { setOnSessionExpired } from '../src/lib/api';
+import { useSocket } from '../src/lib/socket';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -51,6 +52,9 @@ export default function RootLayout() {
   useEffect(() => {
     hydrate();
   }, [hydrate]);
+
+  // WebSocket for real-time order updates
+  useSocket();
 
   // When API gets 401 and refresh fails, force logout
   useEffect(() => {

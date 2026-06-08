@@ -4,6 +4,7 @@ import Animated, { FadeInDown, FadeInUp } from '@/lib/animated';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../../src/lib/api';
+import { onOrderUpdate } from '../../src/lib/socket';
 import { formatDate, formatPrice, getStatusLabel } from '../../src/lib/utils';
 import { useAuth } from '../../src/stores/useAuth';
 import { useOrders } from '../../src/stores/useOrders';
@@ -64,6 +65,14 @@ export default function OrdersScreen() {
 
   useEffect(() => {
     load();
+  }, [load]);
+
+  // Real-time: refresh list on any order update via WebSocket
+  useEffect(() => {
+    const unsub = onOrderUpdate(() => {
+      load(true);
+    });
+    return unsub;
   }, [load]);
 
   const activeCount = useMemo(
