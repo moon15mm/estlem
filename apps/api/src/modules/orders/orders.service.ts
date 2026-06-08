@@ -259,6 +259,22 @@ export class OrdersService {
     return { items, total };
   }
 
+  async findByCustomer(customerId: string, query: Record<string, string>) {
+    const qb = this.orderRepo
+      .createQueryBuilder('order')
+      .where('order.customerId = :customerId', { customerId })
+      .leftJoinAndSelect('order.items', 'items')
+      .leftJoinAndSelect('order.store', 'store')
+      .orderBy('order.createdAt', 'DESC');
+
+    const limit = parseInt(query.limit ?? '30', 10);
+    const offset = parseInt(query.offset ?? '0', 10);
+    qb.take(limit).skip(offset);
+
+    const [items, total] = await qb.getManyAndCount();
+    return { items, total };
+  }
+
   async findById(orderId: string): Promise<Order> {
     const order = await this.orderRepo.findOne({
       where: { id: orderId },

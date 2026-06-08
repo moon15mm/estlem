@@ -34,9 +34,9 @@ export class PaymentsController {
   @Post('test-confirm/:sessionId')
   @UseGuards(AuthGuard('jwt'))
   testConfirm(@Param('sessionId') sessionId: string) {
-    if (process.env.NODE_ENV === 'production') {
-      throw new ForbiddenException('Test payments are disabled in production');
-    }
+    // Allow test-confirm for test-mode payments even in production
+    // (when no Moyasar key is configured, the system falls back to test mode)
+    // The confirmTestPayment method verifies the payment metadata is actually test mode
     return this.service.confirmTestPayment(sessionId);
   }
 

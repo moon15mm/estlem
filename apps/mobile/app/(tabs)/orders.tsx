@@ -5,66 +5,69 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../../src/lib/api';
 import { formatDate, formatPrice, getStatusLabel } from '../../src/lib/utils';
-import { SavedOrder, useOrders } from '../../src/stores/useOrders';
+import { useAuth } from '../../src/stores/useAuth';
+import { useOrders } from '../../src/stores/useOrders';
 import { colors, radius, spacing, typography } from '../../src/theme';
 
-type OrderSummary = SavedOrder & {
-  status?: string;
-  itemsCount?: number;
+type OrderFromAPI = {
+  id: string;
+  orderNumber: string;
+  status: string;
+  type?: string;
+  total: number | string;
+  createdAt: string;
+  rawRequest?: string;
+  items?: { id: string }[];
+  store?: { nameAr?: string; name?: string };
 };
 
 export default function OrdersScreen() {
   const router = useRouter();
-  const savedOrders = useOrders((state) => state.orders);
-  const removeOrder = useOrders((state) => state.removeOrder);
-  const [orders, setOrders] = useState<OrderSummary[]>(savedOrders);
-  const [loading, setLoading] = useState(false);
+  const session = useAuth((state) => state.session);
+  const addOrder = useOrders((state) => state.addOrder);
+  const [orders, setOrders] = useState<OrderFromAPI[]>([]);
+  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async (quiet = false) => {
-    if (savedOrders.length === 0) {
+    if (!session) {
       setOrders([]);
+      setLoading(false);
       return;
     }
 
     if (quiet) setRefreshing(true);
     else setLoading(true);
 
-    const next = await Promise.all(savedOrders.map(async (saved) => {
-      try {
-        const fresh = await api.get(`/orders/${saved.id}`) as {
-          id: string;
-          orderNumber?: string;
-          status?: string;
-          total?: number | string;
-          createdAt?: string;
-          items?: unknown[];
-        };
-        const updated = {
-          ...saved,
-          orderNumber: fresh.orderNumber ?? saved.orderNumber,
-          status: fresh.status,
-          total: Number(fresh.total ?? saved.total ?? 0),
-          createdAt: fresh.createdAt ?? saved.createdAt,
-          itemsCount: fresh.items?.length ?? 0,
-        };
-        return updated;
-      } catch {
-        return saved;
-      }
-    }));
+    try {
+      const data = await api.get('/orders/my?limit=30') as { items?: OrderFromAPI[] } | OrderFromAPI[];
+      const list = Array.isArray(data) ? data : data.items ?? [];
+      setOrders(list);
 
-    setOrders(next);
-    setLoading(false);
-    setRefreshing(false);
-  }, [savedOrders]);
+      // Sync to local store
+      for (const o of list) {
+        addOrder({
+          id: o.id,
+          orderNumber: o.orderNumber,
+          total: Number(o.total ?? 0),
+          createdAt: o.createdAt,
+          storeName: o.store?.nameAr ?? o.store?.name,
+        });
+      }
+    } catch {
+      // Fallback: if API fails, keep whatever we have
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [session, addOrder]);
 
   useEffect(() => {
     load();
   }, [load]);
 
   const activeCount = useMemo(
-    () => orders.filter((order) => order.status && !['delivered', 'cancelled'].includes(order.status)).length,
+    () => orders.filter((o) => o.status && !['delivered', 'cancelled'].includes(o.status)).length,
     [orders],
   );
 
@@ -92,24 +95,31 @@ export default function OrdersScreen() {
                 <View style={styles.orderTop}>
                   <View style={styles.orderText}>
                     <Text style={styles.orderNumber}>{order.orderNumber ?? 'طلب جديد'}</Text>
+                    {order.store?.nameAr ? (
+                      <Text style={styles.storeName}>{order.store.nameAr}</Text>
+                    ) : null}
                     <Text style={styles.orderDate}>{formatDate(order.createdAt)}</Text>
                   </View>
-                  <View style={styles.statusBadge}>
-                    <Text style={styles.statusText}>{order.status ? getStatusLabel(order.status) : 'محفوظ'}</Text>
+                  <View style={[
+                    styles.statusBadge,
+                    order.status === 'delivered' && styles.statusDelivered,
+                    order.status === 'cancelled' && styles.statusCancelled,
+                  ]}>
+                    <Text style={[
+                      styles.statusText,
+                      order.status === 'delivered' && styles.statusTextDelivered,
+                      order.status === 'cancelled' && styles.statusTextCancelled,
+                    ]}>{getStatusLabel(order.status)}</Text>
                   </View>
                 </View>
                 <View style={styles.orderBottom}>
                   <View style={styles.metaPill}>
-                    <Ionicons name="cube-outline" size={16} color={colors.textSecondary} />
-                    <Text style={styles.metaText}>{order.itemsCount ?? 0} منتجات</Text>
+                    <Ionicons name={order.type === 'free_text' ? 'document-text-outline' : 'cube-outline'} size={16} color={colors.textSecondary} />
+                    <Text style={styles.metaText}>
+                      {order.type === 'free_text' ? 'قائمة حرة' : `${order.items?.length ?? 0} منتجات`}
+                    </Text>
                   </View>
                   <Text style={styles.total}>{formatPrice(Number(order.total ?? 0))}</Text>
-                </View>
-                <View style={styles.actions}>
-                  <Text style={styles.trackText}>عرض التتبع</Text>
-                  <Pressable onPress={() => removeOrder(order.id)} style={styles.removeButton}>
-                    <Ionicons name="close" size={18} color={colors.textMuted} />
-                  </Pressable>
                 </View>
               </Pressable>
             </Animated.View>
@@ -161,6 +171,7 @@ const styles = StyleSheet.create({
   orderTop: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: spacing.md },
   orderText: { flex: 1 },
   orderNumber: { ...typography.h4, color: colors.textPrimary, textAlign: 'right' },
+  storeName: { ...typography.caption, color: colors.textSecondary, textAlign: 'right', marginTop: 2 },
   orderDate: { ...typography.caption, color: colors.textMuted, textAlign: 'right', marginTop: 2 },
   statusBadge: {
     backgroundColor: `${colors.primary}10`,
@@ -168,21 +179,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
   },
+  statusDelivered: { backgroundColor: '#E8F5E9' },
+  statusCancelled: { backgroundColor: '#FFEBEE' },
   statusText: { ...typography.caption, color: colors.primary, fontFamily: typography.label.fontFamily },
+  statusTextDelivered: { color: '#2E7D32' },
+  statusTextCancelled: { color: '#C62828' },
   orderBottom: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   metaPill: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   metaText: { ...typography.caption, color: colors.textSecondary },
   total: { ...typography.h4, color: colors.primary },
-  actions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  trackText: { ...typography.buttonSm, color: colors.accent },
-  removeButton: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radius.full,
-    backgroundColor: colors.backgroundSecondary,
-  },
   empty: {
     alignItems: 'center',
     paddingVertical: spacing['5xl'],

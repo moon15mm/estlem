@@ -79,9 +79,9 @@ export default function PayScreen() {
       })) as PaymentSession;
 
       if (session?.testMode && session.sessionId) {
-        // Test mode — simulate processing
+        // Test mode — simulate processing then confirm
         await new Promise((r) => setTimeout(r, 1500));
-        await api.post(`/payments/test-confirm/${session.sessionId}`, {}).catch(() => {});
+        await api.post(`/payments/test-confirm/${session.sessionId}`, {});
         Alert.alert('✅ تم الدفع بنجاح', 'سيبدأ المحل بتحضير طلبك الآن.');
         router.replace(`/order/${order.id}`);
       } else if (session?.paymentUrl) {

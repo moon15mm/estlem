@@ -59,6 +59,16 @@ export class OrdersController {
     return this.aiCart.parseShoppingList(dto.rawRequest, dto.storeId);
   }
 
+  @Get('my')
+  @UseGuards(AuthGuard('jwt'))
+  findMyOrders(
+    @Query() query: Record<string, string>,
+    @Request() req: { user: { sub: string; type: string } },
+  ) {
+    // For customer users, sub = customerId
+    return this.ordersService.findByCustomer(req.user.sub, query);
+  }
+
   @Get(':id')
   @UseGuards(AuthGuard('jwt'))
   findOne(@Param('id') id: string) {
