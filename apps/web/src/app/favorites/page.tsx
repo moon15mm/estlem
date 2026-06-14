@@ -1,7 +1,8 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Heart, MapPin, Star, Store as StoreIcon } from 'lucide-react';
+import { Heart, MapPin, Store as StoreIcon, ArrowRight } from 'lucide-react';
 import { useCustomerAuth } from '@/hooks/useCustomerAuth';
 import { api } from '@/lib/api';
 import { useTranslation } from '@/lib/i18n/I18nProvider';
@@ -24,81 +25,106 @@ export default function FavoritesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!token || !customer?.favoriteStores?.length) {
+    if (!token || !(customer as any)?.favoriteStores?.length) {
       setLoading(false);
       return;
     }
-    // Load each favorite store
     Promise.all(
-      customer.favoriteStores.map((id: string) =>
-        api.get(`/stores/${id}`).then(r => r.data).catch(() => null)
+      (customer as any).favoriteStores.map((id: string) =>
+        api.get(`/stores/${id}`).then((r: any) => r.data ?? r).catch(() => null),
       ),
-    ).then(results => {
-      setStores(results.filter(Boolean));
+    ).then((results) => {
+      setStores(results.filter(Boolean) as FavoriteStore[]);
       setLoading(false);
     });
   }, [token, customer]);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="animate-spin h-8 w-8 border-4 border-emerald-500 border-t-transparent rounded-full" />
+      <div className="min-h-screen bg-[#F8F8F8] flex items-center justify-center" dir={dir}>
+        <div className="space-y-3 w-full px-5">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white border border-[#EBEBEB] rounded-2xl p-4 flex items-center gap-3 animate-pulse">
+              <div className="w-14 h-14 bg-[#F5F5F5] rounded-xl shrink-0" />
+              <div className="flex-1 space-y-2">
+                <div className="h-3.5 bg-[#F0F0F0] rounded-full w-1/2" />
+                <div className="h-3 bg-[#F5F5F5] rounded-full w-1/3" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-md mx-auto px-4 py-6" dir={dir}>
-      <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
-        <Heart className="h-6 w-6 text-red-500 fill-red-500" />
-        {t('favorites.title')}
-      </h1>
-
-      {stores.length === 0 ? (
-        <div className="text-center py-16">
-          <Heart className="h-16 w-16 text-gray-200 mx-auto mb-4" />
-          <p className="text-gray-500 text-lg">{t('favorites.empty')}</p>
-          <p className="text-gray-400 text-sm mt-2">{t('favorites.addForQuick')}</p>
-          <Link href="/discover" className="inline-block mt-4 bg-emerald-500 text-white px-6 py-3 rounded-xl font-medium">
-            {t('discover.title')}
+    <div className="min-h-screen bg-[#F8F8F8]" dir={dir}>
+      {/* Header */}
+      <div className="bg-white border-b border-[#F0F0F0] px-5 pt-12 pb-4">
+        <div className="flex items-center gap-3">
+          <Link href="/" className="w-8 h-8 bg-[#F5F5F5] rounded-xl flex items-center justify-center">
+            <ArrowRight className="h-4 w-4 text-[#555]" />
           </Link>
+          <h1 className="text-lg font-black text-[#111]">{t('favorites.title')}</h1>
         </div>
-      ) : (
-        <div className="space-y-3">
-          {stores.map(store => (
-            <Link key={store.id} href={`/store/${store.id}`}>
-              <div className="bg-white rounded-2xl border p-4 flex items-center gap-4 hover:shadow-md transition-shadow">
-                <div className="w-16 h-16 bg-emerald-50 rounded-xl flex items-center justify-center flex-shrink-0">
+      </div>
+
+      <div className="px-5 py-4 pb-10">
+        {stores.length === 0 ? (
+          <div className="bg-white border border-[#EBEBEB] rounded-2xl p-10 text-center mt-4">
+            <div className="w-14 h-14 bg-[#F5F5F5] rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Heart className="h-6 w-6 text-[#CCC]" />
+            </div>
+            <p className="font-black text-[#111] mb-1">{t('favorites.empty')}</p>
+            <p className="text-xs text-[#AAA] mb-5">{t('favorites.addForQuick')}</p>
+            <Link
+              href="/discover"
+              className="inline-block bg-[#111] text-white px-6 py-2.5 rounded-xl font-bold text-sm"
+            >
+              {t('discover.title')}
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-2.5">
+            {stores.map((store, idx) => (
+              <Link
+                key={store.id}
+                href={`/store/${store.id}`}
+                className="block bg-white border border-[#EBEBEB] rounded-2xl p-4 flex items-center gap-3.5 active:scale-[0.98] transition-transform animate-fade-up"
+                style={{ animationDelay: `${idx * 40}ms` }}
+              >
+                <div className="w-14 h-14 bg-[#F5F5F5] rounded-xl flex items-center justify-center shrink-0 overflow-hidden">
                   {store.image ? (
-                    <img src={store.image} alt={store.name} className="w-full h-full rounded-xl object-cover" />
+                    <img src={store.image} alt={store.nameAr ?? store.name} className="w-full h-full object-cover" />
                   ) : (
-                    <StoreIcon className="h-8 w-8 text-emerald-500" />
+                    <StoreIcon className="h-6 w-6 text-[#CCC]" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-bold truncate">{store.nameAr || store.name}</h3>
+                  <p className="font-black text-[#111] text-sm truncate">{store.nameAr ?? store.name}</p>
                   {store.address && (
-                    <p className="text-sm text-gray-400 flex items-center gap-1 mt-1">
-                      <MapPin className="h-3 w-3" /> {store.address}
+                    <p className="text-[11px] text-[#AAA] flex items-center gap-1 mt-0.5">
+                      <MapPin className="h-3 w-3 shrink-0" />
+                      <span className="truncate">{store.address}</span>
                     </p>
                   )}
-                  <div className="flex items-center gap-3 mt-1">
-                    <span className="text-sm flex items-center gap-1">
-                      <Star className="h-3 w-3 text-yellow-400 fill-yellow-400" />
-                      {store.rating || '—'}
-                    </span>
-                    <span className="text-xs text-gray-400">{store.totalOrders} {t('favorites.ordersCount')}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${store.status === 'open' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                  <div className="flex items-center gap-2 mt-1.5">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      store.status === 'open'
+                        ? 'bg-[#ECFDF5] text-[#065F46]'
+                        : 'bg-[#FEF2F2] text-[#991B1B]'
+                    }`}>
                       {store.status === 'open' ? t('favorites.open') : t('favorites.closed')}
                     </span>
+                    <span className="text-[11px] text-[#BBB]">{store.totalOrders} {t('favorites.ordersCount')}</span>
                   </div>
                 </div>
-                <Heart className="h-5 w-5 text-red-500 fill-red-500 flex-shrink-0" />
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
+                <Heart className="h-5 w-5 text-[#111] fill-[#111] shrink-0" />
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

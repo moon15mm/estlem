@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useCustomerAuth } from '@/hooks/useCustomerAuth';
 import { formatPrice, formatDate } from '@/lib/utils';
-import { ArrowRight, ShoppingBag, Clock, Check, X as XIcon, Loader2 } from 'lucide-react';
+import { ArrowRight, ShoppingBag, Clock, Check, X as XIcon, Loader2, ChevronLeft } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/I18nProvider';
 
 interface OrderSummary {
@@ -19,86 +19,105 @@ interface OrderSummary {
   store?: { nameAr: string };
 }
 
+function SkeletonOrder() {
+  return (
+    <div className="bg-white border border-[#EBEBEB] rounded-2xl p-4 space-y-3 animate-pulse">
+      <div className="flex justify-between">
+        <div className="h-3.5 bg-[#F0F0F0] rounded-full w-24" />
+        <div className="h-5 bg-[#F5F5F5] rounded-full w-16" />
+      </div>
+      <div className="h-3 bg-[#F5F5F5] rounded-full w-32" />
+      <div className="flex justify-between">
+        <div className="h-3 bg-[#F5F5F5] rounded-full w-16" />
+        <div className="h-3.5 bg-[#F0F0F0] rounded-full w-20" />
+      </div>
+    </div>
+  );
+}
+
 export default function MyOrdersPage() {
   const router = useRouter();
   const { isLoggedIn } = useCustomerAuth();
   const { t, dir } = useTranslation();
-  const STATUS_MAP: Record<string, { label: string; color: string; icon: typeof Clock }> = {
-    new:        { label: t('order.new'),        color: 'bg-blue-100 text-blue-700',     icon: Clock },
-    accepted:   { label: t('order.accepted'),   color: 'bg-indigo-100 text-indigo-700', icon: Clock },
-    preparing:  { label: t('order.preparing'),  color: 'bg-amber-100 text-amber-700',   icon: Clock },
-    ready:      { label: t('order.ready'),      color: 'bg-emerald-100 text-emerald-700', icon: Check },
-    delivered:  { label: t('order.delivered'),  color: 'bg-gray-100 text-gray-600',     icon: Check },
-    cancelled:  { label: t('order.cancelled'),  color: 'bg-red-100 text-red-600',       icon: XIcon },
+
+  const STATUS_MAP: Record<string, { label: string; bg: string; text: string }> = {
+    new:              { label: t('order.new'),        bg: 'bg-[#EEF2FF]', text: 'text-[#4338CA]' },
+    accepted:         { label: t('order.accepted'),   bg: 'bg-[#EEF2FF]', text: 'text-[#4338CA]' },
+    preparing:        { label: t('order.preparing'),  bg: 'bg-[#FFFBEB]', text: 'text-[#92400E]' },
+    ready:            { label: t('order.ready'),      bg: 'bg-[#ECFDF5]', text: 'text-[#065F46]' },
+    delivered:        { label: t('order.delivered'),  bg: 'bg-[#F5F5F5]', text: 'text-[#555]'    },
+    cancelled:        { label: t('order.cancelled'),  bg: 'bg-[#FEF2F2]', text: 'text-[#991B1B]' },
+    pending_quote:    { label: 'بانتظار التسعير',     bg: 'bg-[#FFFBEB]', text: 'text-[#92400E]' },
+    pending_payment:  { label: 'بانتظار الدفع',       bg: 'bg-[#FFFBEB]', text: 'text-[#92400E]' },
+    pending_approval: { label: 'بانتظار موافقتك',     bg: 'bg-[#EEF2FF]', text: 'text-[#4338CA]' },
   };
+
   const [orders, setOrders] = useState<OrderSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isLoggedIn()) {
-      router.replace('/login');
-      return;
-    }
-    loadOrders();
+    if (!isLoggedIn()) { router.replace('/login'); return; }
+    api.get('/orders/my')
+      .then((d) => setOrders((d as unknown as OrderSummary[]) ?? []))
+      .catch(() => setOrders([]))
+      .finally(() => setLoading(false));
   }, []);
 
-  const loadOrders = async () => {
-    setLoading(true);
-    try {
-      // This endpoint would need to be added to the API
-      // For now, we show a placeholder
-      setOrders([]);
-    } catch { /* ignore */ }
-    finally { setLoading(false); }
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50" dir={dir}>
-      <div className="bg-white border-b border-gray-100 px-5 pt-12 pb-4 sticky top-0 z-10">
+    <div className="min-h-screen bg-[#F8F8F8]" dir={dir}>
+      {/* Header */}
+      <div className="bg-white border-b border-[#F0F0F0] px-5 pt-12 pb-4 sticky top-0 z-10">
         <div className="flex items-center gap-3">
-          <Link href="/" className="text-gray-400">
-            <ArrowRight className="h-5 w-5" />
+          <Link href="/" className="w-8 h-8 bg-[#F5F5F5] rounded-xl flex items-center justify-center">
+            <ArrowRight className="h-4 w-4 text-[#555]" />
           </Link>
-          <h1 className="text-xl font-black text-gray-900">{t('ordersPage.title')}</h1>
+          <h1 className="text-lg font-black text-[#111]">{t('ordersPage.title')}</h1>
         </div>
       </div>
 
-      <div className="px-5 py-6">
+      <div className="px-5 py-4 pb-10">
         {loading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => <SkeletonOrder key={i} />)}
           </div>
         ) : orders.length === 0 ? (
-          <div className="text-center py-20">
-            <ShoppingBag className="h-16 w-16 text-gray-200 mx-auto mb-4" />
-            <p className="font-bold text-gray-700 text-lg">{t('ordersPage.empty')}</p>
-            <p className="text-sm text-gray-400 mt-1 mb-6">{t('ordersPage.startFromNearby')}</p>
-            <Link href="/discover" className="bg-primary text-white px-8 py-3 rounded-2xl font-bold text-sm">
+          <div className="bg-white border border-[#EBEBEB] rounded-2xl p-10 text-center mt-4">
+            <div className="w-14 h-14 bg-[#F5F5F5] rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <ShoppingBag className="h-6 w-6 text-[#CCC]" />
+            </div>
+            <p className="font-black text-[#111] mb-1">{t('ordersPage.empty')}</p>
+            <p className="text-xs text-[#AAA] mb-5">{t('ordersPage.startFromNearby')}</p>
+            <Link
+              href="/discover"
+              className="inline-block bg-[#111] text-white px-6 py-2.5 rounded-xl font-bold text-sm"
+            >
               {t('home.nearbyStores')}
             </Link>
           </div>
         ) : (
-          <div className="space-y-3">
-            {orders.map((order) => {
-              const status = STATUS_MAP[order.status] ?? STATUS_MAP.new;
+          <div className="space-y-2.5">
+            {orders.map((order, idx) => {
+              const status = STATUS_MAP[order.status.toLowerCase()] ?? STATUS_MAP.new;
               return (
                 <Link
                   key={order.id}
                   href={`/order/${order.id}`}
-                  className="block bg-white rounded-2xl p-4 shadow-sm active:scale-[0.98] transition-transform"
+                  className="block bg-white border border-[#EBEBEB] rounded-2xl p-4 active:scale-[0.98] transition-transform animate-fade-up"
+                  style={{ animationDelay: `${idx * 40}ms` }}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-bold text-gray-900">#{order.orderNumber}</span>
-                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${status.color}`}>
+                    <span className="font-black text-[#111] text-sm">#{order.orderNumber}</span>
+                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${status.bg} ${status.text}`}>
                       {status.label}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 mb-2">{formatDate(order.createdAt)}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-500">
-                      {order.items?.length ?? 0} منتجات
-                    </span>
-                    <span className="font-black text-primary">{formatPrice(order.total)}</span>
+                  {order.store?.nameAr && (
+                    <p className="text-xs text-[#999] mb-1">{order.store.nameAr}</p>
+                  )}
+                  <p className="text-[11px] text-[#BBB] mb-3">{formatDate(order.createdAt)}</p>
+                  <div className="flex items-center justify-between border-t border-[#F5F5F5] pt-2.5">
+                    <span className="text-xs text-[#999]">{order.items?.length ?? 0} منتجات</span>
+                    <span className="font-black text-[#111] text-sm">{formatPrice(order.total)}</span>
                   </div>
                 </Link>
               );

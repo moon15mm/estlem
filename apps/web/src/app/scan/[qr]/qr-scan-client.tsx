@@ -6,7 +6,7 @@ import { api } from '@/lib/api';
 import { useCart } from '@/hooks/useCart';
 import { useCustomerAuth } from '@/hooks/useCustomerAuth';
 import { useTranslation } from '@/lib/i18n/I18nProvider';
-import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { Car } from 'lucide-react';
 
 interface QrScanClientProps {
   qr: string;
@@ -19,7 +19,6 @@ export function QrScanClient({ qr }: QrScanClientProps) {
   const { t, dir } = useTranslation();
 
   useEffect(() => {
-    // Require login first — save redirect target
     if (!isLoggedIn()) {
       sessionStorage.setItem('estlem_pending_qr', qr);
       router.replace(`/login?redirect=/scan/${qr}`);
@@ -43,13 +42,14 @@ export function QrScanClient({ qr }: QrScanClientProps) {
   }, [qr, router, setStore, isLoggedIn]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#1B4F72] relative" dir={dir}>
-      <div className="absolute top-4 end-4">
-        <LanguageSwitcher />
-      </div>
-      <div className="text-center text-white">
-        <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-lg font-medium">{t('store.loadingStore')}</p>
+    <div className="min-h-screen bg-[#F8F8F8] flex flex-col items-center justify-center" dir={dir}>
+      <div className="text-center">
+        <div className="w-16 h-16 bg-[#111] rounded-2xl flex items-center justify-center mx-auto mb-6">
+          <Car className="h-8 w-8 text-white" />
+        </div>
+        <div className="w-10 h-10 border-2 border-[#EBEBEB] border-t-[#111] rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-sm font-bold text-[#555]">{t('store.loadingStore')}</p>
+        <p className="text-xs text-[#AAA] mt-1">جاري التحقق من الرمز...</p>
       </div>
     </div>
   );
