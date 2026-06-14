@@ -17,31 +17,31 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    --background: 0 0% 97%;            /* #F8F8F8 */
+    --foreground: 0 0% 7%;             /* #111111 */
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-    --primary: 207 61% 27%;            /* brand navy #1B4F72 */
+    --card-foreground: 0 0% 7%;
+    --primary: 0 0% 7%;                /* #111111 */
     --primary-foreground: 0 0% 100%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 168 76% 42%;             /* teal #1ABC9C */
+    --secondary: 0 0% 95%;             /* #F2F2F2 */
+    --secondary-foreground: 0 0% 7%;
+    --muted: 0 0% 95%;
+    --muted-foreground: 0 0% 45%;      /* #737373 */
+    --accent: 0 0% 7%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 207 61% 40%;
-    --radius: 0.75rem;
+    --border: 0 0% 90%;                /* #E5E5E5 */
+    --input: 0 0% 95%;
+    --ring: 0 0% 7%;
+    --radius: 1rem;
   }
 }
 
 @layer base {
   * { @apply border-border; box-sizing: border-box; }
-  body { @apply bg-background text-foreground; font-family: 'ThmanyahSans', var(--font-sans), system-ui, sans-serif; }
-  h1, h2, h3, .font-heading { font-family: 'ThmanyahSerif', 'ThmanyahSans', var(--font-heading), sans-serif; }
+  body { @apply bg-background text-foreground; font-family: 'ThmanyahSans', var(--font-sans), system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  h1, h2, h3, .font-heading { font-family: 'ThmanyahSans', var(--font-heading), sans-serif; }
 }
 
 @layer utilities {

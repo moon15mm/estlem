@@ -18,20 +18,18 @@ export function CategoryTabs({ categories, active, onChange }: Props) {
   ];
 
   return (
-    <div className="flex gap-2 px-4 py-3 overflow-x-auto no-scrollbar bg-white border-b border-gray-100">
-      {all.map((cat, idx) => (
+    <div className="flex gap-2 px-4 py-3 overflow-x-auto no-scrollbar bg-white border-b border-[#F0F0F0]">
+      {all.map((cat) => (
         <button
           key={cat.id}
           onClick={() => onChange(cat.id)}
           className={cn(
-            'whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold transition-all flex-shrink-0 cursor-pointer active:scale-95',
+            'whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 flex-shrink-0 active:scale-95',
             active === cat.id
-              ? 'bg-gradient-to-l from-[#1B4F72] to-[#16537E] text-white shadow-lg shadow-[#1B4F72]/25'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
+              ? 'bg-[#111] text-white'
+              : 'bg-[#F5F5F5] text-[#555] hover:bg-[#EBEBEB]',
           )}
-          style={{ animationDelay: `${idx * 50}ms` }}
         >
-          {/* Use English name when interface is non-Arabic and an English name exists */}
           {lang === 'ar' ? cat.nameAr : (cat.name || cat.nameAr)}
         </button>
       ))}

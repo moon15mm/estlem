@@ -15,8 +15,21 @@ export class Customer {
   @Column({ unique: true, length: 20 })
   mobile: string;
 
+  @Index({ unique: true })
+  @Column({ unique: true, nullable: true, length: 255 })
+  email: string;
+
   @Column({ nullable: true, length: 255 })
   fullName: string;
+
+  @Column({ nullable: true, select: false })
+  passwordHash: string;
+
+  @Column({ nullable: true })
+  passwordResetToken: string;
+
+  @Column({ nullable: true, type: 'timestamptz' })
+  passwordResetExpiry: Date;
 
   @Column({ type: 'enum', enum: Language, default: Language.AR })
   preferredLang: Language;

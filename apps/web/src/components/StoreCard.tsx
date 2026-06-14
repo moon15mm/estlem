@@ -1,8 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { MapPin, Navigation, Store as StoreIcon } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Navigation, Store as StoreIcon } from 'lucide-react';
 import type { StoreCategory } from '@estlem/shared';
 
 interface StoreCardProps {
@@ -16,44 +15,38 @@ interface StoreCardProps {
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
-  grocery: 'تموينات',
-  pharmacy: 'صيدلية',
-  restaurant: 'مطعم',
-  cafe: 'مقهى',
-  pet_store: 'حيوانات',
-  electronics: 'إلكترونيات',
-  stationery: 'قرطاسية',
-  other: 'أخرى',
+  grocery: 'تموينات', pharmacy: 'صيدلية', restaurant: 'مطعم',
+  cafe: 'مقهى', pet_store: 'حيوانات', electronics: 'إلكترونيات',
+  stationery: 'قرطاسية', other: 'أخرى',
 };
 
 export function StoreCard({ id, nameAr, category, address, tenantId, distance }: StoreCardProps) {
   return (
     <Link href={`/store/${id}?tenantId=${tenantId}`}>
-      <Card className="border hover:border-primary/40 hover:shadow-lg transition-all duration-200 active:scale-[0.98]">
-        <CardContent className="p-4 flex items-center gap-4">
-          <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center flex-shrink-0">
-            <StoreIcon className="h-7 w-7 text-primary" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-foreground truncate">{nameAr}</h3>
-            <p className="text-xs text-muted-foreground mt-1">{CATEGORY_LABELS[category] ?? category}</p>
+      <div className="bg-white border border-[#EBEBEB] rounded-2xl p-4 flex items-center gap-3.5 active:scale-[0.98] transition-transform duration-150">
+        <div className="w-12 h-12 bg-[#F5F5F5] rounded-xl flex items-center justify-center shrink-0">
+          <StoreIcon className="h-5 w-5 text-[#BBB]" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-bold text-[#111] text-sm truncate">{nameAr}</h3>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-[10px] text-[#777] bg-[#F5F5F5] border border-[#EBEBEB] px-2 py-0.5 rounded-lg font-medium">
+              {CATEGORY_LABELS[category] ?? category}
+            </span>
             {address && (
-              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 truncate">
-                <MapPin className="h-3 w-3 flex-shrink-0" />
-                {address}
-              </p>
+              <p className="text-[11px] text-[#AAA] truncate">{address}</p>
             )}
           </div>
-          {distance != null && (
-            <div className="flex flex-col items-center gap-1 flex-shrink-0">
-              <Navigation className="h-4 w-4 text-accent" />
-              <span className="text-xs font-bold text-accent">
-                {distance < 1 ? `${Math.round(distance * 1000)} م` : `${distance.toFixed(1)} كم`}
-              </span>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        </div>
+        {distance != null && (
+          <div className="flex items-center gap-1 shrink-0">
+            <Navigation className="h-3.5 w-3.5 text-[#AAA]" />
+            <span className="text-xs font-bold text-[#888]">
+              {distance < 1 ? `${Math.round(distance * 1000)} م` : `${distance.toFixed(1)} كم`}
+            </span>
+          </div>
+        )}
+      </div>
     </Link>
   );
 }

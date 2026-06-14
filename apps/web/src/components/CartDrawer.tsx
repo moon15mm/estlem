@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { X, ChevronRight, Minus, Plus, ShoppingBag, AlertCircle } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
 import { useCustomerAuth } from '@/hooks/useCustomerAuth';
 import { formatPrice } from '@/lib/utils';
@@ -42,7 +43,6 @@ export function CartDrawer({ open, onClose, storeId, tenantId, allowedPayments }
   const spotType = typeof window !== 'undefined' ? sessionStorage.getItem('estlem_spot_type') : null;
   const isDineIn = spotType === 'table';
 
-  // Auto-fill customer data + default vehicle
   useEffect(() => {
     if (isLoggedIn() && customer) {
       const defaultVehicle = customer.vehicles?.find((v) => v.isDefault) || customer.vehicles?.[0];
@@ -58,21 +58,13 @@ export function CartDrawer({ open, onClose, storeId, tenantId, allowedPayments }
     }
   }, [customer]);
 
-  const savedVehicles = customer?.vehicles ?? [];
-
-  // VAT disabled — merchants enter final prices (VAT-inclusive)
   const subtotal = total();
-  const tax = 0;
   const grandTotal = subtotal;
-
   const catalogItems = items.filter((i) => !i.isFreeText);
   const freeItems = items.filter((i) => i.isFreeText);
-
-  // If there are free-text items WITHOUT a confirmed price, force cash payment
   const hasUnpricedFreeItems = freeItems.some((i) => !i.priceSnapshot || i.priceSnapshot === 0);
   const forceCashPayment = hasUnpricedFreeItems;
 
-  // Auto-switch to cash if forced
   useEffect(() => {
     if (forceCashPayment && form.paymentMethod !== PaymentMethod.CASH) {
       setForm((prev) => ({ ...prev, paymentMethod: PaymentMethod.CASH }));
@@ -113,8 +105,6 @@ export function CartDrawer({ open, onClose, storeId, tenantId, allowedPayments }
       };
       const order = await api.post('/orders', payload) as { id: string; status: string };
       clearCart();
-      // Always navigate to order tracker — payment is handled there
-      // (PENDING_PAYMENT shows pay button, NEW shows tracking, etc.)
       router.push(`/order/${order.id}`);
     } catch {
       toast.error(t('cart.orderFailed'));
@@ -125,225 +115,294 @@ export function CartDrawer({ open, onClose, storeId, tenantId, allowedPayments }
 
   if (!open) return null;
 
+  const paymentOptions = [
+    { label: t('cart.mada'), value: PaymentMethod.MADA, key: 'mada' },
+    { label: 'Apple Pay', value: PaymentMethod.APPLE_PAY, key: 'apple_pay' },
+    { label: t('cart.card'), value: PaymentMethod.CARD, key: 'card' },
+    { label: t('cart.cash'), value: PaymentMethod.CASH, key: 'cash' },
+  ]
+    .filter((m) => !allowedPayments || allowedPayments[m.key as keyof PaymentSettings] !== false)
+    .filter((m) => !forceCashPayment || m.value === PaymentMethod.CASH);
+
   return (
     <div className="fixed inset-0 z-50" dir="rtl">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white px-4 pt-4 pb-2 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="font-bold text-lg">
-            {step === 'cart' ? `🛒 ${t('cart.title')}` : `📋 ${t('cart.checkout')}`}
-          </h2>
-          <button onClick={onClose} className="text-gray-400 text-2xl leading-none">&times;</button>
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/30 animate-fade-in" onClick={onClose} />
+
+      {/* Sheet */}
+      <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-[24px] max-h-[92vh] flex flex-col animate-slide-up-bounce">
+        {/* Handle */}
+        <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
+          <div className="w-10 h-1 bg-[#E5E5E5] rounded-full" />
         </div>
 
-        {step === 'cart' ? (
-          <div className="p-4">
-            {items.length === 0 ? (
-              <p className="text-center text-gray-400 py-12">{t('cart.empty')}</p>
-            ) : (
-              <>
-                {/* Catalog items section */}
-                {catalogItems.length > 0 && (
-                  <div className="mb-4">
-                    {freeItems.length > 0 && (
-                      <p className="text-xs font-bold text-gray-400 mb-2 flex items-center gap-1">
-                        📦 من الكتالوج
-                      </p>
-                    )}
-                    <div className="space-y-3">
-                      {catalogItems.map((item) => {
-                        const key = getItemKey(item);
-                        return (
-                          <div key={key} className="flex items-center gap-3">
-                            <div className="flex-1">
-                              <p className="text-sm font-medium">{item.nameArSnapshot}</p>
-                              <p className="text-blue-700 text-sm font-bold">{formatPrice(item.priceSnapshot)}</p>
-                            </div>
-                            <div className="flex items-center gap-2 bg-gray-100 rounded-full px-2 py-1">
-                              <button onClick={() => updateQty(key, item.quantity - 1)}
-                                className="w-6 h-6 flex items-center justify-center text-gray-600 font-bold">-</button>
-                              <span className="text-sm font-bold w-4 text-center">{item.quantity}</span>
-                              <button onClick={() => updateQty(key, item.quantity + 1)}
-                                className="w-6 h-6 flex items-center justify-center text-gray-600 font-bold">+</button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Free text items section */}
-                {freeItems.length > 0 && (
-                  <div className="mb-4">
-                    {catalogItems.length > 0 && (
-                      <p className="text-xs font-bold text-gray-400 mb-2 flex items-center gap-1">
-                        ✍️ من القائمة الحرة
-                      </p>
-                    )}
-                    {hasUnpricedFreeItems && (
-                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-2.5 mb-3 flex gap-2 items-start">
-                        <span className="text-amber-500 text-sm leading-none mt-0.5">💵</span>
-                        <p className="text-[11px] text-amber-800 leading-relaxed font-medium">
-                          عناصر القائمة الحرة بسعر تقديري — سيُؤكَّد السعر النهائي عند التجهيز والدفع كاش عند الاستلام
-                        </p>
-                      </div>
-                    )}
-                    <div className="space-y-3">
-                      {freeItems.map((item) => {
-                        const key = getItemKey(item);
-                        return (
-                          <div key={key} className="flex items-center gap-3">
-                            <div className="flex-1">
-                              <p className="text-sm font-medium">{item.nameArSnapshot}</p>
-                              <div className="flex items-center gap-1.5">
-                                {item.priceSnapshot > 0 ? (
-                                  <p className="text-blue-700 text-sm font-bold">{formatPrice(item.priceSnapshot)}</p>
-                                ) : (
-                                  <p className="text-amber-600 text-xs">{t('cart.estimatedPrice')}</p>
-                                )}
-                                <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">{t('cart.freeBadge')}</span>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2 bg-gray-100 rounded-full px-2 py-1">
-                              <button onClick={() => updateQty(key, item.quantity - 1)}
-                                className="w-6 h-6 flex items-center justify-center text-gray-600 font-bold">-</button>
-                              <span className="text-sm font-bold w-4 text-center">{item.quantity}</span>
-                              <button onClick={() => updateQty(key, item.quantity + 1)}
-                                className="w-6 h-6 flex items-center justify-center text-gray-600 font-bold">+</button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                <div className="border-t pt-3 space-y-1 text-sm">
-                  <div className="flex justify-between text-gray-500">
-                    <span>{t('cart.subtotal')}</span><span>{formatPrice(subtotal)}</span>
-                  </div>
-                  {/* VAT disabled — prices are entered VAT-inclusive */}
-                  <div className="flex justify-between font-bold text-base border-t pt-2">
-                    <span>{t('cart.grandTotal')}</span><span className="text-blue-900">{formatPrice(grandTotal)}</span>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setStep('checkout')}
-                  className="w-full mt-4 bg-blue-900 text-white py-3.5 rounded-xl font-bold text-base"
-                >
-                  متابعة لإتمام الطلب
-                </button>
-              </>
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-3 border-b border-[#F0F0F0] flex-shrink-0">
+          <div className="flex items-center gap-2">
+            {step === 'checkout' && (
+              <button
+                onClick={() => setStep('cart')}
+                className="w-8 h-8 rounded-xl bg-[#F5F5F5] flex items-center justify-center"
+              >
+                <ChevronRight className="h-4 w-4 text-[#555]" />
+              </button>
+            )}
+            <h2 className="font-black text-[#111] text-base">
+              {step === 'cart' ? t('cart.title') : t('cart.checkout')}
+            </h2>
+            {step === 'cart' && items.length > 0 && (
+              <span className="text-[11px] text-[#999] bg-[#F5F5F5] px-2 py-0.5 rounded-full">
+                {items.length} منتج
+              </span>
             )}
           </div>
-        ) : (
-          <div className="p-4 space-y-4">
-            <button onClick={() => setStep('cart')} className="text-blue-600 text-sm flex items-center gap-1">
-              ← {t('common.back')}
-            </button>
+          <button onClick={onClose} className="w-8 h-8 rounded-xl bg-[#F5F5F5] flex items-center justify-center">
+            <X className="h-4 w-4 text-[#555]" />
+          </button>
+        </div>
 
-            <div className="space-y-3">
-              <h3 className="font-bold text-gray-700">{t('cart.yourInfo')}</h3>
-              <input className="input" placeholder={t('cart.fullName')} value={form.fullName}
-                onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
-              <input className="input" placeholder={t('cart.mobileRequired')} type="tel" value={form.mobile}
-                onChange={(e) => setForm({ ...form, mobile: e.target.value })} />
+        {/* Scrollable content */}
+        <div className="overflow-y-auto flex-1 overscroll-contain">
+          {step === 'cart' ? (
+            <div className="px-5 py-4">
+              {items.length === 0 ? (
+                <div className="text-center py-16">
+                  <div className="w-14 h-14 bg-[#F5F5F5] rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <ShoppingBag className="h-6 w-6 text-[#CCC]" />
+                  </div>
+                  <p className="font-bold text-[#333] text-sm">{t('cart.empty')}</p>
+                  <p className="text-xs text-[#999] mt-1">أضف منتجات لتبدأ طلبك</p>
+                </div>
+              ) : (
+                <>
+                  {/* Catalog items */}
+                  {catalogItems.length > 0 && (
+                    <div className="mb-4">
+                      {freeItems.length > 0 && (
+                        <p className="text-[10px] font-black text-[#BBB] mb-3 tracking-widest uppercase">من الكتالوج</p>
+                      )}
+                      <div className="space-y-1">
+                        {catalogItems.map((item) => {
+                          const key = getItemKey(item);
+                          return (
+                            <div key={key} className="flex items-center gap-3 py-3 border-b border-[#F5F5F5] last:border-0">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-bold text-[#111] leading-snug">{item.nameArSnapshot}</p>
+                                <p className="text-[#111] text-sm font-black mt-0.5">{formatPrice(item.priceSnapshot)}</p>
+                              </div>
+                              <div className="flex items-center gap-1.5 bg-[#F5F5F5] rounded-xl px-2 py-1.5">
+                                <button
+                                  onClick={() => updateQty(key, item.quantity - 1)}
+                                  className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-[#EBEBEB] transition-colors"
+                                >
+                                  <Minus className="h-3 w-3 text-[#555]" />
+                                </button>
+                                <span className="text-sm font-black text-[#111] w-5 text-center">{item.quantity}</span>
+                                <button
+                                  onClick={() => updateQty(key, item.quantity + 1)}
+                                  className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-[#EBEBEB] transition-colors"
+                                >
+                                  <Plus className="h-3 w-3 text-[#555]" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Free-text items */}
+                  {freeItems.length > 0 && (
+                    <div className="mb-4">
+                      {catalogItems.length > 0 && (
+                        <p className="text-[10px] font-black text-[#BBB] mb-3 tracking-widest uppercase">من القائمة الحرة</p>
+                      )}
+                      {hasUnpricedFreeItems && (
+                        <div className="bg-[#FFFBEB] border border-[#FDE68A] rounded-xl p-3 mb-3 flex gap-2.5">
+                          <AlertCircle className="h-4 w-4 text-[#D97706] shrink-0 mt-0.5" />
+                          <p className="text-[11px] text-[#92400E] leading-relaxed">
+                            سيُحدَّد السعر النهائي عند تجهيز الطلب والدفع كاش عند الاستلام
+                          </p>
+                        </div>
+                      )}
+                      <div className="space-y-1">
+                        {freeItems.map((item) => {
+                          const key = getItemKey(item);
+                          return (
+                            <div key={key} className="flex items-center gap-3 py-3 border-b border-[#F5F5F5] last:border-0">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-bold text-[#111]">{item.nameArSnapshot}</p>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                  {item.priceSnapshot > 0 ? (
+                                    <p className="text-[#111] text-sm font-black">{formatPrice(item.priceSnapshot)}</p>
+                                  ) : (
+                                    <p className="text-[#D97706] text-[11px] font-medium">{t('cart.estimatedPrice')}</p>
+                                  )}
+                                  <span className="text-[9px] bg-[#FEF3C7] text-[#D97706] px-1.5 py-0.5 rounded-full font-bold">
+                                    {t('cart.freeBadge')}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1.5 bg-[#F5F5F5] rounded-xl px-2 py-1.5">
+                                <button onClick={() => updateQty(key, item.quantity - 1)} className="w-6 h-6 flex items-center justify-center rounded-lg">
+                                  <Minus className="h-3 w-3 text-[#555]" />
+                                </button>
+                                <span className="text-sm font-black text-[#111] w-5 text-center">{item.quantity}</span>
+                                <button onClick={() => updateQty(key, item.quantity + 1)} className="w-6 h-6 flex items-center justify-center rounded-lg">
+                                  <Plus className="h-3 w-3 text-[#555]" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Total */}
+                  <div className="border-t border-[#F0F0F0] pt-4 mt-2">
+                    <div className="flex justify-between items-center mb-1.5">
+                      <span className="text-[#999] text-sm">{t('cart.subtotal')}</span>
+                      <span className="text-sm font-bold text-[#555]">{formatPrice(subtotal)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="font-black text-[#111]">{t('cart.grandTotal')}</span>
+                      <span className="font-black text-[#111] text-xl">{formatPrice(grandTotal)}</span>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
-
-            {!isDineIn && (
-              <div className="space-y-3">
-                <h3 className="font-bold text-gray-700">{t('cart.vehicleInfo')}</h3>
-                <div className="grid grid-cols-2 gap-2">
-                  <input className="input" placeholder={t('cart.brand')} value={form.make}
-                    onChange={(e) => setForm({ ...form, make: e.target.value })} />
-                  <input className="input" placeholder={t('cart.carModel')} value={form.model}
-                    onChange={(e) => setForm({ ...form, model: e.target.value })} />
-                  <input className="input" placeholder={t('cart.color')} value={form.color}
-                    onChange={(e) => setForm({ ...form, color: e.target.value })} />
-                  <input className="input" placeholder={t('cart.plateNumber')} value={form.plateNumber}
-                    onChange={(e) => setForm({ ...form, plateNumber: e.target.value })} />
+          ) : (
+            /* ── Checkout ── */
+            <div className="px-5 py-4 space-y-6">
+              {/* Personal info */}
+              <div>
+                <p className="text-[10px] font-black text-[#BBB] mb-3 tracking-widest uppercase">{t('cart.yourInfo')}</p>
+                <div className="space-y-2.5">
+                  <input
+                    className="w-full bg-[#F5F5F5] border border-[#EBEBEB] rounded-xl px-4 py-3.5 text-sm text-[#111] placeholder:text-[#CCC] focus:outline-none focus:border-[#999] focus:bg-white transition-all"
+                    placeholder={t('cart.fullName')}
+                    value={form.fullName}
+                    onChange={(e) => setForm({ ...form, fullName: e.target.value })}
+                  />
+                  <input
+                    className="w-full bg-[#F5F5F5] border border-[#EBEBEB] rounded-xl px-4 py-3.5 text-sm text-[#111] placeholder:text-[#CCC] focus:outline-none focus:border-[#999] focus:bg-white transition-all"
+                    placeholder={t('cart.mobileRequired')}
+                    type="tel"
+                    value={form.mobile}
+                    onChange={(e) => setForm({ ...form, mobile: e.target.value })}
+                  />
                 </div>
               </div>
-            )}
 
-            <div>
-              <h3 className="font-bold text-gray-700 mb-2">{t('cart.paymentMethod')}</h3>
-
-              {forceCashPayment && (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-3 flex gap-2">
-                  <span className="text-amber-500 text-lg leading-none">⚠</span>
-                  <div className="flex-1">
-                    <p className="text-sm font-bold text-amber-900">{t('cart.cashOnly')}</p>
-                    <p className="text-xs text-amber-700 mt-1 leading-relaxed">
-                      طلبك يحتوي على عناصر من القائمة الحرة لم يتم تحديد سعرها بعد. سيتم تأكيد السعر النهائي عند تجهيز الطلب وتدفع نقداً عند الاستلام لتجنب أي خلاف.
-                    </p>
+              {/* Vehicle */}
+              {!isDineIn && (
+                <div>
+                  <p className="text-[10px] font-black text-[#BBB] mb-3 tracking-widest uppercase">{t('cart.vehicleInfo')}</p>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    {[
+                      { key: 'make', placeholder: t('cart.brand') },
+                      { key: 'model', placeholder: t('cart.carModel') },
+                      { key: 'color', placeholder: t('cart.color') },
+                      { key: 'plateNumber', placeholder: t('cart.plateNumber') },
+                    ].map(({ key, placeholder }) => (
+                      <input
+                        key={key}
+                        className="bg-[#F5F5F5] border border-[#EBEBEB] rounded-xl px-3 py-3 text-sm text-[#111] placeholder:text-[#CCC] focus:outline-none focus:border-[#999] focus:bg-white transition-all"
+                        placeholder={placeholder}
+                        value={(form as any)[key]}
+                        onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+                      />
+                    ))}
                   </div>
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { label: t('cart.mada'), value: PaymentMethod.MADA, key: 'mada' },
-                  { label: 'Apple Pay', value: PaymentMethod.APPLE_PAY, key: 'apple_pay' },
-                  { label: t('cart.card'), value: PaymentMethod.CARD, key: 'card' },
-                  { label: t('cart.cash'), value: PaymentMethod.CASH, key: 'cash' },
-                ]
-                  .filter((m) => !allowedPayments || allowedPayments[m.key as keyof PaymentSettings] !== false)
-                  .filter((m) => !forceCashPayment || m.value === PaymentMethod.CASH)
-                  .map((m) => (
+              {/* Payment */}
+              <div>
+                <p className="text-[10px] font-black text-[#BBB] mb-3 tracking-widest uppercase">{t('cart.paymentMethod')}</p>
+                {forceCashPayment && (
+                  <div className="bg-[#FFFBEB] border border-[#FDE68A] rounded-xl p-3 mb-3 flex gap-2.5">
+                    <AlertCircle className="h-4 w-4 text-[#D97706] shrink-0 mt-0.5" />
+                    <p className="text-[11px] text-[#92400E] leading-relaxed">{t('cart.cashOnly')}</p>
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-2">
+                  {paymentOptions.map((m) => (
                     <button
                       key={m.value}
                       onClick={() => !forceCashPayment && setForm({ ...form, paymentMethod: m.value })}
                       disabled={forceCashPayment && m.value !== PaymentMethod.CASH}
-                      className={`p-3 rounded-xl border-2 text-sm font-medium transition-colors ${
+                      className={`py-3 px-4 rounded-xl border text-sm font-bold transition-all duration-150 ${
                         form.paymentMethod === m.value
-                          ? 'border-blue-900 bg-blue-50 text-blue-900'
-                          : 'border-gray-200 text-gray-600'
+                          ? 'border-[#111] bg-[#111] text-white'
+                          : 'border-[#EBEBEB] bg-white text-[#555]'
                       } ${forceCashPayment ? 'col-span-2' : ''}`}
                     >
                       {m.label}
                       {forceCashPayment && m.value === PaymentMethod.CASH && (
-                        <span className="block text-[10px] text-amber-600 mt-1 font-normal">{t('cart.requiredForFreeItems')}</span>
+                        <span className="block text-[10px] mt-0.5 opacity-60">{t('cart.requiredForFreeItems')}</span>
                       )}
                     </button>
                   ))}
+                </div>
               </div>
-            </div>
 
-            <textarea
-              className="input resize-none h-20"
-              placeholder={t('cart.notesPlaceholder')}
-              value={form.notes}
-              onChange={(e) => setForm({ ...form, notes: e.target.value })}
-            />
-
-            <div className="bg-blue-50 rounded-xl p-3">
-              <div className="flex justify-between items-center">
-                <span className="font-bold text-gray-700">{t('cart.grandTotal')}</span>
-                <span className="font-black text-blue-900 text-lg">{formatPrice(grandTotal)}</span>
+              {/* Notes */}
+              <div>
+                <p className="text-[10px] font-black text-[#BBB] mb-3 tracking-widest uppercase">ملاحظات</p>
+                <textarea
+                  className="w-full bg-[#F5F5F5] border border-[#EBEBEB] rounded-xl px-4 py-3 text-sm text-[#111] placeholder:text-[#CCC] focus:outline-none focus:border-[#999] focus:bg-white transition-all resize-none h-20"
+                  placeholder={t('cart.notesPlaceholder')}
+                  value={form.notes}
+                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                />
               </div>
-              <p className="text-xs text-gray-500 mt-1">
-                {catalogItems.length > 0 && `${catalogItems.length} من الكتالوج`}
-                {catalogItems.length > 0 && freeItems.length > 0 && ' + '}
-                {freeItems.length > 0 && `${freeItems.length} من القائمة الحرة`}
-              </p>
-            </div>
 
-            <button
-              onClick={submit}
-              disabled={loading}
-              className="w-full bg-blue-900 text-white py-4 rounded-xl font-bold text-base disabled:opacity-60 flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : t('cart.confirmOrder')}
-            </button>
+              {/* Summary */}
+              <div className="bg-[#F8F8F8] border border-[#EBEBEB] rounded-2xl p-4">
+                <div className="flex justify-between items-center">
+                  <span className="font-bold text-[#777] text-sm">{t('cart.grandTotal')}</span>
+                  <span className="font-black text-[#111] text-xl">{formatPrice(grandTotal)}</span>
+                </div>
+                <p className="text-[11px] text-[#BBB] mt-1">
+                  {catalogItems.length > 0 && `${catalogItems.length} من الكتالوج`}
+                  {catalogItems.length > 0 && freeItems.length > 0 && ' · '}
+                  {freeItems.length > 0 && `${freeItems.length} من القائمة الحرة`}
+                </p>
+              </div>
+
+              <div className="h-4" />
+            </div>
+          )}
+        </div>
+
+        {/* Sticky CTA */}
+        {items.length > 0 && (
+          <div className="px-5 pb-8 pt-3 border-t border-[#F0F0F0] bg-white flex-shrink-0">
+            {step === 'cart' ? (
+              <button
+                onClick={() => setStep('checkout')}
+                className="w-full bg-[#111] text-white py-4 rounded-2xl font-black text-base active:scale-[0.98] transition-transform"
+              >
+                متابعة · {formatPrice(grandTotal)}
+              </button>
+            ) : (
+              <button
+                onClick={submit}
+                disabled={loading}
+                className="w-full bg-[#111] text-white py-4 rounded-2xl font-black text-base disabled:opacity-40 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+              >
+                {loading ? (
+                  <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : t('cart.confirmOrder')}
+              </button>
+            )}
           </div>
         )}
       </div>
-      <style jsx>{`.input { @apply w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-400 bg-gray-50; }`}</style>
     </div>
   );
 }

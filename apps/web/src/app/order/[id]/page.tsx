@@ -100,18 +100,23 @@ export default function OrderTrackerPage({ params }: Props) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#F8F8F8] flex items-center justify-center" dir={dir}>
+        <div className="text-center">
+          <div className="w-12 h-12 border-3 border-[#EBEBEB] border-t-[#111] rounded-full animate-spin mx-auto mb-4" style={{ borderWidth: '3px' }} />
+          <p className="text-sm text-[#999]">جاري التحميل...</p>
+        </div>
       </div>
     );
   }
 
   if (!order) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-gray-400">
-        <div className="text-center">
-          <p className="text-5xl mb-3">❓</p>
-          <p>{t('orderDetail.notFound')}</p>
+      <div className="min-h-screen bg-[#F8F8F8] flex items-center justify-center" dir={dir}>
+        <div className="text-center px-6">
+          <div className="w-16 h-16 bg-[#F5F5F5] rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <span className="text-3xl">🔍</span>
+          </div>
+          <p className="font-bold text-[#333]">{t('orderDetail.notFound')}</p>
         </div>
       </div>
     );
@@ -120,28 +125,26 @@ export default function OrderTrackerPage({ params }: Props) {
   const currentIdx = STEPS.findIndex((s) => s.status === order.status);
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-8" dir={dir}>
+    <div className="min-h-screen bg-[#F8F8F8] pb-8" dir={dir}>
       {/* Header */}
-      <div className="bg-blue-900 text-white px-4 pt-12 pb-6">
-        <p className="text-blue-200 text-sm mb-1">{t('orderDetail.orderNumber')}</p>
-        <h1 className="text-2xl font-black">{order.orderNumber}</h1>
-        <p className="text-blue-200 text-xs mt-1">{formatDate(order.createdAt)}</p>
+      <div className="bg-white border-b border-[#F0F0F0] px-4 pt-12 pb-5 animate-fade-up">
+        <p className="text-[11px] text-[#AAA] tracking-widest uppercase mb-1">{t('orderDetail.orderNumber')}</p>
+        <h1 className="text-2xl font-black text-[#111]">{order.orderNumber}</h1>
+        <p className="text-[11px] text-[#BBB] mt-1">{formatDate(order.createdAt)}</p>
       </div>
 
-      {/* PENDING_PAYMENT — customer must pay first */}
+      {/* PENDING_PAYMENT */}
       {order.status === OrderStatus.PENDING_PAYMENT && (
-        <div className="px-4 py-6">
-          <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-5 text-center animate-slide-up-bounce">
-            <div className="w-14 h-14 bg-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-3">
+        <div className="px-4 pt-4">
+          <div className="bg-[#FFFBEB] border border-[#FDE68A] rounded-2xl p-5 text-center animate-fade-up">
+            <div className="w-14 h-14 bg-[#F59E0B] rounded-2xl flex items-center justify-center mx-auto mb-3">
               <span className="text-2xl">💳</span>
             </div>
-            <h2 className="text-base font-black text-amber-900 mb-1">{t('orderDetail.awaitingPayment')}</h2>
-            <p className="text-xs text-amber-700 leading-relaxed mb-4">
-              {t('orderDetail.notSentYet')}
-            </p>
+            <h2 className="font-black text-[#92400E] mb-1">{t('orderDetail.awaitingPayment')}</h2>
+            <p className="text-xs text-[#B45309] leading-relaxed mb-4">{t('orderDetail.notSentYet')}</p>
             <button
               onClick={() => setPayOpen(true)}
-              className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-xl font-bold text-sm w-full cursor-pointer"
+              className="bg-[#111] text-white px-6 py-3 rounded-xl font-bold text-sm w-full active:scale-[0.98] transition-transform"
             >
               {t('orderDetail.payNow')}
             </button>
@@ -149,22 +152,22 @@ export default function OrderTrackerPage({ params }: Props) {
         </div>
       )}
 
-      {/* PENDING_QUOTE — store needs to set prices */}
+      {/* PENDING_QUOTE */}
       {order.status === OrderStatus.PENDING_QUOTE && (
-        <div className="px-4 py-6">
-          <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-5 text-center animate-slide-up-bounce">
-            <div className="w-14 h-14 bg-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-3 animate-float">
+        <div className="px-4 pt-4">
+          <div className="bg-[#FFFBEB] border border-[#FDE68A] rounded-2xl p-5 text-center animate-fade-up">
+            <div className="w-14 h-14 bg-[#F59E0B] rounded-2xl flex items-center justify-center mx-auto mb-3 animate-pulse">
               <span className="text-2xl">⏳</span>
             </div>
-            <h2 className="text-base font-black text-amber-900 mb-1">{t('orderDetail.storePreparingQuote')}</h2>
-            <p className="text-xs text-amber-700 leading-relaxed">
+            <h2 className="font-black text-[#92400E] mb-1">{t('orderDetail.storePreparingQuote')}</h2>
+            <p className="text-xs text-[#B45309] leading-relaxed">
               قائمتك تحتوي على عناصر تحتاج تسعير. سيقوم المحل بإدخال الأسعار وإرسالها لك خلال دقائق للموافقة.
             </p>
           </div>
         </div>
       )}
 
-      {/* PENDING_APPROVAL — customer must approve */}
+      {/* PENDING_APPROVAL */}
       {order.status === OrderStatus.PENDING_APPROVAL && (
         <QuoteApprovalCard
           order={order}
@@ -173,47 +176,49 @@ export default function OrderTrackerPage({ params }: Props) {
         />
       )}
 
-      <div className="p-4 space-y-4">
+      <div className="p-4 space-y-3">
         {/* Status badge */}
-        <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm ${STATUS_COLORS[order.status]}`}>
+        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold ${STATUS_COLORS[order.status]}`}>
           {STEPS.find((s) => s.status === order.status)?.icon}
           {STEPS.find((s) => s.status === order.status)?.label ?? order.status}
         </div>
 
         {/* ETA */}
         {order.estimatedMins && order.status !== OrderStatus.DELIVERED && (
-          <div className="bg-white rounded-2xl p-4 flex items-center gap-3 shadow-sm">
-            <span className="text-3xl">⏱️</span>
+          <div className="bg-white border border-[#EBEBEB] rounded-2xl p-4 flex items-center gap-3 animate-fade-up">
+            <div className="w-10 h-10 bg-[#F5F5F5] rounded-xl flex items-center justify-center shrink-0">
+              <span className="text-xl">⏱️</span>
+            </div>
             <div>
-              <p className="text-xs text-gray-400">{t('orderDetail.estimatedTime')}</p>
-              <p className="font-bold text-xl text-blue-900">{order.estimatedMins} {t('orderDetail.minutes')}</p>
+              <p className="text-[11px] text-[#AAA]">{t('orderDetail.estimatedTime')}</p>
+              <p className="font-black text-xl text-[#111]">{order.estimatedMins} {t('orderDetail.minutes')}</p>
             </div>
           </div>
         )}
 
         {/* Stepper */}
-        <div className="bg-white rounded-2xl p-5 shadow-sm">
-          <h2 className="font-bold text-gray-700 mb-4">{t('orderDetail.trackOrder')}</h2>
+        <div className="bg-white border border-[#EBEBEB] rounded-2xl p-5 animate-fade-up">
+          <h2 className="font-black text-[#111] text-sm mb-4">{t('orderDetail.trackOrder')}</h2>
           <div className="relative">
-            <div className="absolute right-4 top-4 bottom-4 w-0.5 bg-gray-200" />
-            <div className="space-y-6">
+            <div className="absolute right-3.5 top-4 bottom-4 w-px bg-[#F0F0F0]" />
+            <div className="space-y-5">
               {STEPS.map((step, idx) => {
                 const done = idx <= currentIdx;
                 const active = idx === currentIdx;
                 return (
                   <div key={step.status} className="flex items-center gap-4 relative">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-all ${
-                      done ? (active ? 'bg-blue-900 scale-110' : 'bg-blue-700') : 'bg-gray-200'
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 z-10 transition-all duration-300 ${
+                      done
+                        ? active ? 'bg-[#111] scale-110 shadow-sm' : 'bg-[#555]'
+                        : 'bg-[#F0F0F0]'
                     }`}>
-                      <span className={`text-sm ${done ? 'text-white' : 'text-gray-400'}`}>
+                      <span className={`text-xs ${done ? 'text-white' : 'text-[#CCC]'}`}>
                         {done ? (active ? step.icon : '✓') : '○'}
                       </span>
                     </div>
-                    <div>
-                      <p className={`font-medium text-sm ${done ? 'text-gray-900' : 'text-gray-400'}`}>
-                        {step.label}
-                      </p>
-                    </div>
+                    <p className={`text-sm font-bold transition-colors ${done ? 'text-[#111]' : 'text-[#CCC]'}`}>
+                      {step.label}
+                    </p>
                   </div>
                 );
               })}
@@ -223,24 +228,27 @@ export default function OrderTrackerPage({ params }: Props) {
 
         {/* Parking & Vehicle */}
         {(order.parkingSpot || order.vehicle) && (
-          <div className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
+          <div className="bg-white border border-[#EBEBEB] rounded-2xl p-4 space-y-3 animate-fade-up">
             {order.parkingSpot && (
               <div className="flex items-center gap-3">
-                <span className="text-2xl">🅿️</span>
+                <div className="w-9 h-9 bg-[#F5F5F5] rounded-xl flex items-center justify-center shrink-0">
+                  <span className="text-lg">🅿️</span>
+                </div>
                 <div>
-                  <p className="text-xs text-gray-400">{t('orderDetail.spotNumber')}</p>
-                  <p className="font-bold">{order.parkingSpot.spotNumber}</p>
+                  <p className="text-[11px] text-[#AAA]">{t('orderDetail.spotNumber')}</p>
+                  <p className="font-bold text-[#111] text-sm">{order.parkingSpot.spotNumber}</p>
                 </div>
               </div>
             )}
             {order.vehicle && (
               <div className="flex items-center gap-3">
-                <span className="text-2xl">🚗</span>
+                <div className="w-9 h-9 bg-[#F5F5F5] rounded-xl flex items-center justify-center shrink-0">
+                  <span className="text-lg">🚗</span>
+                </div>
                 <div>
-                  <p className="text-xs text-gray-400">{t('orderDetail.yourCar')}</p>
-                  <p className="font-bold">
-                    {order.vehicle.color} {order.vehicle.make} {order.vehicle.model}
-                    {' — '}{order.vehicle.plateNumber}
+                  <p className="text-[11px] text-[#AAA]">{t('orderDetail.yourCar')}</p>
+                  <p className="font-bold text-[#111] text-sm">
+                    {order.vehicle.color} {order.vehicle.make} {order.vehicle.model} — {order.vehicle.plateNumber}
                   </p>
                 </div>
               </div>
@@ -249,24 +257,24 @@ export default function OrderTrackerPage({ params }: Props) {
         )}
 
         {/* Order items */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm">
-          <h3 className="font-bold text-gray-700 mb-3">{t('orderDetail.products')}</h3>
-          <div className="space-y-2">
+        <div className="bg-white border border-[#EBEBEB] rounded-2xl p-4 animate-fade-up">
+          <h3 className="font-black text-[#111] text-sm mb-3">{t('orderDetail.products')}</h3>
+          <div className="space-y-2.5">
             {order.items.map((item) => (
-              <div key={item.id} className="flex justify-between text-sm">
-                <span className="text-gray-700">{item.nameArSnapshot} × {item.quantity}</span>
-                <span className="font-medium">{formatPrice(item.priceSnapshot * item.quantity)}</span>
+              <div key={item.id} className="flex justify-between items-center">
+                <span className="text-sm text-[#555]">{item.nameArSnapshot} × {item.quantity}</span>
+                <span className="text-sm font-bold text-[#111]">{formatPrice(item.priceSnapshot * item.quantity)}</span>
               </div>
             ))}
           </div>
-          <div className="border-t mt-3 pt-3 space-y-1 text-sm">
-            <div className="flex justify-between text-gray-500">
-              <span>{t('orderDetail.subtotal')}</span><span>{formatPrice(order.subtotal)}</span>
+          <div className="border-t border-[#F0F0F0] mt-3 pt-3 space-y-1.5">
+            <div className="flex justify-between text-sm text-[#AAA]">
+              <span>{t('orderDetail.subtotal')}</span>
+              <span>{formatPrice(order.subtotal)}</span>
             </div>
-            {/* VAT disabled — prices are entered VAT-inclusive */}
-            <div className="flex justify-between font-black text-base pt-1">
-              <span>{t('orderDetail.total')}</span>
-              <span className="text-blue-900">{formatPrice(order.total)}</span>
+            <div className="flex justify-between font-black text-base">
+              <span className="text-[#111]">{t('orderDetail.total')}</span>
+              <span className="text-[#111]">{formatPrice(order.total)}</span>
             </div>
           </div>
         </div>

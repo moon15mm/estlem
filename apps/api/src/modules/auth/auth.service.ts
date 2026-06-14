@@ -1,10 +1,12 @@
-import { Injectable, UnauthorizedException, HttpException, HttpStatus, BadRequestException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, HttpException, HttpStatus, BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { randomBytes } from 'crypto';
 import { Customer } from '../../database/entities/customer.entity';
+import { CustomerVehicle } from '../../database/entities/customer-vehicle.entity';
 import { Staff } from '../../database/entities/staff.entity';
 import { SuperAdmin } from '../../database/entities/super-admin.entity';
 import { OtpService } from './otp.service';
@@ -13,12 +15,18 @@ import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { StaffLoginDto } from './dto/staff-login.dto';
 import { AdminLoginDto } from './dto/admin-login.dto';
 import { DeviceLoginDto } from './dto/device-login.dto';
+import { CustomerRegisterDto } from './dto/customer-register.dto';
+import { CustomerLoginDto } from './dto/customer-login.dto';
+import { CustomerForgotPasswordDto } from './dto/customer-forgot-password.dto';
+import { CustomerResetPasswordDto } from './dto/customer-reset-password.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(Customer)
     private customerRepo: Repository<Customer>,
+    @InjectRepository(CustomerVehicle)
+    private vehicleRepo: Repository<CustomerVehicle>,
     @InjectRepository(Staff)
     private staffRepo: Repository<Staff>,
     @InjectRepository(SuperAdmin)
@@ -180,5 +188,116 @@ export class AuthService {
     } catch {
       throw new UnauthorizedException('Invalid refresh token');
     }
+  }
+
+  async customerRegister(dto: CustomerRegisterDto) {
+    const existingMobile = await this.customerRepo.findOne({ where: { mobile: dto.mobile } });
+    if (existingMobile) throw new ConflictException('رقم الجوال مسجّل مسبقاً');
+
+    const existingEmail = await this.customerRepo.findOne({ where: { email: dto.email.toLowerCase() } });
+    if (existingEmail) throw new ConflictException('البريد الإلكتروني مسجّل مسبقاً');
+
+    const passwordHash = await bcrypt.hash(dto.password, 12);
+
+    const customer = this.customerRepo.create({
+      mobile: dto.mobile,
+      fullName: dto.fullName,
+      email: dto.email.toLowerCase(),
+      passwordHash,
+      lastLoginAt: new Date(),
+    });
+    await this.customerRepo.save(customer);
+
+    if (dto.vehicle?.make && dto.vehicle?.model && dto.vehicle?.color) {
+      const vehicle = this.vehicleRepo.create({
+        customerId: customer.id,
+        make: dto.vehicle.make,
+        model: dto.vehicle.model,
+        color: dto.vehicle.color,
+        plateNumber: dto.vehicle.plateNumber ?? '',
+        isDefault: true,
+      });
+      await this.vehicleRepo.save(vehicle);
+    }
+
+    const tokens = this.generateTokens({ sub: customer.id, type: 'customer' });
+    const { passwordHash: _, ...safeCustomer } = customer as any;
+    return { customer: safeCustomer, ...tokens };
+  }
+
+  async customerLogin(dto: CustomerLoginDto) {
+    const customer = await this.customerRepo
+      .createQueryBuilder('c')
+      .addSelect('c.passwordHash')
+      .leftJoinAndSelect('c.vehicles', 'vehicles')
+      .where('c.mobile = :mobile', { mobile: dto.mobile })
+      .getOne();
+
+    if (!customer) throw new UnauthorizedException('رقم الجوال أو كلمة المرور غير صحيحة');
+    if (!customer.passwordHash) throw new UnauthorizedException('هذا الحساب يستخدم طريقة دخول مختلفة');
+    if (customer.isBlocked) throw new UnauthorizedException('تم حظر هذا الحساب. تواصل مع الدعم.');
+
+    const valid = await bcrypt.compare(dto.password, customer.passwordHash);
+    if (!valid) throw new UnauthorizedException('رقم الجوال أو كلمة المرور غير صحيحة');
+
+    customer.lastLoginAt = new Date();
+    await this.customerRepo.save(customer);
+
+    const expiresIn = dto.rememberMe ? '90d' : this.config.get('JWT_REFRESH_EXPIRES_IN', '30d');
+    const accessToken = this.jwtService.sign({ sub: customer.id, type: 'customer' });
+    const refreshToken = this.jwtService.sign(
+      { sub: customer.id, type: 'customer' },
+      { secret: this.config.get('JWT_REFRESH_SECRET'), expiresIn },
+    );
+
+    const { passwordHash: _, ...safeCustomer } = customer as any;
+    return { customer: safeCustomer, accessToken, refreshToken };
+  }
+
+  async customerForgotPassword(dto: CustomerForgotPasswordDto) {
+    const customer = await this.customerRepo.findOne({ where: { email: dto.email.toLowerCase() } });
+    if (!customer) {
+      // Don't reveal whether the email exists
+      return { message: 'إذا كان البريد الإلكتروني مسجّلاً، ستصلك رسالة لإعادة تعيين كلمة المرور.' };
+    }
+
+    const token = randomBytes(32).toString('hex');
+    const expiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    customer.passwordResetToken = token;
+    customer.passwordResetExpiry = expiry;
+    await this.customerRepo.save(customer);
+
+    const isDev = this.config.get('NODE_ENV') !== 'production';
+    if (isDev) {
+      console.log(`[RESET] Token for ${dto.email}: ${token}`);
+      return {
+        message: 'تم إنشاء رمز إعادة تعيين كلمة المرور.',
+        devToken: token,
+      };
+    }
+
+    // TODO: send reset email when email provider is configured
+    return { message: 'إذا كان البريد الإلكتروني مسجّلاً، ستصلك رسالة لإعادة تعيين كلمة المرور.' };
+  }
+
+  async customerResetPassword(dto: CustomerResetPasswordDto) {
+    const customer = await this.customerRepo
+      .createQueryBuilder('c')
+      .addSelect('c.passwordHash')
+      .where('c.passwordResetToken = :token', { token: dto.token })
+      .getOne();
+
+    if (!customer) throw new BadRequestException('رمز إعادة التعيين غير صحيح أو منتهي الصلاحية');
+    if (!customer.passwordResetExpiry || customer.passwordResetExpiry < new Date()) {
+      throw new BadRequestException('انتهت صلاحية رمز إعادة التعيين. يرجى طلب رمز جديد.');
+    }
+
+    customer.passwordHash = await bcrypt.hash(dto.newPassword, 12);
+    customer.passwordResetToken = null;
+    customer.passwordResetExpiry = null;
+    await this.customerRepo.save(customer);
+
+    return { message: 'تم تغيير كلمة المرور بنجاح.' };
   }
 }

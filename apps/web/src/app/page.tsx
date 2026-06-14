@@ -2,11 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import {
-  Car, MapPin, Search, QrCode, ShoppingBag, Clock, Navigation,
-  ChevronLeft, Loader2, User, LogOut, Compass, CreditCard, Package,
-  ArrowLeft, Store as StoreIcon, Zap,
+  Car, MapPin, Search, QrCode, Navigation,
+  ChevronLeft, Loader2, User, LogOut, Compass,
+  CreditCard, Package, Store as StoreIcon,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useCustomerAuth } from '@/hooks/useCustomerAuth';
@@ -21,18 +20,28 @@ const CATEGORY_LABELS: Record<string, string> = {
   pet_store: 'حيوانات', electronics: 'إلكترونيات', stationery: 'مكتبة', other: 'متجر',
 };
 
+function SkeletonStore() {
+  return (
+    <div className="flex items-center gap-3.5 bg-white rounded-2xl p-4 border border-[#F0F0F0]">
+      <div className="w-12 h-12 bg-[#F0F0F0] rounded-xl shrink-0 animate-pulse" />
+      <div className="flex-1 space-y-2">
+        <div className="h-3.5 bg-[#F0F0F0] rounded-full w-2/3 animate-pulse" />
+        <div className="h-3 bg-[#F5F5F5] rounded-full w-1/3 animate-pulse" />
+      </div>
+    </div>
+  );
+}
+
 export default function HomePage() {
-  const router = useRouter();
   const { customer, isLoggedIn, logout } = useCustomerAuth();
   const { t, dir } = useTranslation();
   const [nearbyStores, setNearbyStores] = useState<StoreWithDistance[]>([]);
-  const [loadingStores, setLoadingStores] = useState(false);
+  const [loadingStores, setLoadingStores] = useState(true);
   const [locationStatus, setLocationStatus] = useState<'idle' | 'loading' | 'granted' | 'denied'>('idle');
 
   useEffect(() => { loadNearby(); }, []);
 
   const loadAllStores = async () => {
-    // Fallback when no nearby stores: show all active stores in the country
     try {
       const all = (await api.get(`/stores/active?limit=20`)) as StoreWithDistance[];
       setNearbyStores(all ?? []);
@@ -41,7 +50,6 @@ export default function HomePage() {
 
   const loadNearby = () => {
     if (!navigator.geolocation) {
-      // Browser w/o geolocation → just show all stores
       setLocationStatus('denied');
       setLoadingStores(true);
       loadAllStores().finally(() => setLoadingStores(false));
@@ -53,24 +61,19 @@ export default function HomePage() {
       async (pos) => {
         setLocationStatus('granted');
         try {
-          // Try nearby first (50km radius — covers a wide area within a city/region)
           const data = (await api.get(
             `/stores/nearby?lat=${pos.coords.latitude}&lng=${pos.coords.longitude}&radius=50`,
           )) as StoreWithDistance[];
           if (data && data.length > 0) {
             setNearbyStores(data);
           } else {
-            // No stores within 50km → fall back to all active stores so the user still
-            // sees something they can order from
             await loadAllStores();
           }
         } catch {
           await loadAllStores();
-        }
-        finally { setLoadingStores(false); }
+        } finally { setLoadingStores(false); }
       },
       async () => {
-        // Permission denied → still show all stores instead of leaving the page empty
         setLocationStatus('denied');
         await loadAllStores();
         setLoadingStores(false);
@@ -80,36 +83,41 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]" dir={dir}>
-      {/* ── Hero ────────────────────────────────────── */}
-      <header className="relative bg-gradient-to-bl from-[#0F3460] via-[#1B4F72] to-[#16537E] px-5 pt-14 pb-28 overflow-hidden">
-        {/* Decorative circles */}
-        <div className="absolute -top-20 -left-20 w-64 h-64 bg-[#1ABC9C]/10 rounded-full blur-3xl animate-pulse-soft" />
-        <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-white/5 rounded-full blur-2xl animate-pulse-soft delay-200" />
+    <div className="min-h-screen bg-[#F8F8F8]" dir={dir}>
 
-        {/* Top bar */}
-        <div className="relative z-10 flex items-center justify-between mb-10">
+      {/* ── Header ─────────────────────────────────── */}
+      <header className="bg-white px-5 pt-12 pb-4 border-b border-[#F0F0F0]">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/10 animate-float">
-              <Car className="h-5 w-5 text-white" />
+            <div className="w-9 h-9 bg-[#111] rounded-xl flex items-center justify-center">
+              <Car className="h-4 w-4 text-white" />
             </div>
-            <span className="text-lg font-extrabold text-white tracking-tight">{t('app.name')}</span>
+            <span className="text-lg font-black text-[#111] tracking-tight">{t('app.name')}</span>
           </div>
 
           <div className="flex items-center gap-2">
             <LanguageSwitcher />
             {isLoggedIn() ? (
               <>
-                <Link href="/orders" className="text-white/80 text-xs bg-white/10 backdrop-blur-sm px-3.5 py-2 rounded-xl border border-white/10 font-medium">
+                <Link
+                  href="/orders"
+                  className="text-[#111] text-xs bg-[#F5F5F5] px-3 py-2 rounded-xl font-semibold border border-[#EBEBEB]"
+                >
                   {t('home.myOrders')}
                 </Link>
-                <button onClick={() => { logout(); }} className="w-9 h-9 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/10">
-                  <LogOut className="h-4 w-4 text-white/60" />
+                <button
+                  onClick={() => logout()}
+                  className="w-9 h-9 rounded-xl bg-[#F5F5F5] border border-[#EBEBEB] flex items-center justify-center"
+                >
+                  <LogOut className="h-4 w-4 text-[#999]" />
                 </button>
               </>
             ) : (
-              <Link href="/login" className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm text-white text-sm font-semibold px-4 py-2.5 rounded-xl border border-white/10 active:scale-95 transition-transform">
-                <User className="h-4 w-4" />
+              <Link
+                href="/login"
+                className="flex items-center gap-1.5 bg-[#111] text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl active:scale-95 transition-transform"
+              >
+                <User className="h-3.5 w-3.5" />
                 {t('home.signIn')}
               </Link>
             )}
@@ -117,157 +125,161 @@ export default function HomePage() {
         </div>
 
         {/* Greeting */}
-        <div className="relative z-10 mb-8 animate-fade-up">
-          <h1 className="text-[1.75rem] font-black text-white leading-tight mb-2">
-            {isLoggedIn() && customer?.fullName ? `${t('home.welcomeBack')} ${customer.fullName}` : t('app.tagline')}
+        <div className="mb-4 animate-fade-up">
+          <h1 className="text-xl font-black text-[#111] leading-tight">
+            {isLoggedIn() && customer?.fullName
+              ? `${t('home.welcomeBack')} ${customer.fullName} 👋`
+              : t('app.tagline')}
           </h1>
-          <p className="text-white/60 text-[0.9rem] leading-relaxed max-w-xs">
-            {t('home.heroSubtitle')}
-          </p>
+          <p className="text-sm text-[#999] mt-1">{t('home.heroSubtitle')}</p>
         </div>
 
-        {/* Search bar — glass */}
-        <Link href="/discover?tab=search" className="relative z-10 flex items-center gap-3 bg-white/10 backdrop-blur-xl rounded-2xl px-4 py-3.5 border border-white/15 active:scale-[0.98] transition-transform animate-fade-up delay-200">
-          <Search className="h-5 w-5 text-white/50" />
-          <span className="text-white/40 text-sm flex-1">{t('home.searchPlaceholder')}</span>
-          <span className="text-[10px] text-white/30 bg-white/10 px-2 py-1 rounded-lg">{t('common.search')}</span>
+        {/* Search */}
+        <Link
+          href="/discover?tab=search"
+          className="flex items-center gap-3 bg-[#F5F5F5] rounded-2xl px-4 py-3.5 border border-[#EBEBEB] active:scale-[0.98] transition-transform animate-fade-up"
+          style={{ animationDelay: '100ms' }}
+        >
+          <Search className="h-4 w-4 text-[#AAA]" />
+          <span className="text-[#BBB] text-sm flex-1">{t('home.searchPlaceholder')}</span>
+          <span className="text-[10px] text-[#CCC] bg-white border border-[#E8E8E8] px-2 py-1 rounded-lg">
+            {t('common.search')}
+          </span>
         </Link>
       </header>
 
-      {/* ── Quick Actions ───────────────────────────── */}
-      <section className="px-5 -mt-14 mb-8 relative z-20 animate-scale-in delay-300">
-        <div className="grid grid-cols-3 gap-3">
+      {/* ── Quick Actions ────────────────────────────── */}
+      <section className="px-5 pt-5 mb-6 animate-fade-up" style={{ animationDelay: '150ms' }}>
+        <div className="grid grid-cols-3 gap-2.5">
           {[
-            { href: '/discover', icon: Compass, label: t('home.nearbyShort'), color: 'text-[#1ABC9C]', bg: 'bg-[#1ABC9C]/10' },
-            { href: '/discover?tab=search', icon: Search, label: t('common.search'), color: 'text-[#1B4F72]', bg: 'bg-[#1B4F72]/10' },
-            { href: '#qr', icon: QrCode, label: t('home.scanQr'), color: 'text-amber-600', bg: 'bg-amber-50' },
+            { href: '/discover', icon: Compass, label: t('home.nearbyShort') },
+            { href: '/discover?tab=search', icon: Search, label: t('common.search') },
+            { href: '#qr', icon: QrCode, label: t('home.scanQr') },
           ].map((action) => (
             <Link
               key={action.label}
               href={action.href}
-              className="bg-white rounded-2xl p-4 shadow-[0_2px_20px_rgba(0,0,0,0.06)] text-center cursor-pointer active:scale-95 transition-transform"
+              className="bg-white rounded-2xl p-3.5 border border-[#EBEBEB] flex flex-col items-center gap-2 active:scale-95 transition-transform"
             >
-              <div className={`w-12 h-12 ${action.bg} rounded-2xl flex items-center justify-center mx-auto mb-2.5`}>
-                <action.icon className={`h-5 w-5 ${action.color}`} />
+              <div className="w-10 h-10 bg-[#F5F5F5] rounded-xl flex items-center justify-center">
+                <action.icon className="h-4.5 w-4.5 text-[#333]" />
               </div>
-              <p className="text-xs font-bold text-gray-800">{action.label}</p>
+              <p className="text-[11px] font-bold text-[#333]">{action.label}</p>
             </Link>
           ))}
         </div>
       </section>
 
-      {/* ── Nearby Stores ───────────────────────────── */}
+      {/* ── Nearby Stores ────────────────────────────── */}
       <section className="px-5 mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-[#1ABC9C]/10 rounded-lg flex items-center justify-center">
-              <Navigation className="h-3.5 w-3.5 text-[#1ABC9C]" />
-            </div>
-            <h2 className="font-extrabold text-gray-900 text-[0.95rem]">{t('home.nearbyStores')}</h2>
-          </div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-black text-[#111] text-[0.95rem]">{t('home.nearbyStores')}</h2>
           {locationStatus === 'granted' && nearbyStores.length > 0 && (
-            <Link href="/discover" className="text-[#1B4F72] text-xs font-bold flex items-center gap-0.5 cursor-pointer">
+            <Link href="/discover" className="text-[#888] text-xs font-medium flex items-center gap-0.5">
               {t('home.viewAll')} <ChevronLeft className="h-3.5 w-3.5" />
             </Link>
           )}
         </div>
 
-        {locationStatus === 'loading' || loadingStores ? (
-          <div className="bg-white rounded-2xl p-10 shadow-[0_2px_20px_rgba(0,0,0,0.04)] text-center">
-            <Loader2 className="h-7 w-7 animate-spin text-[#1B4F72] mx-auto mb-3" />
-            <p className="text-sm text-gray-400 font-medium">{t('home.locating')}</p>
+        {loadingStores ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => <SkeletonStore key={i} />)}
           </div>
-        ) : locationStatus === 'denied' ? (
-          <div className="bg-white rounded-2xl p-8 shadow-[0_2px_20px_rgba(0,0,0,0.04)] text-center">
-            <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <MapPin className="h-6 w-6 text-gray-400" />
+        ) : locationStatus === 'denied' && nearbyStores.length === 0 ? (
+          <div className="bg-white rounded-2xl p-8 border border-[#EBEBEB] text-center">
+            <div className="w-12 h-12 bg-[#F5F5F5] rounded-xl flex items-center justify-center mx-auto mb-3">
+              <MapPin className="h-5 w-5 text-[#CCC]" />
             </div>
-            <p className="font-bold text-gray-700 mb-1 text-sm">{t('home.enableLocation')}</p>
-            <p className="text-xs text-gray-400 mb-5 leading-relaxed">{t('home.enableLocationDesc')}</p>
-            <button onClick={loadNearby} className="bg-[#1B4F72] text-white px-6 py-2.5 rounded-xl text-sm font-bold cursor-pointer active:scale-95 transition-transform">
+            <p className="font-bold text-[#333] text-sm mb-1">{t('home.enableLocation')}</p>
+            <p className="text-xs text-[#999] mb-4 leading-relaxed">{t('home.enableLocationDesc')}</p>
+            <button
+              onClick={loadNearby}
+              className="bg-[#111] text-white px-6 py-2.5 rounded-xl text-sm font-bold active:scale-95 transition-transform"
+            >
               {t('common.retry')}
             </button>
           </div>
-        ) : nearbyStores.length === 0 && locationStatus === 'granted' ? (
-          <div className="bg-white rounded-2xl p-8 shadow-[0_2px_20px_rgba(0,0,0,0.04)] text-center">
-            <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <StoreIcon className="h-6 w-6 text-gray-400" />
+        ) : nearbyStores.length === 0 ? (
+          <div className="bg-white rounded-2xl p-8 border border-[#EBEBEB] text-center">
+            <div className="w-12 h-12 bg-[#F5F5F5] rounded-xl flex items-center justify-center mx-auto mb-3">
+              <StoreIcon className="h-5 w-5 text-[#CCC]" />
             </div>
-            <p className="font-bold text-gray-700 text-sm">{t('home.noStores')}</p>
-            <p className="text-xs text-gray-400 mt-1">{t('home.tryByName')}</p>
+            <p className="font-bold text-[#333] text-sm">{t('home.noStores')}</p>
+            <p className="text-xs text-[#999] mt-1">{t('home.tryByName')}</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {nearbyStores.slice(0, 5).map((store, idx) => (
               <Link
                 key={store.id}
                 href={`/store/${store.id}?tenantId=${store.tenantId}`}
-                className={`flex items-center gap-3.5 bg-white rounded-2xl p-4 shadow-[0_2px_20px_rgba(0,0,0,0.04)] cursor-pointer active:scale-[0.98] transition-transform animate-slide-right delay-${(idx + 1) * 100}`}
+                className="flex items-center gap-3.5 bg-white rounded-2xl p-4 border border-[#EBEBEB] active:scale-[0.98] transition-transform animate-fade-up"
+                style={{ animationDelay: `${(idx + 1) * 60}ms` }}
               >
-                <div className="w-14 h-14 bg-gradient-to-br from-[#1B4F72]/5 to-[#1ABC9C]/5 rounded-2xl flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 bg-[#F5F5F5] rounded-xl flex items-center justify-center shrink-0 overflow-hidden">
                   {store.logoUrl ? (
-                    <img src={store.logoUrl} alt="" className="w-full h-full rounded-2xl object-cover" />
+                    <img src={store.logoUrl} alt="" className="w-full h-full object-cover" />
                   ) : (
-                    <StoreIcon className="h-6 w-6 text-[#1B4F72]/40" />
+                    <StoreIcon className="h-5 w-5 text-[#BBB]" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-gray-900 text-[0.9rem] truncate">{store.nameAr}</p>
+                  <p className="font-bold text-[#111] text-sm truncate">{store.nameAr}</p>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[10px] bg-[#1B4F72]/8 text-[#1B4F72] px-2 py-0.5 rounded-md font-semibold">
+                    <span className="text-[10px] bg-[#F5F5F5] text-[#666] px-2 py-0.5 rounded-lg font-medium border border-[#EBEBEB]">
                       {CATEGORY_LABELS[store.category] ?? 'متجر'}
                     </span>
                     {store.distance !== undefined && store.distance > 0 && (
-                      <span className="text-[11px] text-gray-400 flex items-center gap-0.5 font-medium">
-                        <MapPin className="h-3 w-3" />
+                      <span className="text-[11px] text-[#999] flex items-center gap-0.5">
+                        <Navigation className="h-2.5 w-2.5" />
                         {store.distance < 1
                           ? `${Math.round(store.distance * 1000)} م`
                           : `${store.distance.toFixed(1)} كم`}
                       </span>
                     )}
                   </div>
-                  {store.address && (
-                    <p className="text-[11px] text-gray-400 truncate mt-0.5">{store.address}</p>
-                  )}
                 </div>
-                <ChevronLeft className="h-4 w-4 text-gray-300 shrink-0" />
+                <ChevronLeft className="h-4 w-4 text-[#DDD] shrink-0" />
               </Link>
             ))}
           </div>
         )}
       </section>
 
-      {/* ── How It Works ────────────────────────────── */}
+      {/* ── How It Works ─────────────────────────────── */}
       <section className="px-5 pb-8">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-7 h-7 bg-[#1B4F72]/10 rounded-lg flex items-center justify-center">
-            <Zap className="h-3.5 w-3.5 text-[#1B4F72]" />
-          </div>
-          <h2 className="font-extrabold text-gray-900 text-[0.95rem]">كيف يعمل؟</h2>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
+        <h2 className="font-black text-[#111] text-[0.95rem] mb-3">كيف يعمل؟</h2>
+        <div className="grid grid-cols-2 gap-2.5">
           {[
-            { icon: MapPin, title: 'حدد موقعك', desc: 'نعرض لك أقرب المتاجر', gradient: 'from-blue-50 to-blue-100/40' },
-            { icon: Package, title: 'اختر منتجاتك', desc: 'من الكتالوج أو اكتب قائمتك', gradient: 'from-emerald-50 to-emerald-100/40' },
-            { icon: CreditCard, title: 'ادفع', desc: 'كاش أو مدى أو Apple Pay', gradient: 'from-amber-50 to-amber-100/40' },
-            { icon: Car, title: 'استلم', desc: 'نوصّل طلبك لسيارتك', gradient: 'from-purple-50 to-purple-100/40' },
+            { num: '01', icon: MapPin, title: 'حدد موقعك', desc: 'نعرض لك أقرب المتاجر' },
+            { num: '02', icon: Package, title: 'اختر منتجاتك', desc: 'من الكتالوج أو اكتب قائمتك' },
+            { num: '03', icon: CreditCard, title: 'ادفع', desc: 'كاش أو مدى أو Apple Pay' },
+            { num: '04', icon: Car, title: 'استلم', desc: 'نوصّل طلبك لسيارتك' },
           ].map((step, i) => (
-            <div key={i} className={`bg-gradient-to-br ${step.gradient} rounded-2xl p-4 animate-fade-up delay-${(i + 1) * 100}`}>
-              <div className="w-10 h-10 bg-white/80 rounded-xl flex items-center justify-center mb-3 shadow-sm">
-                <step.icon className="h-5 w-5 text-[#1B4F72]" />
+            <div
+              key={step.num}
+              className="bg-white rounded-2xl p-4 border border-[#EBEBEB] animate-fade-up"
+              style={{ animationDelay: `${(i + 1) * 60}ms` }}
+            >
+              <span className="text-[10px] font-black text-[#CCC] tracking-widest mb-2 block">{step.num}</span>
+              <div className="w-9 h-9 bg-[#F5F5F5] rounded-xl flex items-center justify-center mb-2.5">
+                <step.icon className="h-4 w-4 text-[#444]" />
               </div>
-              <p className="font-bold text-gray-800 text-sm">{step.title}</p>
-              <p className="text-[11px] text-gray-500 mt-0.5 leading-relaxed">{step.desc}</p>
+              <p className="font-bold text-[#111] text-sm">{step.title}</p>
+              <p className="text-[11px] text-[#999] mt-0.5 leading-relaxed">{step.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ── Footer ──────────────────────────────────── */}
-      <footer className="bg-white border-t border-gray-100 px-5 py-6 text-center">
-        <p className="text-xs text-gray-400">
+      {/* ── Footer ───────────────────────────────────── */}
+      <footer className="bg-white border-t border-[#F0F0F0] px-5 py-6 text-center">
+        <p className="text-xs text-[#AAA]">
           هل أنت صاحب متجر؟{' '}
-          <a href="https://dashboard.estlem.store/login" className="text-[#1B4F72] font-bold underline underline-offset-2 cursor-pointer">
+          <a
+            href="https://dashboard.estlem.store/login"
+            className="text-[#111] font-bold underline underline-offset-2"
+          >
             سجّل متجرك
           </a>
         </p>
